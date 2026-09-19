@@ -3,478 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STAMPED BY FLEX ENT, LLC | SBFENT</title>
-    <meta
-        name="description"
-        content="STAMPED BY FLEX ENT, LLC — Independent entertainment, music, media and creative culture. Home of FLEX A LOT."
-    >
-    <meta name="theme-color" content="#050505">
+    <title>STAMPED BY FLEX ENT, LLC</title>
+    <meta name="description" content="STAMPED BY FLEX ENT, LLC. An independent entertainment company built around music, media, creativity, culture and entertainment. Featuring flagship artist Flex A Lot.">
     <link rel="stylesheet" href="style.css">
+    <!-- Premium Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- =========================
-         NAVIGATION
-    ========================== -->
-    <header class="site-header">
-        <nav class="navbar">
-            <a href="#home" class="brand">
-                <span>SBF</span>ENT
-            </a>
-            <button
-                class="menu-toggle"
-                id="menuToggle"
-                aria-label="Open navigation"
-                aria-expanded="false"
-            >
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <ul class="nav-menu" id="navMenu">
-                <li>
-                    <a href="#home">Home</a>
-                </li>
-                <li>
-                    <a href="#artist">Flex A Lot</a>
-                </li>
-                <li>
-                    <a href="#music">Music</a>
-                </li>
-                <li>
-                    <a href="#media">Stamped Media</a>
-                </li>
-                <li>
-                    <a href="#label">The Label</a>
-                </li>
-                <li>
-                    <a href="#brand">The Brand</a>
-                </li>
-                <li>
-                    <a href="#contact">Contact</a>
-                </li>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo">SBFENT</a>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">HOME</a></li>
+                <li><a href="#artist" class="nav-link">FLEX A LOT</a></li>
+                <li><a href="#music" class="nav-link">MUSIC</a></li>
+                <li><a href="#media" class="nav-link">MEDIA</a></li>
+                <li><a href="#label" class="nav-link">THE LABEL</a></li>
+                <li><a href="#contact" class="nav-link">CONTACT</a></li>
             </ul>
-        </nav>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <img src="5B85EF51-BF74-460F-84FF-411E6AEA775F.png" alt="SBFENT Brand Logo" class="hero-logo">
+            <h1>STAMPED BY <span class="accent">FLEX ENT</span></h1>
+            <h2>Music. Media. Creativity. Culture.</h2>
+            <p class="subtitle">Independent Entertainment Company</p>
+            <div class="hero-buttons">
+                <a href="#artist" class="btn btn-primary">LISTEN TO FLEX A LOT</a>
+                <a href="#contact" class="btn btn-secondary">BUSINESS & BOOKING</a>
+            </div>
+        </div>
     </header>
-    <!-- =========================
-         HERO
-    ========================== -->
-    <main>
-        <section class="hero" id="home">
-            <div class="hero-grid"></div>
-            <div class="hero-content">
-                <div class="hero-logo">
-                    <img
-                        src="5B85EF51-BF74-460F-84FF-411E6AEA775F.png"
-                        alt="STAMPED BY FLEX ENT logo"
-                    >
+
+    <section id="artist" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>FLEX A <span class="accent">LOT</span></h2>
+                <p>Artist / Founder</p>
+            </div>
+            <div class="artist-content">
+                <div class="artist-image">
+                    <!-- Currently utilizing the brand mark until official press photo is added -->
+                    <img src="5B85EF51-BF74-460F-84FF-411E6AEA775F.png" alt="Flex A Lot">
                 </div>
-                <p class="eyebrow">
-                    Independent Entertainment Company
-                </p>
-                <h1>
-                    STAMPED BY
-                    <span>FLEX ENT</span>
-                </h1>
-                <p class="hero-copy">
-                    Music. Media. Creativity. Culture.
-                    <br>
-                    Building a brand designed to leave a legacy.
-                </p>
-                <div class="hero-buttons">
-                    <a
-                        class="button button-primary"
-                        href="https://linktr.ee/flexalot1995"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Listen to Flex A Lot
-                    </a>
-                    <a
-                        class="button button-outline"
-                        href="#contact"
-                    >
-                        Business & Booking
-                    </a>
-                </div>
-                <div class="hero-scroll">
-                    <span></span>
-                    Scroll to explore
-                </div>
-            </div>
-        </section>
-        <!-- =========================
-             BRAND STATEMENT
-        ========================== -->
-        <section class="statement">
-            <div class="section-inner center">
-                <p class="section-kicker">
-                    THE SBFENT MISSION
-                </p>
-                <h2>
-                    MUSIC BUILDS
-                    <span>LEGACIES.</span>
-                </h2>
-                <p class="statement-copy">
-                    STAMPED BY FLEX ENT, LLC is an independent
-                    entertainment company built around music,
-                    creativity, visual storytelling and culture.
-                </p>
-            </div>
-        </section>
-        <!-- =========================
-             FLEX A LOT
-        ========================== -->
-        <section class="artist section" id="artist">
-            <div class="section-inner">
-                <div class="section-heading">
-                    <p class="section-kicker">
-                        THE ARTIST
-                    </p>
-                    <h2>
-                        FLEX <span>A LOT</span>
-                    </h2>
-                    <p>
-                        The artist. The founder. The creative force
-                        behind the STAMPED brand.
-                    </p>
-                </div>
-                <div class="artist-layout">
-                    <div class="artist-card">
-                        <div class="artist-card-top">
-                            <span>01</span>
-                            <span>ARTIST / FOUNDER</span>
-                        </div>
-                        <h3>
-                            FLEX A LOT
-                        </h3>
-                        <p>
-                            Flex A Lot is an independent recording
-                            artist and the creative force behind
-                            STAMPED BY FLEX ENT.
-                        </p>
-                        <p>
-                            The music is the foundation.
-                            The STAMPED brand expands that vision
-                            into media, entertainment and original
-                            creative projects.
-                        </p>
-                        <a
-                            class="text-link"
-                            href="https://linktr.ee/flexalot1995"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Explore Flex A Lot →
-                        </a>
-                    </div>
-                    <div class="stamp-panel">
-                        <div class="stamp-circle">
-                            <span>SBFENT</span>
-                            <small>
-                                EST. 2026
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            <!-- =========================
-     STAMPED MUSIC
-========================== -->
-
-<section class="section dark-section" id="music">
-    <div class="section-inner">
-
-        <div class="section-heading">
-            <p class="section-kicker">
-                STAMPED MUSIC
-            </p>
-
-            <h2>
-                THE <span>MUSIC.</span>
-            </h2>
-
-            <p>
-                Enter the world of FLEX A LOT.
-                Discover music, releases, collaborations
-                and the latest sounds from the STAMPED catalog.
-            </p>
-        </div>
-
-
-        <div class="music-feature">
-
-            <div class="music-feature-content">
-
-                <span class="card-number">
-                    FLEX A LOT / OFFICIAL MUSIC
-                </span>
-
-                <h3>
-                    MUSIC BUILDS
-                    <span>LEGACIES.</span>
-                </h3>
-
-                <p>
-                    Stream the latest music from FLEX A LOT
-                    and explore all official music platforms
-                    through the STAMPED music hub.
-                </p>
-
-                <div class="music-buttons">
-
-                    <a
-                        href="https://linktr.ee/flexalot1995"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="button button-primary"
-                    >
-                        Listen Now
-                    </a>
-
-                    <a
-                        href="https://linktr.ee/flexalot1995"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="button button-outline"
-                    >
-                        All Platforms
-                    </a>
-
-                </div>
-
-            </div>
-
-            <div class="music-feature-badge">
-
-                <div class="music-disc">
-
-                    <span>
-                        FLEX
-                    </span>
-
-                    <strong>
-                        A LOT
-                    </strong>
-
-                    <small>
-                        SBFENT
-                    </small>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="music-platforms">
-
-            <div class="platform-card">
-                <span>01</span>
-                <h4>STREAMING</h4>
-                <p>
-                    Find FLEX A LOT across
-                    official music platforms.
-                </p>
-            </div>
-
-            <div class="platform-card">
-                <span>02</span>
-                <h4>RELEASES</h4>
-                <p>
-                    Singles, projects and
-                    future STAMPED releases.
-                </p>
-            </div>
-
-            <div class="platform-card">
-                <span>03</span>
-                <h4>COLLABORATIONS</h4>
-                <p>
-                    Music and creative projects
-                    built with other artists.
-                </p>
-            </div>
-
-        </div>
-
-    </div>
-</section>
-            
-        <!-- =========================
-     STAMPED MEDIA
-========================== -->
-<section class="section stamped-media" id="media">
-    <div class="section-inner">
-
-        <div class="section-heading">
-            <p class="section-kicker">STAMPED MEDIA</p>
-            <h2>WATCH THE <span>VISION.</span></h2>
-            <p>Official videos, music visuals and original entertainment from FLEX A LOT and SBFENT.</p>
-        </div>
-
-        <div class="featured-video">
-            <div class="video-wrapper">
-                <iframe
-                    src="https://youtube.com"
-                    title="Flex A Lot ft. Backwoodz Za — BALLIN FOR NO REASON"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen>
-                </iframe>
-            </div>
-
-            <div class="video-info">
-                <span class="card-number">STAMPED MEDIA / 01</span>
-                <h3>BALLIN FOR NO REASON</h3>
-                <p>Watch the official music video for "BALLIN FOR NO REASON" by Flex A Lot featuring Backwoodz Za. Directed by @Kslay.Filmzz.</p>
-
-                <div class="music-buttons">
-                    <a href="https://youtu.be" target="_blank" rel="noopener noreferrer" class="button button-primary">
-                        Watch on YouTube
-                    </a>
-                    <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="button button-outline">
-                        Visit Channel
-                    </a>
+                <div class="artist-text">
+                    <p class="quote">“Flex A Lot is an independent recording artist and the creative force behind STAMPED BY FLEX ENT.”</p>
+                    <p>Building a legacy from the ground up, blending raw lyricism with a larger vision for the entertainment industry.</p>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="media-footer">
-            <p>MORE STAMPED CONTENT COMING SOON.</p>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="text-link">
-                Explore Flex A Lot on YouTube →
-            </a>
+    <section id="music" class="section dark-panel">
+        <div class="container">
+            <div class="section-header">
+                <h2>STAMPED <span class="accent">MUSIC</span></h2>
+            </div>
+            <div class="music-content">
+                <h3>THE MUSIC.</h3>
+                <p>Music builds legacies. More releases coming soon.</p>
+                <div class="music-placeholder">
+                    <p>New releases and official streaming links will be populated here as they drop.</p>
+                </div>
+                <a href="https://linktr.ee/flexalot1995" target="_blank" class="btn btn-primary">STREAM NOW</a>
+            </div>
         </div>
+    </section>
 
-    </div>
-</section>
+    <section id="media" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>STAMPED <span class="accent">MEDIA</span></h2>
+                <p>WATCH THE VISION.</p>
+            </div>
+            <div class="media-container">
+                <div class="video-wrapper">
+                    <iframe src="https://www.youtube.com/embed/KWOM85_bt4Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="media-links">
+                    <a href="https://youtube.com/@flex-a-lot" target="_blank" class="btn btn-secondary">SUBSCRIBE ON YOUTUBE</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <!-- =========================
-             THE LABEL
-        ========================== -->
-        <section class="section label-section" id="label">
-            <div class="section-inner">
-                <div class="section-heading">
-                    <p class="section-kicker">
-                        THE COMPANY
-                    </p>
-                    <h2>
-                        STAMPED BY
-                        <span>FLEX ENT, LLC</span>
-                    </h2>
-                </div>
-                <div class="label-content">
-                    <div>
-                        <p class="large-text">
-                            An independent entertainment company
-                            officially established in South Carolina.
-                        </p>
-                    </div>
-                    <div>
-                        <p>
-                            STAMPED BY FLEX ENT, LLC is built around
-                            music, media, creative expression and
-                            the long-term development of the STAMPED
-                            brand.
-                        </p>
-                        <p>
-                            The company provides the foundation for
-                            Flex A Lot's music while creating room for
-                            future entertainment, media and brand
-                            ventures.
-                        </p>
-                    </div>
+    <section id="label" class="section dark-panel">
+        <div class="container text-center">
+            <div class="section-header">
+                <h2>THE <span class="accent">LABEL</span></h2>
+            </div>
+            <p class="lead-text">An independent entertainment company built around music, media, creative expression and the long-term development of the STAMPED brand.</p>
+            <div class="brand-categories">
+                <div class="category-card">MUSIC</div>
+                <div class="category-card">MEDIA</div>
+                <div class="category-card">CREATIVE</div>
+                <div class="category-card">CULTURE</div>
+                <div class="category-card">ENTERTAINMENT</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section">
+        <div class="container text-center">
+            <div class="section-header">
+                <h2>LET'S BUILD <span class="accent">TOGETHER</span></h2>
+            </div>
+            <p>For Bookings, Business inquiries, Media, Collaborations, and Entertainment opportunities.</p>
+            <a href="mailto:sirflexalot1995@yahoo.com" class="btn btn-primary contact-btn">sirflexalot1995@yahoo.com</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">SBFENT</div>
+                <div class="social-hub">
+                    <a href="https://youtube.com/@flex-a-lot" target="_blank" class="social-link">YouTube</a>
+                    <!-- Additional social platform links to be added -->
                 </div>
             </div>
-        </section>
-        <!-- =========================
-             THE BRAND
-        ========================== -->
-        <section class="brand-section section" id="brand">
-            <div class="section-inner">
-                <div class="brand-content">
-                    <p class="section-kicker">
-                        THE STAMPED BRAND
-                    </p>
-                    <h2>
-                        <span>STAMP</span>
-                        YOUR LEGACY.
-                    </h2>
-                    <p>
-                        STAMPED BY FLEX ENT is more than a name.
-                        It is the visual identity connecting music,
-                        media, creativity and culture under one brand.
-                    </p>
-                    <div class="brand-tags">
-                        <span>MUSIC</span>
-                        <span>MEDIA</span>
-                        <span>CREATIVE</span>
-                        <span>CULTURE</span>
-                        <span>ENTERTAINMENT</span>
-                    </div>
-                </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="year"></span> STAMPED BY FLEX ENT, LLC. All Rights Reserved.</p>
             </div>
-        </section>
-        <!-- =========================
-             CONTACT
-        ========================== -->
-        <section class="contact section" id="contact">
-            <div class="section-inner">
-                <div class="contact-box">
-                    <p class="section-kicker">
-                        CONNECT WITH SBFENT
-                    </p>
-                    <h2>
-                        LET'S BUILD
-                        <span>TOGETHER.</span>
-                    </h2>
-                    <p>
-                        For bookings, business inquiries, media,
-                        collaborations and entertainment opportunities.
-                    </p>
-                    <a
-                        href="mailto:sirflexalot1995@yahoo.com"
-                        class="contact-email"
-                    >
-                        sirflexalot1995@yahoo.com
-                    </a>
-                    <div class="hero-buttons">
-                        <a
-                            href="mailto:sirflexalot1995@yahoo.com"
-                            class="button button-primary"
-                        >
-                            Contact SBFENT
-                        </a>
-                        <a
-                            href="https://linktr.ee/flexalot1995"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="button button-outline"
-                        >
-                            Follow Flex A Lot
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    <!-- =========================
-         FOOTER
-    ========================== -->
-    <footer>
-        <div class="footer-inner">
-            <div class="footer-brand">
-                STAMPED BY <span>FLEX ENT</span>
-            </div>
-            <p>
-                SBFENT • MUSIC • MEDIA • ENTERTAINMENT
-            </p>
-            <p>
-                © 2026 STAMPED BY FLEX ENT, LLC.
-                All Rights Reserved.
-            </p>
         </div>
     </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
