@@ -1,65 +1,30 @@
 # STAMPED BY FLEX ENT, LLC
 
-### SBFENT — MUSIC BUILDS LEGACIES.
+Official website for SBFENT and Flex A Lot: https://sbfentllc.github.io/
 
-Welcome to the official GitHub repository for **STAMPED BY FLEX ENT, LLC (SBFENT)**, an independent entertainment company built around music, media, creativity, and culture.
+## Site sections
 
-## 🎵 About SBFENT
+Home, Stamped Music, Flex A Lot, Stamped Media, The Label, The Stamped Brand, and Bookings & Business.
 
-STAMPED BY FLEX ENT, LLC is the entertainment company behind independent recording artist **FLEX A LOT**.
+The music section links to MODEST and BACK OFF THA WALL on Apple Music and WORKIN on Spotify. YouTube and social destinations were taken from the artist's official Linktree: https://linktr.ee/flexalot1995.
 
-SBFENT serves as the foundation for:
+## Editing
 
-- Music
-- Entertainment
-- Media
-- Creative Projects
-- Visual Storytelling
-- Brand Development
-- Future Entertainment Ventures
+- `index.html`: copy, music destinations, navigation, embedded cover artwork, social links, and contact information.
+- `style.css`: black, green, and gold design, responsive layouts, and typography.
+- `script.js`: accessible mobile navigation and the copyright year.
+- `5B85EF51-BF74-460F-84FF-411E6AEA775F.png`: original SBFENT brand artwork.
 
-The mission is simple:
+Album artwork is embedded as optimized WebP data URLs, so it does not depend on third-party image hosting. Google Fonts supplies Barlow and Barlow Condensed; system fonts are used if unavailable.
 
-> **MUSIC BUILDS LEGACIES.**
+## Preview
 
-## 🎤 FLEX A LOT
+Run `python -m http.server 8080` in the repository, then open http://localhost:8080.
 
-**FLEX A LOT** is an independent recording artist, founder, and creative force behind the STAMPED brand.
+## Publishing
 
-Explore Flex A Lot's music, platforms, and official destinations:
+GitHub Pages publishes from the existing main branch. All site changes should be committed together. Earlier designs remain available in Git history.
 
-**Official Music & Social Hub:**  
-https://linktr.ee/flexalot1995
+## Business contact
 
-## 🏷️ The STAMPED Brand
-
-STAMPED BY FLEX ENT represents a growing creative identity connecting:
-
-**MUSIC • MEDIA • CREATIVITY • CULTURE • ENTERTAINMENT**
-
-The brand is designed to create original experiences while building a lasting independent entertainment company.
-
-## 🌐 Official Website
-
-Visit the official SBFENT website:
-
-https://sbfentllc.github.io/
-
-## 📩 Business & Booking
-
-For bookings, business inquiries, media, collaborations, and entertainment opportunities:
-
-**sirflexalot1995@yahoo.com**
-
-## 📁 Website Structure
-
-This repository contains the official SBFENT website.
-
-```text
-SBFENT/
-│
-├── index.html
-├── style.css
-├── script.js
-│
-└── 5B85EF51-BF74-460F-84FF-411E6AEA775F.png
+sirflexalot1995@yahoo.com
