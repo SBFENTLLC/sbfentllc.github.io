@@ -40,3 +40,5 @@ Four supplied studio artwork panels expand the Stamped Brand section: Entertainm
 The brand story gallery includes supplied studio and illustrated legacy artwork, plus both sides of the clearly labeled United States of Flex prop bill. These are brand visuals, not factual milestones or commerce listings.
 
 Five supplied chase artworks expand the BACK OFF THA WALL gallery: getaway, police car poster, investigation, exterior, and car interior. Full vertical framing is retained.
+
+Ten supplied MODEST performance edits are presented in an expandable collection in Stamped Media. Their source audio streams, original captions, durations, and vertical framing remain intact; the video is encoded for streaming.
