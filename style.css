@@ -13,3 +13,5 @@
 @media(max-width:760px){.artist-portrait{max-width:100%}.performance-grid{grid-template-columns:1fr;gap:30px}.animated-card{display:block;grid-column:auto}.visual-gallery{gap:14px}.visual-head{margin-top:50px}.visual-head h3{font-size:2.1rem}.brand-stickers{gap:12px}.video-caption{padding:22px}.artist-layout{align-items:start}}
 
 .campaign-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.campaign-head .eyebrow{color:var(--gold)}@media(max-width:760px){.campaign-head{align-items:flex-start;flex-direction:column}}
+
+.campaign-gallery .campaign-feature{grid-column:span 2}.campaign-gallery{align-items:start}
