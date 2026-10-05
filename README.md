@@ -38,3 +38,5 @@ The truck and foot chase clips use the supplied clean BACK OFF THA WALL audio, a
 Four supplied studio artwork panels expand the Stamped Brand section: Entertainment, Creative, Media, and Partnership & Legacy. Full images are preserved and linked; these visuals do not introduce new service or pricing claims.
 
 The brand story gallery includes supplied studio and illustrated legacy artwork, plus both sides of the clearly labeled United States of Flex prop bill. These are brand visuals, not factual milestones or commerce listings.
+
+Five supplied chase artworks expand the BACK OFF THA WALL gallery: getaway, police car poster, investigation, exterior, and car interior. Full vertical framing is retained.
