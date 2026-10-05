@@ -31,4 +31,10 @@ sirflexalot1995@yahoo.com
 
 ## Artist media
 
-Official uploaded artwork is served locally as WebP. Four supplied clips use native video controls and retain the original audio streams, durations, and framing, with video encoded for web playback. MP4 containers are arranged for streaming. Gallery images link to the full artwork.
+Official uploaded artwork is served locally as WebP. Six supplied clips use native video controls and retain the original audio streams, durations, and framing, with video encoded for web playback. MP4 containers are arranged for streaming. Gallery images link to the full artwork.
+
+The truck and foot chase clips use the supplied clean BACK OFF THA WALL audio, aligned to the existing foot-chase song excerpt at 00:12.88. Full-quality downloadable edits preserve the original video streams.
+
+Four supplied studio artwork panels expand the Stamped Brand section: Entertainment, Creative, Media, and Partnership & Legacy. Full images are preserved and linked; these visuals do not introduce new service or pricing claims.
+
+The brand story gallery includes supplied studio and illustrated legacy artwork, plus both sides of the clearly labeled United States of Flex prop bill. These are brand visuals, not factual milestones or commerce listings.
