@@ -28,3 +28,7 @@ GitHub Pages publishes from the existing main branch. All site changes should be
 ## Business contact
 
 sirflexalot1995@yahoo.com
+
+## Artist media
+
+Official uploaded artwork is served locally as WebP. Three supplied clips use native video controls and retain the original audio streams, durations, and framing, with video encoded for web playback. MP4 containers are arranged for streaming. Gallery images link to the full artwork.
