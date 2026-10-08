@@ -14,3 +14,5 @@
 .flex-game-stage canvas[data-world]{height:clamp(380px,62svh,520px);aspect-ratio:auto}.flex-game-stage canvas.world-map{width:80px;height:54px}.world-mobile-controls{display:none}.world-action-bar{display:none}.flex-game-bottom{padding:12px!important}.flex-game-help{font-size:.8rem}.flex-game-overlay{z-index:3}.flex-game-help p:first-child{display:none}
 }
 @media(pointer:coarse) and (orientation:landscape){.flex-game-stage canvas[data-world]{height:76svh;min-height:290px}.phone-joystick{width:104px;height:104px}.joystick-knob{left:26px;top:26px}}
+
+.game-how-to{max-width:960px;margin:16px auto;border:1px solid #617842;border-radius:12px;background:#152017;color:#d5e4c9;padding:14px 18px;font:400 .9rem/1.6 Arial}.game-how-to summary{cursor:pointer;color:#b0ee59;font-weight:800;min-height:32px;letter-spacing:.05em}.game-how-to ol{padding-left:22px;margin:12px 0}.game-how-to li{margin-bottom:10px}.game-how-to p{margin:12px 0 0}.game-how-to strong{color:#f2ffe6}@media(max-width:650px){.game-how-to{font-size:.85rem;padding:12px 14px}}
