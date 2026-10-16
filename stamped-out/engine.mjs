@@ -84,7 +84,7 @@ export class Fight {
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
   const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
   ai.crouch=ai.block&&a.character===10&&a.move?.name==='kick'&&a.y<8;
-  if(b.character===14&&(b.move?.braceSetup||b.brace>0&&d<=155)){ai.left=false;ai.right=false;}
+  if(b.character===14&&(b.move?.braceSetup||b.brace>0&&d<=180)){ai.left=false;ai.right=false;}
   if(b.character===13&&this.traps.some(t=>t.id===1)&&d<175){ai.left=toward>0;ai.right=toward<0;}
   if(b.character===6&&d<155){ai.left=toward>0;ai.right=toward<0;}
   if(b.character===11&&b.move?.name==='punch'&&b.move.connected&&this.difficulty!=='easy')this.attack(1,'punch');
@@ -95,7 +95,7 @@ export class Fight {
    if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<(b.character===9?.6:.25)))this.attack(1,'grab');
    else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
    else if(b.character===8&&d>120&&d<230&&b.dashCooldown<=0)this.attack(1,'punch',{direction:toward});
-   else if(b.character===14&&b.brace>0&&d<=155)this.attack(1,'punch');
+   else if(b.character===14&&b.brace>0&&d<=180)this.attack(1,'punch');
    else if(b.character===14&&b.brace<=0&&d<=145)this.attack(1,'kick');
    else if(b.character===13&&d<=330&&!this.traps.some(t=>t.id===1))this.attack(1,'kick');
    else if(b.character===12&&d<=265)this.attack(1,'kick');
@@ -129,8 +129,8 @@ export class Fight {
     f.move.t+=dt;const move=f.move,m=moveFor(f.character,move.name);
     if((move.dash&&move.t<=.16||move.rush&&move.t<=.13)&&f.y<8){const delta=Math.min((move.dash?650:200)*dt,(move.dash?104:26)-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
-    if(move.t>=(move.wind??m.wind)&&!move.hit){
-     move.hit=true;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?155:move.counter?140:m.range);
+    if(move.t>=(move.wind??m.wind)&&!move.hit&&(move.name!=='punch'||move.t<=(move.wind??m.wind)+m.active)){
+     move.hit=move.name!=='punch';const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:m.range);
      if(move.braceSetup){f.brace=1.8;this.events.push({type:'brace',id:i});
      }else if(f.character===13&&move.name==='kick'&&f.y<8){
       this.traps.push({id:i,x:clamp(f.x+f.face*130,75,925),age:0,armed:false,life:3.5});this.events.push({type:'trap',id:i});
@@ -141,9 +141,10 @@ export class Fight {
       this.events.push({type:'grabMiss',id:i});
      }else if(inRange&&vertical<(f.character===10&&move.name==='kick'&&f.y<8?45:100)){
       if(move.name==='special'&&!other.block&&other.knockdown<=0){this.beginSequence('super',i);return;}
-      if(other.knockdown<=0){move.connected=!other.block;this.applyHit(i,move.load?22:move.counter?18:m.damage,{move:move.name,blocked:other.block&&!(f.character===10&&move.name==='kick'&&f.y<8&&!other.lowGuard)});}
+      if(other.knockdown<=0){move.hit=true;move.connected=!other.block;this.applyHit(i,move.load?22:move.counter?18:m.damage,{move:move.name,blocked:other.block&&!(f.character===10&&move.name==='kick'&&f.y<8&&!other.lowGuard)});}
      }
     }
+    if(move.name==='punch'&&move.t>=(move.wind??m.wind)+m.active)move.hit=true;
     if(move.t>=(move.wind??m.wind)+m.active+(move.load?.70:move.counter?.48:move.dash?.36:m.recovery)){f.move=null;f.cooldown=.04;}
    }
    if(this.training)f.power=100;

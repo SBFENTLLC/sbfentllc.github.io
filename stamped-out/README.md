@@ -51,6 +51,12 @@ Match slot and character identity are separate, so each character keeps their mo
 
 Punch damage against 100 HP: Flex 12 (previously 8), Bootlegger 9 (6), Foxy 8 (6), Clara 10 (7). Punch reach and timing retain each character’s style. Flex’s landed P → P → K now deals 35 total damage. Guard still reduces strikes to chip damage.
 
+## Punch contact tuning
+
+Punch reach now better matches the illustrated contact: Flex reaches 155 units (previously 118), matching his kick reach. Other normal punches range from 138 to 175 depending on the fighter. Onyx's timed counter reaches 170; Iron Haul's loaded straight reaches 180. Damage, startup, recovery, and cancel limits are unchanged. Redline still advances up to 26 units and Nova retains her directional dash, so their effective reach includes movement.
+
+Punches now check contact throughout their defined active window until the first valid hit or block, rather than checking only on its first frame. A target moving into a live swing can be caught; entering during recovery cannot cause a late hit. Each swing still deals damage only once, guard still chips, and blocked/whiffed punches cannot confirm into combos.
+
 ## Combat and practice
 
 Best of three, sixty-second rounds, easy/medium/hard CPU, Stamp Meter, blocked chip damage, hit-stop, counters, recovery punishes, knockdowns, slow-motion K.O.s, character intro/win cards, and match records. Recent taps buffer for 160 ms; only unblocked contact allows a character's specified cancel route. A clean hit interrupts the opponent and clears queued input. Chains have bounded cancels; whiffs and blocked attacks recover normally. Grounded knockdown prevents repeated strikes and grabs.
@@ -71,7 +77,7 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 95 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 100 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
 The twelve starting fighters and three story chapters are implemented. The False King finale, four more arenas, and alternate outfits remain future production stages after review of each set.
 
