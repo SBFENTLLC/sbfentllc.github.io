@@ -3,7 +3,7 @@ export function setupSelection(fx,onChange=()=>{},isUnlocked=()=>false){
  const $=id=>document.getElementById(id);let player=0,opponent=1;
  function update(){
   for(const f of FIGHTERS){const locked=f.boss&&!isUnlocked(f.index);$('pick'+f.index).disabled=locked;$('pick'+f.index).setAttribute('aria-label',locked?f.name+' — unlock in story mode':f.name);} 
-  $('playerBoss').disabled=$('opponentBoss').disabled=!isUnlocked(12);$('playerStatic').disabled=$('opponentStatic').disabled=!isUnlocked(13);
+  $('playerBoss').disabled=$('opponentBoss').disabled=!isUnlocked(12);$('playerStatic').disabled=$('opponentStatic').disabled=!isUnlocked(13);$('playerHaul').disabled=$('opponentHaul').disabled=!isUnlocked(14);
   $('playerCharacter').value=String(player);$('opponentCharacter').value=String(opponent);
   for(const f of FIGHTERS)$('pick'+f.index).setAttribute('aria-pressed',String(player===f.index));
   const f=FIGHTERS[player];$('fighterDetail').textContent=`${f.name} · ${f.style}. ${f.strength}. Weakness: ${f.weakness}. Combo: ${f.combo}.`;

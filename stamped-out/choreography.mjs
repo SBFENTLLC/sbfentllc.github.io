@@ -113,6 +113,15 @@ export function sequenceFighters(fighters,sequence){
   else if(t<3){const p=smooth((t-2.6)/.4);b.y=110*(1-p);b.rotation=-2.3*p*d;b.x=lerp(c+d*65,c+d*175,p);}
   else{a.pose=7;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
  }
+ if(character===14){
+  // Braced body blows, freight carry, then a shoulder-driven final launch.
+  a.x=c-d*85;a.pose=t<.42?4:t<1.4?2:7;
+  if(t<1.4){b.x=c+d*60;b.rotation=Math.sin(t*16)*.1*d;}
+  else if(t<2.35){const p=(t-1.4)/.95;a.x=lerp(c-d*130,c-d*45,smooth(p));b.x=lerp(c+d*40,c+d*105,smooth(p));b.y=Math.sin(p*Math.PI)*90;b.rotation=p*.4*d;}
+  else if(t<2.95){const p=smooth((t-2.35)/.6);a.x=lerp(c-d*140,c-d*50,p);b.x=lerp(c+d*100,c+d*175,p);b.y=Math.sin(p*Math.PI)*100;b.rotation=p*1.5*d;}
+  else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
+ }
  return out;
 }
+
 

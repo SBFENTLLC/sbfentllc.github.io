@@ -1,8 +1,8 @@
-# SBFENT: Stamped Out — Flex story chapters one and two review build
+# SBFENT: Stamped Out — Flex story chapters one through three + vocal audio review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. The rooftop, Carolina Block Party, and Neon Underground are playable; the latter two unlock through story wins. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
+The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. The rooftop, Carolina Block Party, Neon Underground, and Flex Motor Yard are playable; the latter three unlock through story wins. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
 
 ## Flex story: Take Back the Stamp
 
@@ -15,6 +15,20 @@ Big Pressure has slow heavy punches, a 24-damage escapable grab, and a 19-damage
 Clear chapter one to enable chapter two in the story chapter selector. Flex faces DJ Blackout at Carolina Block Party, Onyx on the rooftop, then Lady Static at Neon Underground. Clear all three best-of-three matches to unlock Lady Static in either arcade/training slot and Neon Underground in the arena selector. Both chapter cursors save independently; replaying a chapter keeps all earned rewards. Existing version-one saves migrate in place, including an unfinished chapter-one replay. No account or cloud save is claimed.
 
 Lady Static's ground K plants a stationary trap 130 units ahead. A visible ring fills for 0.65 seconds before arming. It deals 11 once, expires after 3.5 seconds, and only one trap per owner can exist. Jump above its low trigger height, block for chip, or hit its owner to clear it. Setup can be interrupted before placement. Her air K is a close knee strike; her light 8-damage punch and long setup recovery reward close pressure. Static Storm is a 3.5-second, four-beat electric cage and lightning slam dealing 32 total. It has the same block/range/meter rules as the other supers.
+
+## Chapter three: Heavy Freight
+
+Clear chapter two, select Heavy Freight, and face Big Stamp at Carolina Block Party, Quiet Money at Neon Underground, then Iron Haul at Flex Motor Yard. Completing all three best-of-three matches unlocks Iron Haul and Flex Motor Yard for arcade/training. Save format three migrates both prior formats, preserving earlier unlocks and unfinished replay cursors. Chapter selection and unlocks remain sequential.
+
+Iron Haul's ground K braces after a 0.25-second setup. It grants a 1.8-second opportunity for P: a 22-damage heavy straight with 0.45-second startup and 0.70-second recovery. One light strike can be absorbed during startup while still dealing damage; a second light strike, a heavy hit, a grab, or a post-startup hit breaks it. Ordinary P has no armor. Moving, jumping, getting hit, or entering a joint sequence cancels brace. Full Load is a 3.45-second four-beat freight carry and shoulder smash dealing 35 total.
+
+## Music and fighter voices
+
+Each arcade, training, story, and rematch calls the soundtrack's match-start path: unlock, resume, select a song, and reset its playback position. Manual track choice, volume, and mute remain respected. If the browser blocks playback, the next movement/attack gesture or music button retries without muting it. Music loops within each match; one player avoids overlapping songs.
+
+All fifteen implemented fighters have distinct synthesized hit-grunt profiles and their own spoken intro, special-name, and win catchphrases. Catchphrases use the device's built-in speech voices, with character-specific pitch/rate; no paid generation or runtime service is required. Voices vary by available device voices and may be unavailable in some contexts. Existing visual intro/win captions remain. The Fighter voices checkbox controls vocals independently from impact sounds and music. Pause, menu exit, rematch, and new priority lines cancel stale speech; at most two intro lines queue. Hit grunts are short, rate-limited Web Audio formant effects, not recorded actors. Music ducks under voices and retains deeper K.O./special ducking. Real phone listening is still required to judge pronunciation, loudness, timing, and playback reliability. Speech API reference: https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis
+
+Chapter-three art paths and exact generation prompts: [ART-CHAPTER3.md](ART-CHAPTER3.md).
 
 ## Twelve distinct styles
 
@@ -33,7 +47,7 @@ Lady Static's ground K plants a stationary trap 130 units ahead. A visible ring 
 | Violet V | Low K sweeps standing guard into knockdown | Down + block or jump beats sweep; long recovery | Purple Reign: low sweep, rising spiral, heel drop |
 | Redline | Advancing P → P → P confirms | Blocking stops the chain; misses leave recovery | Overdrive: rushing punches and leaping uppercut |
 
-Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve starting profiles, implemented Big Pressure and Lady Static bosses, and two future boss profiles. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
+Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve starting profiles, implemented Big Pressure, Lady Static, and Iron Haul bosses, and one future boss profile. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
 
 Punch damage against 100 HP: Flex 12 (previously 8), Bootlegger 9 (6), Foxy 8 (6), Clara 10 (7). Punch reach and timing retain each character’s style. Flex’s landed P → P → K now deals 35 total damage. Guard still reduces strikes to chip damage.
 
@@ -51,15 +65,15 @@ Training starts with a full meter and has standing, blocking, jumping, or regula
 
 Landscape touch controls: directional pad plus punch, kick, block, grab, and special. Standard/large button options and left/right attack hand. Captured movement pointers can slide between buttons. Keyboard: arrows/WASD, J punch, K kick, L block, I/G grab, U special, Escape pause. Holding jump does not repeat after landing.
 
-All six supplied instrumentals are included as mobile AAC copies; originals are unchanged. One lazy audio element avoids overlapping tracks. MODEST plays on return to menu; HUSTLE / FOUR FLAT / MONEY MACHINE rotate across matches; ONE NIGHT STAND plays in training; all six, including EXQUISTE, are manually selectable. Music ducks around power-ups and K.O.s without altering the saved volume, and pauses with the game/background tab. Layered synthesized combat sounds begin after a gesture.
+All six supplied instrumentals are included as mobile AAC copies; originals are unchanged. One lazy audio element avoids overlapping tracks. MODEST plays on return to menu; HUSTLE / FOUR FLAT / MONEY MACHINE / EXQUISTE rotate across matches; ONE NIGHT STAND plays in training; all six, including EXQUISTE, are manually selectable. Music ducks around power-ups and K.O.s without altering the saved volume, and pauses with the game/background tab. Layered synthesized combat sounds begin after a gesture.
 
 A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and v9 service worker support Home Screen installation and cached core gameplay after a successful first load. Music streams on demand and partial audio responses are not cached. Reduced-motion mode suppresses camera movement, moving trails, and energy animation.
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 81 checks cover all 196 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 96 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-The twelve starting fighters and two story chapters are implemented. Two more boss chapters, five more arenas, and alternate outfits remain future production stages after review of each set.
+The twelve starting fighters and three story chapters are implemented. The False King finale, four more arenas, and alternate outfits remain future production stages after review of each set.
 
 Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
 
