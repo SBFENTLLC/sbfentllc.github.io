@@ -1,3 +1,4 @@
+import {drawCelebration} from './victories.mjs';
 import {moveFor,fighterFor,SUPER_SEQUENCES,KING_STANCES} from './roster.mjs';
 import {SPRITES} from './sprites.mjs';
 import {SPRITE_HULLS} from './sprite-hulls.mjs';
@@ -133,7 +134,7 @@ export class FightFX {
   for(let i=0;i<2;i++){const profile=fighterFor(fighters[i]);const x=i===0?245:755;ctx.fillStyle='#10091be6';ctx.fillRect(x-220,145,440,78);ctx.fillStyle=profile.color;ctx.font='italic 900 25px Arial';ctx.fillText(profile.name.toUpperCase(),x,173);ctx.fillStyle='#eedff5';ctx.font='900 12px Arial';ctx.fillText('“'+profile.quote+'”',x,198);}
   ctx.restore();
  }
- drawVictory(ctx,fighters){const id=this.finish.winner,profile=fighterFor(fighters[id]);ctx.save();ctx.globalAlpha=clamp((this.finish.elapsed-.85)/.3,0,1);ctx.fillStyle='#0e071dcc';ctx.fillRect(180,145,640,68);ctx.textAlign='center';ctx.fillStyle=profile.color;ctx.font='italic 900 24px Arial';ctx.fillText(profile.name.toUpperCase()+' WINS',500,173);ctx.fillStyle='#f6e3fa';ctx.font='900 12px Arial';ctx.fillText('“'+profile.victory+'”',500,197);ctx.restore();}
+ drawVictory(ctx,fighters){if(this.finish.type==='matchover'){drawCelebration(ctx,this,fighters[this.finish.winner],this.finish.elapsed-.85,this.bills);return;}const id=this.finish.winner,profile=fighterFor(fighters[id]);ctx.save();ctx.globalAlpha=clamp((this.finish.elapsed-.85)/.3,0,1);ctx.fillStyle='#0e071dcc';ctx.fillRect(180,145,640,68);ctx.textAlign='center';ctx.fillStyle=profile.color;ctx.font='italic 900 24px Arial';ctx.fillText(profile.name.toUpperCase()+' WINS',500,173);ctx.fillStyle='#f6e3fa';ctx.font='900 12px Arial';ctx.fillText('“'+profile.victory+'”',500,197);ctx.restore();}
  camera(ctx,fighters){
   if(this.reduced)return;const active=this.sequence||this.finish?.knockout;
   if(!active)return;const center=this.sequence?.center??((fighters[0]?.x??400)+(fighters[1]?.x??600))/2;

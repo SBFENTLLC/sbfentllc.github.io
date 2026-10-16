@@ -14,20 +14,34 @@ export const TRACKS=[
  {id:'rain-down',title:'RAIN DOWN',file:'rain-down.m4a'},
  {id:'throw-it',title:'THROW IT',file:'throw-it.m4a'}
 ];
+// Every arena has a distinct ordered mix. A per-arena cursor survives menus,
+// rematches and reloads; the ended event advances the same mix during long fights.
+export const ARENA_MIXES={
+ rooftop:['hustle','four-flat','sky-is-tha-limit','focus'],
+ studio:['modest','pod-dat','one-night-stand','exquiste'],
+ vault:['money-machine','bandz-on-your-kneez','four-flat','modest'],
+ workshop:['throw-it','andalay','hustle','pod-dat'],
+ blockparty:['big-ole-bitties','andalay','throw-it','bandz-on-your-kneez'],
+ underground:['exquiste','focus','pod-dat','rain-down'],
+ motoryard:['four-flat','hustle','sky-is-tha-limit','throw-it'],
+ penthouse:['sky-is-tha-limit','rain-down','money-machine','one-night-stand']
+};
 // A single lazy audio element prevents overlapping songs and avoids loading
 // the full soundtrack before a phone player has selected a track.
 export class Soundtrack {
- constructor(element,onChange=()=>{}){this.audio=element;this.audio.preload='none';this.audio.loop=true;this.audio.volume=.35;this.level=.35;this.duckTime=0;this.duckGain=1;this.onChange=onChange;this.selection='auto';this.enabled=true;this.unlocked=false;this.context='menu';this.match=0;this.current=null;this.suspended=false;this.status='idle';this.request=0;
+ constructor(element,onChange=()=>{},storage=null){this.audio=element;this.audio.preload='none';this.audio.loop=true;this.audio.volume=.35;this.level=.35;this.duckTime=0;this.duckGain=1;this.onChange=onChange;this.selection='auto';this.enabled=true;this.unlocked=false;this.context='menu';this.match=0;this.current=null;this.suspended=false;this.status='idle';this.request=0;this.arena=null;this.arenaVisits={};this.arenaIndex=0;this.storage=storage;try{const saved=JSON.parse(storage?.getItem('sbfent-arena-mixes'));for(const key of Object.keys(ARENA_MIXES))if(Number.isInteger(saved?.[key])&&saved[key]>=0)this.arenaVisits[key]=saved[key]%100000;}catch{}
+  this.audio.addEventListener('ended',()=>{if(this.selection==='auto'&&this.context==='fight'&&this.arena&&!this.suspended&&this.enabled){this.arenaIndex=(this.arenaIndex+1)%ARENA_MIXES[this.arena].length;this.arenaVisits[this.arena]++;this.persistMixes();this.play();}});
   this.audio.addEventListener('error',()=>{this.status='unavailable';this.report();});
  }
- choose(){if(this.selection!=='auto')return TRACKS.find(t=>t.id===this.selection)||TRACKS[0];if(this.context==='training')return TRACKS[5];if(this.context==='menu')return TRACKS[0];const rotation=TRACKS.filter(t=>t.id!=='modest'&&t.id!=='one-night-stand');return rotation[this.match%rotation.length];}
+ choose(){if(this.selection!=='auto')return TRACKS.find(t=>t.id===this.selection)||TRACKS[0];if(this.context==='training')return TRACKS[5];if(this.context==='menu')return TRACKS[0];if(this.arena){const mix=ARENA_MIXES[this.arena];return TRACKS.find(t=>t.id===mix[this.arenaIndex%mix.length]);}const rotation=TRACKS.filter(t=>t.id!=='modest'&&t.id!=='one-night-stand');return rotation[this.match%rotation.length];}
  report(){this.onChange({track:this.current,status:this.status,enabled:this.enabled,volume:this.level,selection:this.selection});}
- async play(){const generation=++this.request;if(!this.enabled||!this.unlocked||this.suspended){this.audio.pause();this.status='paused';this.report();return;}
+ persistMixes(){try{this.storage?.setItem('sbfent-arena-mixes',JSON.stringify(this.arenaVisits));}catch{}}
+ async play(){this.audio.loop=!(this.context==='fight'&&this.selection==='auto'&&this.arena);const generation=++this.request;if(!this.enabled||!this.unlocked||this.suspended){this.audio.pause();this.status='paused';this.report();return;}
   const track=this.choose();if(this.current?.id!==track.id){this.audio.pause();this.audio.src='audio/'+track.file;this.current=track;}
   try{this.status='loading';this.report();await this.audio.play();if(generation!==this.request)return;this.status='playing';}catch{if(generation!==this.request)return;this.status='tap';}this.report();
  }
  unlock(){this.unlocked=true;return this.play();}
- beginMatch(context='fight',match=this.match){this.context=context;this.match=match;this.suspended=false;this.unlocked=true;try{this.audio.currentTime=0;}catch{}return this.play();}
+ beginMatch(context='fight',match=this.match,arena=null){this.context=context;this.match=match;this.arena=ARENA_MIXES[arena]?arena:null;if(this.arena&&context==='fight'){this.arenaIndex=(this.arenaVisits[this.arena]||0)%ARENA_MIXES[this.arena].length;this.arenaVisits[this.arena]=(this.arenaVisits[this.arena]||0)+1;this.persistMixes();}this.suspended=false;this.unlocked=true;try{this.audio.currentTime=0;}catch{}return this.play();}
  retry(){if(this.status==='tap'||this.status==='unavailable'){if(this.status==='unavailable')this.current=null;this.unlocked=true;return this.play();}}
  setScene(context,match=this.match){this.context=context;this.match=match;return this.play();}
  select(id){this.selection=id==='auto'||TRACKS.some(t=>t.id===id)?id:'auto';return this.play();}
