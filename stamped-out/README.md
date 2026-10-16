@@ -1,8 +1,8 @@
-# SBFENT: Stamped Out — Flex story eight-arena + six alternate outfits review build
+# SBFENT: Stamped Out — Flex story eight-arena + eight alternate outfits review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. Flex, Bootlegger, Foxy, Clara, Goldie, and Onyx have selectable SBFENT tracksuit alternates. The character menu disappears during combat. Existing SBFENT pages are unchanged.
+The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. Flex, Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, and Quiet Money have selectable SBFENT tracksuit alternates. The character menu disappears during combat. Existing SBFENT pages are unchanged.
 
 ## Flex story: Take Back the Stamp
 
@@ -97,7 +97,7 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 123 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 127 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
 All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. All eight planned arenas are implemented. Additional character outfit sets remain future production stages. This completes the current story route, not final device QA or production polish.
 
@@ -154,3 +154,5 @@ Final atlas refinement: “Edit target is the Lady Static eight-pose sprite shee
 Stage prompt: “Use case: stylized-concept. Asset: wide 16:9 production background for original SBFENT 2D fighting game. NEON UNDERGROUND, a secret broadcast club inside a repurposed underground train depot, angular steel columns, distant DJ platform, giant cyan signal screens with abstract crown shapes, purple strip lights and lime accent lighting, distant crowd behind railings, stacked speakers. Textured hand-painted cel arcade background, moody but vivid. Straight level side-view fighting camera, lower 38 percent is entirely clear flat concrete fighting floor with subtle cyan reflections, no railings or props crossing this foreground floor. All environment detail above the floor horizon at roughly 60 percent image height. No fighters, no HUD, no letters or watermarks. Composition supports large fighter sprites in foreground.”
 
 Goldie adds a blue/purple crown-stripe tracksuit and Onyx a blue/purple side-stripe tracksuit, both from the supplied clothing references. Each retains her original face, hair, jewelry, fighting style and timing. Outfit preferences remain independent per side and preserve earlier choices. See `ART-GOLDIE-ONYX-OUTFITS.md` for generation notes.
+
+DJ Blackout adds a purple/orange-sleeve cargo tracksuit; Quiet Money adds a purple/blue jacket and lime cargo trousers. Both preserve their hats, accessories and original mechanics. See `ART-DJ-QUIET-OUTFITS.md` for the built-in generation prompt.
