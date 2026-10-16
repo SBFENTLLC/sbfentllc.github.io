@@ -1,0 +1,30 @@
+# Arenas and first alternate outfit set
+
+Created with the built-in image generation tool, converted to WebP with sprite alpha preserved. Final project assets:
+
+- `assets/studio.webp`
+- `assets/vault.webp`
+- `assets/workshop.webp`
+- `assets/flex-bootlegger-tracksuits.webp` (16 normal poses; `outfit-data.mjs`)
+- `assets/tracksuit-grapples.webp` (8 joint-action poses; `outfit-grapple-data.mjs`)
+
+## Normal tracksuit atlas prompt
+
+Use case: identity-preserve. Asset: genuinely transparent RGBA fighting-game sprite atlas. Reference image 1 is the EXISTING character atlas and MUST preserve its two identities exactly: top two rows Flex A Lot, brown felt puppet with large expressive eyes, black knit beanie, black face mask and chain; bottom two rows Bootlegger, mischievous brown felt MONKEY puppet with muzzle and ears, backward orange baseball cap and chain. Keep the exact plush/felt arcade illustration style and proportions; do not turn either into a realistic human. Change clothing only. Flex wears reference image 2's purple nylon SBFENT jacket and wide matching cargo track pants with light blue panels, lime piping/crown logo and orange pocket/cuff accents; purple/lime sneakers. Bootlegger wears reference image 3's light-blue nylon jacket and wide cargo track pants with purple panels, lime piping/crown logo and orange pocket flaps; orange/purple sneakers. Exactly SIXTEEN separate full-body right-facing poses in a square FOUR-column FOUR-row grid: rows 1–2 Flex, rows 3–4 Bootlegger. Eight poses per character in order ready guard, walking step, fully extended punch, high kick, block, hurt recoil, airborne knee tuck, both palms forward power pose. All hats, fingers and shoes inside each pose, at least 30px transparent gutters, no overlap, no background, no shadows, no labels, no effects. Genuine transparency and clean bold outlines.
+
+## Matching grappling atlas prompt
+
+Use case: identity-preserve. Asset: truly transparent RGBA supplementary fight sprite atlas. Reference 1 is the FINAL alternate outfit identity sheet: Flex top half masked brown felt puppet, black knit beanie, purple/light-blue/lime/orange SBFENT tracksuit with wide cargo pants and purple/lime sneakers; Bootlegger bottom half is a mischievous brown felt MONKEY with muzzle, ears and orange backward cap, blue/purple/lime/orange tracksuit and orange/purple sneakers. Preserve these exact new outfits and character identities. Reference 2 is pose guidance ONLY from the old outfit grappling sheet; do not use its old clothes or any of its backdrop. Create exactly EIGHT separate full-body sprites in FOUR columns TWO rows. Top row Flex faces right in four poses: reaching forward to grab; close chest-level clinch with fists forward; both hands high above his head lifting; low forward two-handed downward slam. Bottom row Bootlegger faces right: reaching to grab; twisting torso to throw; airborne flying side kick; deep crouch with hands reaching toward floor. Bold textured felt arcade cartoon matching reference 1, no opponent bodies, props, labels, effects, glows or shadows. Genuine transparent alpha between and around all bodies, not a presentation background. Generous 35px clear gutters, all heads/hats/hands/shoes completely visible and no overlap. Wide landscape atlas.
+
+## SBFENT Studio prompt
+
+Use case: stylized-concept. Asset: wide 16:9 production background for original SBFENT side-view 2D fighter. SBFENT STUDIO: luxurious hip-hop recording studio converted into an arcade fight venue. Purple acoustic wall panels, lime accent strips, gold crown motifs, large mixing desk with monitors and speakers behind glass, vocal booth in the back, warm glowing recording lights, soft purple/gold cinematic lighting. Textured hand-painted cel arcade illustration matching a colorful street fighting game. Straight level side-view camera. Lower 38 percent is a completely clear flat dark wooden fighting floor across the entire width, subtly reflecting purple lights. Every desk, chair, speaker, cable and prop belongs ABOVE the foreground floor horizon at roughly 60 percent image height. No fighters, no people, no HUD, no words or watermark. Background detailed but lower contrast than foreground fighter sprites.
+
+## The Vault prompt
+
+Use case: stylized-concept. Asset: wide 16:9 production arena background for original SBFENT side-view 2D fighting game. THE VAULT: underground luxury gold vault, enormous round steel vault door open in the back, gold bars and sealed cash cases behind secure rails, purple marble walls, gold crown insignias and lime security lighting, dramatic warm gold pools of light. Stylized textured hand-painted arcade cel illustration, original SBFENT purple/lime/gold atmosphere. Straight level side-view fight camera. Entire lower 38 percent is a clear flat polished dark stone fighting floor with restrained gold reflections. All gold, rails, crates, door edges and props stay ABOVE the foreground floor horizon around 60 percent image height, no objects on the fighting strip. No fighters, people, HUD, lettering, labels or watermarks.
+
+## Bootleg Workshop prompt
+
+Use case: stylized-concept. Asset: wide 16:9 production arena backdrop for original SBFENT side-view 2D fighter. BOOTLEG WORKSHOP: a secret counterfeit streetwear print shop in an old brick warehouse at night. Back wall has purple industrial garment printers, rolls of lime and orange fabric, hanging purple jackets, crooked counterfeit crown signs without letters, cardboard shipping boxes stacked behind a safety railing, flickering-looking but static warm work lights and cool purple skylight. Playful sneaky street atmosphere, richly textured hand-painted arcade cel illustration. Straight level side-view fight camera. Bottom 38 percent is completely clear flat worn concrete fighting floor across the whole width. Keep every box, rack, machine, cable, rail and garment ABOVE the foreground floor horizon near 60 percent image height; no objects obstructing the fight strip. No fighters, no people, no HUD, no words or watermarks.
+
