@@ -9,15 +9,19 @@ export function sequenceFighters(fighters,sequence){
  a.move=null;b.move=null;a.stun=0;b.stun=0;a.crouch=false;b.crouch=false;
  a.face=d;b.face=-d;a.pose=0;b.pose=5;a.x=c-d*85;b.x=c+d*65;a.y=0;b.y=0;
  if(s.kind==='throw'){
-  const wind=clamp(t/.3,0,1),flight=clamp((t-.3)/.52,0,1);
+  const throwEnd=character===9?125:175,wind=clamp(t/.3,0,1),flight=clamp((t-.3)/.52,0,1);
   a.x=lerp(s.origin[0].x,c-d*80,smooth(wind));a.grapplePose=t<.15?0:t<.3?1:t<.6?2:3;
   if(character===1&&t>=.3&&t<.75)a.grapplePose=1;
-  b.x=lerp(c-d*20,c+d*175,smooth(flight));b.y=t<.3?lerp(0,65,wind):Math.sin(flight*Math.PI)*175+65*(1-flight);
+  b.x=lerp(c-d*20,c+d*throwEnd,smooth(flight));b.y=t<.3?lerp(0,65,wind):Math.sin(flight*Math.PI)*175+65*(1-flight);
   b.rotation=t<.3?-.18*d:(flight*Math.PI*1.45)*d;
-  if(t>=.82){b.x=c+d*175;b.y=0;b.rotation=-2.3*d;a.grapplePose=3;}
+  if(t>=.82){b.x=c+d*throwEnd;b.y=0;b.rotation=-2.3*d;a.grapplePose=3;}
   if(character>=2){a.grapplePose=undefined;a.pose=t<.3?4:t<.65?7:3;if(character===3){a.y=t>.3&&t<.82?Math.sin(flight*Math.PI)*95:0;a.rotation=t>.3&&t<.82?-flight*Math.PI*1.2*d:0;}else a.rotation=t>.3&&t<.82?-.16*d:0;}
   if(character===4){a.pose=t<.3?4:t<.65?7:2;a.rotation=t>.3&&t<.82?-.06*d:0;}if(character===5){a.pose=t<.3?4:2;a.x=lerp(c-d*80,c-d*115,smooth(flight));}
   if(character===6)a.pose=7;if(character===7)a.pose=t<.3?4:2;
+  if(character===8){a.pose=t<.3?4:7;a.x=lerp(c-d*100,c-d*80,smooth(flight));}
+  if(character===9){a.pose=t<.3?4:t<.82?7:2;a.rotation=t>.3&&t<.82?flight*.3*d:0;}
+  if(character===10){a.pose=t<.3?4:3;a.rotation=t>.3&&t<.82?-flight*.35*d:0;}
+  if(character===11)a.pose=t<.3?4:2;
   return out;
  }
  if(character===0){
@@ -64,12 +68,35 @@ export function sequenceFighters(fighters,sequence){
   else if(t<2.3){const p=(t-.98)/1.32;b.x=c+d*80;b.y=80*Math.sin(p*Math.PI/2);a.y=Math.sin(p*Math.PI)*30;b.rotation=-.35*d;}
   else if(t<2.8){const p=smooth((t-2.3)/.5);a.pose=3;b.x=lerp(c+d*80,c+d*175,p);b.y=80*(1-p);b.rotation=-2.3*p*d;}
   else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.rotation=-2.3*d;}
- }else{
+ }else if(character===7){
   // Quiet Money advances behind guard, works the body, then commits a straight.
   if(t<1.05){a.pose=t<.42?4:2;a.x=lerp(c-d*140,c-d*95,smooth(t/1.05));b.x=c+d*65;b.rotation=Math.sin(t*22)*.08;}
   else if(t<2.15){a.pose=Math.floor(t*10)%2?2:4;a.x=c-d*95;b.x=c+d*70;b.y=Math.max(0,Math.sin((t-1.05)*3)*35);}
   else if(t<2.75){const p=(t-2.15)/.6;a.pose=p<.55?4:2;a.x=lerp(c-d*130,c-d*45,smooth(p));b.x=c+d*75;}
   else{const p=smooth((t-2.75)/.5);a.pose=2;a.x=lerp(c-d*45,c-d*80,p);b.x=c+d*175;b.y=Math.sin(p*Math.PI)*55;b.rotation=-2.3*d;}
+ }else if(character===8){
+  // Lime dash passes cross on three beats before a rising palm finish.
+  if(t<1.95){const pass=Math.min(2,Math.floor(t/.58)),p=(t-pass*.58)/.58,side=pass%2?-d:d;a.pose=2;a.face=side;a.x=lerp(c-side*190,c+side*75,smooth(p));b.x=c+Math.sin(t*20)*10;b.rotation=Math.sin(t*22)*.1;}
+  else if(t<2.55){const p=(t-1.95)/.6;a.face=d;a.pose=7;a.x=lerp(c-d*140,c-d*45,smooth(p));a.y=Math.sin(p*Math.PI)*70;b.x=c+d*85;b.y=p*100;b.rotation=-p*.4*d;}
+  else{const p=smooth((t-2.55)/.5);a.pose=7;a.x=c-d*80;b.x=c+d*175;b.y=(1-p)*100;b.rotation=-2.3*d;}
+ }else if(character===9){
+  // Clinch into a carried spinning powerbomb.
+  a.pose=t<.42?4:7;a.x=c-d*80;
+  if(t<1.08){const p=smooth(t/1.08);b.x=lerp(c+d*65,c+d*20,p);b.y=p*110;b.rotation=p*.3*d;}
+  else if(t<2.6){const p=(t-1.08)/1.52;a.y=Math.sin(p*Math.PI)*70;a.rotation=p*Math.PI*2*d;b.x=c+d*25;b.y=130+Math.sin(p*Math.PI)*55;b.rotation=(.3+p*Math.PI*2)*d;}
+  else if(t<3.08){const p=smooth((t-2.6)/.48);a.pose=2;a.y=50*(1-p);b.x=lerp(c+d*25,c+d*175,p);b.y=130*(1-p);b.rotation=lerp(Math.PI*2,-2.3,p)*d;}
+  else{a.pose=7;b.x=c+d*175;b.rotation=-2.3*d;}
+ }else if(character===10){
+  // A low sweep turns into a rising violet kick spiral and heel drop.
+  if(t<1.02){a.pose=3;a.x=c-d*95;a.rotation=Math.sin(t*5)*.25*d;b.x=c+d*60;b.y=t>.38?30:0;b.rotation=(t>.38?.45:0)*d;}
+  else if(t<2.35){const p=(t-1.02)/1.33;a.pose=7;a.x=c-d*60;a.y=Math.sin(p*Math.PI/2)*145;a.rotation=p*Math.PI*2*d;b.x=c+d*70;b.y=70+Math.sin(p*Math.PI/2)*80;b.rotation=p*.7*d;}
+  else if(t<2.82){const p=smooth((t-2.35)/.47);a.pose=3;a.x=c-d*40;a.y=145*(1-p);b.x=lerp(c+d*70,c+d*175,p);b.y=150*(1-p);b.rotation=-2.3*p*d;}
+  else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.rotation=-2.3*d;}
+ }else{
+  // Redline drives a rushing three-punch string into a leaping uppercut.
+  if(t<1.8){a.pose=Math.floor(t*14)%2?2:0;a.x=lerp(c-d*170,c-d*75,smooth(t/1.8));b.x=c+d*65+Math.sin(t*23)*8;b.rotation=Math.sin(t*20)*.08;}
+  else if(t<2.6){const p=(t-1.8)/.8;a.pose=7;a.x=lerp(c-d*75,c-d*25,smooth(p));a.y=Math.sin(p*Math.PI/2)*120;b.x=c+d*85;b.y=p*160;b.rotation=-p*.5*d;}
+  else{const p=smooth((t-2.6)/.5);a.pose=7;a.x=lerp(c-d*25,c-d*80,p);a.y=120*(1-p);b.x=c+d*175;b.y=160*(1-p);b.rotation=-2.3*d;}
  }
  return out;
 }

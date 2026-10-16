@@ -1,4 +1,4 @@
-// Design targets for the complete roster. The first eight are playable in
+// Design targets for the complete roster. The first twelve are playable in
 // this review build. Each entry names both its advantage and its counterplay.
 export const ROSTER=[
  {name:'Flex A Lot',style:'Pressure boxing',strength:'Fast hands and close-range combos',weakness:'Short punch reach; kicks need commitment',special:'Stamped Out',superStyle:'Body blows, aerial launch, crown-stamp slam',playable:true},
@@ -9,10 +9,10 @@ export const ROSTER=[
  {name:'Onyx',style:'Counter striking',strength:'Rewards accurate defensive timing',weakness:'Missed counters leave long openings',special:'Onyx Reversal',superStyle:'Shadow counter barrage',playable:true},
  {name:'DJ Blackout',style:'Sound-wave zoning',strength:'Controls distance with sound bursts',weakness:'Weaker close-up defense; slow projectile recovery',special:'Bass Drop',superStyle:'Concentric bass shockwaves',playable:true},
  {name:'Quiet Money',style:'Defensive boxing',strength:'Strong guard and deliberate heavy punches',weakness:'Slow attacks can be baited and whiff-punished',special:'Silent Investment',superStyle:'Delayed golden straight',playable:true},
- {name:'Neon Nova',style:'Dash striking',strength:'Fast approach and quick repositioning',weakness:'Light damage; unsafe dash endings',special:'Neon Blitz',superStyle:'Lime lightning dash chain'},
- {name:'Big Stamp',style:'Wrestling',strength:'Strong grabs and corner pressure',weakness:'Very limited aerial and long-range options',special:'Crown Crusher',superStyle:'Spinning crown powerbomb'},
- {name:'Violet V',style:'Capoeira',strength:'Low sweeps and spinning kick mixups',weakness:'Long spinning recoveries invite counters',special:'Purple Reign',superStyle:'Violet rising kick spiral'},
- {name:'Redline',style:'Rushdown brawling',strength:'Relentless advancing attacks',weakness:'Overcommitment loses to patient blocking',special:'Overdrive',superStyle:'Orange-red rushing uppercut'},
+ {name:'Neon Nova',style:'Dash striking',strength:'Fast approach and quick repositioning',weakness:'Light damage; unsafe dash endings',special:'Neon Blitz',superStyle:'Lime lightning dash chain',playable:true},
+ {name:'Big Stamp',style:'Wrestling',strength:'Strong grabs and corner pressure',weakness:'Very limited aerial and long-range options',special:'Crown Crusher',superStyle:'Spinning crown powerbomb',playable:true},
+ {name:'Violet V',style:'Capoeira',strength:'Low sweeps and spinning kick mixups',weakness:'Long spinning recoveries invite counters',special:'Purple Reign',superStyle:'Violet rising kick spiral',playable:true},
+ {name:'Redline',style:'Rushdown brawling',strength:'Relentless advancing attacks',weakness:'Overcommitment loses to patient blocking',special:'Overdrive',superStyle:'Orange-red rushing uppercut',playable:true},
  {name:'Big Pressure',style:'Heavyweight clinch brawling',strength:'Armored charges and close-range crushing force',weakness:'Slow turns and highly telegraphed charges',special:'Pressure Break',superStyle:'Ground-splitting double slam',boss:true},
  {name:'Lady Static',style:'Feints and electric traps',strength:'Deceptive timing and space control',weakness:'Low resilience and vulnerable setup time',special:'Static Storm',superStyle:'Electric trap detonation',boss:true},
  {name:'Iron Haul',style:'Armored stance fighting',strength:'Can absorb a light hit during selected heavy attacks',weakness:'Throws and recovery punishes beat armor',special:'Full Load',superStyle:'Freight-charge shoulder smash',boss:true},
@@ -26,7 +26,11 @@ export const PROTOTYPE=[
  {speed:185,jump:570,moves:{punch:{wind:.16,active:.10,recovery:.28,range:105,damage:14},kick:{wind:.25,active:.13,recovery:.40,range:138,damage:12},special:{wind:.27,active:.18,recovery:.90,range:210,damage:34},grab:{wind:.18,active:.10,recovery:.60,range:118,damage:23}}},
  {speed:220,jump:635,moves:{punch:{wind:.13,active:.10,recovery:.26,range:122,damage:10},kick:{wind:.20,active:.12,recovery:.35,range:160,damage:11},special:{wind:.20,active:.16,recovery:.76,range:265,damage:29},grab:{wind:.14,active:.08,recovery:.49,range:106,damage:14}}},
  {speed:215,jump:620,moves:{punch:{wind:.13,active:.10,recovery:.25,range:112,damage:8},kick:{wind:.28,active:.10,recovery:.50,range:165,damage:9},special:{wind:.24,active:.18,recovery:.80,range:340,damage:29},grab:{wind:.15,active:.08,recovery:.51,range:104,damage:13}}},
- {speed:190,jump:590,moves:{punch:{wind:.24,active:.10,recovery:.40,range:140,damage:16},kick:{wind:.26,active:.12,recovery:.43,range:160,damage:12},special:{wind:.29,active:.18,recovery:.85,range:260,damage:31},grab:{wind:.17,active:.08,recovery:.53,range:110,damage:17}}}
+ {speed:190,jump:590,moves:{punch:{wind:.24,active:.10,recovery:.40,range:140,damage:16},kick:{wind:.26,active:.12,recovery:.43,range:160,damage:12},special:{wind:.29,active:.18,recovery:.85,range:260,damage:31},grab:{wind:.17,active:.08,recovery:.53,range:110,damage:17}}},
+ {speed:285,jump:660,moves:{punch:{wind:.10,active:.10,recovery:.20,range:112,damage:9},kick:{wind:.18,active:.12,recovery:.32,range:170,damage:8},special:{wind:.20,active:.17,recovery:.78,range:300,damage:25},grab:{wind:.12,active:.08,recovery:.47,range:102,damage:12}}},
+ {speed:175,jump:540,moves:{punch:{wind:.18,active:.10,recovery:.30,range:110,damage:15},kick:{wind:.28,active:.13,recovery:.45,range:145,damage:12},special:{wind:.31,active:.18,recovery:1,range:195,damage:36},grab:{wind:.21,active:.10,recovery:.65,range:130,damage:26}}},
+ {speed:240,jump:690,moves:{punch:{wind:.12,active:.10,recovery:.24,range:112,damage:9},kick:{wind:.22,active:.12,recovery:.42,range:180,damage:10},special:{wind:.22,active:.18,recovery:.82,range:280,damage:28},grab:{wind:.15,active:.08,recovery:.51,range:105,damage:14}}},
+ {speed:255,jump:635,moves:{punch:{wind:.10,active:.10,recovery:.30,range:118,damage:10},kick:{wind:.20,active:.12,recovery:.34,range:160,damage:10},special:{wind:.19,active:.18,recovery:.90,range:260,damage:31},grab:{wind:.14,active:.08,recovery:.50,range:108,damage:15}}}
 ];
 export const moveFor=(id,name)=>PROTOTYPE[id]?.moves[name];
 
@@ -38,7 +42,11 @@ export const SUPER_SEQUENCES=[
  {duration:3.40,beats:[{at:.42,damage:5},{at:1.08,damage:6},{at:1.82,damage:7},{at:2.9,damage:16}]},
  {duration:3.10,beats:[{at:.30,damage:6},{at:.82,damage:5},{at:1.50,damage:6},{at:2.60,damage:12}]},
  {duration:3.30,beats:[{at:.35,damage:5},{at:.98,damage:6},{at:1.65,damage:6},{at:2.80,damage:12}]},
- {duration:3.25,beats:[{at:.42,damage:5},{at:1.05,damage:6},{at:1.72,damage:6},{at:2.75,damage:14}]}
+ {duration:3.25,beats:[{at:.42,damage:5},{at:1.05,damage:6},{at:1.72,damage:6},{at:2.75,damage:14}]},
+ {duration:3.05,beats:[{at:.30,damage:5},{at:.88,damage:5},{at:1.48,damage:5},{at:2.55,damage:10}]},
+ {duration:3.60,beats:[{at:.42,damage:6},{at:1.08,damage:6},{at:1.90,damage:8},{at:3.08,damage:16}]},
+ {duration:3.35,beats:[{at:.38,damage:5},{at:1.02,damage:6},{at:1.78,damage:6},{at:2.82,damage:11}]},
+ {duration:3.10,beats:[{at:.28,damage:6},{at:.84,damage:6},{at:1.42,damage:7},{at:2.60,damage:12}]}
 ];
 export const THROW_SEQUENCE={duration:1.05,escapeWindow:.3,impactAt:.82};
 
@@ -51,6 +59,10 @@ export const FIGHTERS=[
  {key:'goldie',color:'#ffda70',quote:'HEAVY HANDS. GOLD STANDARD.',victory:'THAT’S WHAT REAL WEIGHT DOES.',combo:'P → GRAB',tip:'Close the gap. Confirm P → GRAB; opponents can still escape your throw.',cancels:{punch:['grab']},maxCancels:1},
  {key:'onyx',color:'#a5defa',quote:'MAKE YOUR MOVE.',victory:'SAW THAT ONE COMING.',combo:'TIMED BLOCK → P',tip:'Tap BLOCK just before a punch or kick lands. Then P within 0.5s for an 18-damage counter.',cancels:{},maxCancels:0},
  {key:'dj',color:'#6ddfff',quote:'TURN IT ALL THE WAY UP.',victory:'THAT’S A WRAP ON YOUR SET.',combo:'K · SOUND WAVE',tip:'Ground K sends a sound wave. Control space, but recover before they get close.',cancels:{},maxCancels:0},
- {key:'quiet',color:'#f0cc73',quote:'LET THE HANDS TALK.',victory:'PROFIT. NO NOISE.',combo:'GUARD → P',tip:'Block, release, then punish with a heavy P. Grabs beat your guard; missed punches recover slowly.',cancels:{},maxCancels:0}
+ {key:'quiet',color:'#f0cc73',quote:'LET THE HANDS TALK.',victory:'PROFIT. NO NOISE.',combo:'GUARD → P',tip:'Block, release, then punish with a heavy P. Grabs beat your guard; missed punches recover slowly.',cancels:{},maxCancels:0},
+ {key:'nova',color:'#bcff46',quote:'BLINK. I’M ALREADY THERE.',victory:'COULDN’T KEEP UP.',combo:'DIRECTION + P → K',tip:'Hold left or right and tap P to dash-punch. No invincibility; missed dashes recover slowly.',cancels:{punch:['kick']},maxCancels:1},
+ {key:'stamp',color:'#81a9ff',quote:'HEAVY IS THE CROWN.',victory:'STAMPED. SEALED. DONE.',combo:'CLOSE IN → GRAB',tip:'Walk them into the corner, then GRAB. Your 26-damage throw is strong but slow and escapable.',cancels:{},maxCancels:0},
+ {key:'violet',color:'#ce9bff',quote:'STAY LIGHT ON YOUR FEET.',victory:'CAUGHT YOU OFF BALANCE.',combo:'K · LOW SWEEP',tip:'Ground K sweeps standing guard. Hold DOWN + BLOCK or jump to defend against it.',cancels:{},maxCancels:0},
+ {key:'redline',color:'#ff9455',quote:'NO BRAKES. ALL PRESSURE.',victory:'RAN STRAIGHT THROUGH.',combo:'P → P → P',tip:'Your punches advance. Confirm P → P → P; blocked or missed rushes leave an opening.',cancels:{punch:['punch']},maxCancels:2}
 ].map((f,i)=>({...ROSTER[i],...f,index:i,stats:PROTOTYPE[i]}));
 export const fighterFor=f=>FIGHTERS[f?.character??f?.id??0]||FIGHTERS[0];

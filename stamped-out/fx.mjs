@@ -48,12 +48,13 @@ export class FightFX {
   this.ghostTime-=dt;if(!this.reduced&&!this.finish&&!this.cinematic&&!this.sequence&&this.ghostTime<=0){this.ghostTime=.045;for(const f of fighters)if(f.walking||f.move)this.ghosts.push({f:{...f,move:f.move?{...f.move}:null},life:.18});this.ghosts=this.ghosts.slice(-12);}
  }
  frame(f){if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+m.recovery*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
- setSound(atlas,data){this.soundAtlas=atlas;this.soundData=data;this.soundPaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
- setDuo(atlas,data){this.duoAtlas=atlas;this.duoData=data;this.duoPaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
- setExpansion(atlas,data){this.expansionAtlas=atlas;this.expansionData=data;this.expansionPaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
+ setRosterAtlas(first,atlas,data){this.rosterAtlases??={};this.rosterAtlases[first]={atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}))};}
+ setSound(atlas,data){this.setRosterAtlas(6,atlas,data);}
+ setDuo(atlas,data){this.setRosterAtlas(4,atlas,data);}
+ setExpansion(atlas,data){this.setRosterAtlas(2,atlas,data);}
  setGrapples(atlas,data){this.grappleAtlas=atlas;this.grappleData=data;this.grapplePaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
  rawSprite(ctx,f,frame=this.frame(f),alpha=1){
-  const character=f.character??f.id,newCharacter=character>=2,assetIndex=character>=6?character-6:character>=4?character-4:newCharacter?character-2:character,expansionAtlas=character>=6?this.soundAtlas:character>=4?this.duoAtlas:this.expansionAtlas,expansionData=character>=6?this.soundData:character>=4?this.duoData:this.expansionData,expansionPaths=character>=6?this.soundPaths:character>=4?this.duoPaths:this.expansionPaths;
+  const character=f.character??f.id,newCharacter=character>=2,first=character-character%2,assetIndex=character%2,group=this.rosterAtlases?.[first],expansionAtlas=group?.atlas,expansionData=group?.data,expansionPaths=group?.paths;
   const grappling=!newCharacter&&f.grapplePose!==undefined&&this.grappleAtlas?.naturalWidth&&this.grappleData;
   const img=newCharacter?expansionAtlas:grappling?this.grappleAtlas:this.atlas;if(!img)return;if(!img.complete||!img.naturalWidth)return;
   const [sx,sy,sw,sh]=newCharacter?expansionData.boxes[assetIndex][frame]:grappling?this.grappleData.boxes[assetIndex][f.grapplePose]:SPRITES[assetIndex][frame];

@@ -1,10 +1,10 @@
-# SBFENT: Stamped Out — eight-fighter review build
+# SBFENT: Stamped Out — twelve-fighter review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, or Quiet Money against any of those eight CPU opponents, including mirror matches. One rooftop is playable. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
+The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. One rooftop is playable. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
 
-## Eight distinct styles
+## Twelve distinct styles
 
 | Fighter | Combat identity | Counterplay | Signature |
 | --- | --- | --- | --- |
@@ -16,8 +16,12 @@ The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara
 | Onyx | Timed guard into an 18-damage counter | Counter expires, misses have longer recovery, throws beat guard | Onyx Reversal: defensive slip and counter barrage |
 | DJ Blackout | Ground K launches traveling sound waves | Waves can be blocked/jumped; long recovery and light close damage | Bass Drop: rising bass and a final shockwave |
 | Quiet Money | Strong guard, deliberate 16-damage straight | Slow attacks and movement; throws beat guard | Silent Investment: guarded approach, body blows and heavy straight |
+| Neon Nova | Direction + P dash-punch; P → K | Light hits, no invincibility, committed dash recovery | Neon Blitz: crossing dash strikes and rising palm |
+| Big Stamp | 26-damage throws and closer post-throw pressure | Slowest walk, slow grabs, normal throw-escape window | Crown Crusher: carried spinning powerbomb |
+| Violet V | Low K sweeps standing guard into knockdown | Down + block or jump beats sweep; long recovery | Purple Reign: low sweep, rising spiral, heel drop |
+| Redline | Advancing P → P → P confirms | Blocking stops the chain; misses leave recovery | Overdrive: rushing punches and leaping uppercut |
 
-Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains eight implemented profiles and eight future design targets. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
+Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve implemented profiles and four planned boss profiles. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
 
 Punch damage against 100 HP: Flex 12 (previously 8), Bootlegger 9 (6), Foxy 8 (6), Clara 10 (7). Punch reach and timing retain each character’s style. Flex’s landed P → P → K now deals 35 total damage. Guard still reduces strikes to chip damage.
 
@@ -37,13 +41,13 @@ Landscape touch controls: directional pad plus punch, kick, block, grab, and spe
 
 All six supplied instrumentals are included as mobile AAC copies; originals are unchanged. One lazy audio element avoids overlapping tracks. MODEST plays on return to menu; HUSTLE / FOUR FLAT / MONEY MACHINE rotate across matches; ONE NIGHT STAND plays in training; all six, including EXQUISTE, are manually selectable. Music ducks around power-ups and K.O.s without altering the saved volume, and pauses with the game/background tab. Layered synthesized combat sounds begin after a gesture.
 
-A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and v8 service worker support Home Screen installation and cached core gameplay after a successful first load. Music streams on demand and partial audio responses are not cached. Reduced-motion mode suppresses camera movement, moving trails, and energy animation.
+A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and v9 service worker support Home Screen installation and cached core gameplay after a successful first load. Music streams on demand and partial audio responses are not cached. Reduced-motion mode suppresses camera movement, moving trails, and energy animation.
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 59 checks cover the sixty-four character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 66 checks cover the 144 character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-The remaining four starting fighters, four boss unlocks, story as Flex, seven additional arenas, and alternate outfits remain future production stages after review of each set.
+The twelve starting fighters are implemented. Four boss unlocks, story as Flex, seven additional arenas, and alternate outfits remain future production stages after review of each set.
 
 Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
 
@@ -64,3 +68,14 @@ DJ's grounded K launches one traveling sound wave, dealing 9 once on contact. It
 Quiet Money's punch deals 16, with slower startup/recovery than Flex. Guard reduces incoming damage to 6% rounded up, compared with the usual 12%, and reduces guard pushback. Throws bypass this benefit. Silent Investment deals 31 over four cinematic hits. His regular defense does not grant Onyx's timed-counter mechanic.
 
 New asset: `assets/dj-quiet.webp`, generated with the built-in image tool from the supplied character references and existing game style. Final prompt: preserve the sixteen right-facing DJ/Quiet poses on a square transparent canvas, with eight full-body poses per fighter and enough gutter/padding to keep every hat, hand and shoe inside its cell; blue OFF cap/headphones/navy-and-gold outfit for DJ, yellow HUSH cap/gold sunglasses/green-and-gold outfit for Quiet; ready, step, punch, kick, guard, hurt, jump and power poses; no backdrop, props, UI, captions or borders. `sound-data.mjs` isolates the sixteen alpha regions.
+
+
+## Final four starting fighters
+
+Nova's directional ground P travels up to 104 units over a brief dash, with a 0.95-second dash cooldown and extra recovery. It stops at the opponent instead of crossing through them, has no invincibility, and can be interrupted. Plain P remains a normal punch. Big Stamp's grab deals 26, with slower startup/recovery and full throw-escape counterplay. A completed regular throw leaves a 205-unit separation instead of the usual 255 and grants normal wake-up throw immunity.
+
+Violet's grounded K is a low sweep: standing block loses, down + block reduces it to chip, and jumping above the low strike avoids it. An unblocked sweep knocks down briefly and grants throw immunity, preventing a free grab loop. The training dummy now has Standing block and Low guard choices. Redline's ground punches advance a short distance, keep the target close, and confirm into a maximum three punches; blocked/whiffed attacks cannot cancel.
+
+Their supers deal 25 / 36 / 28 / 31 respectively, using separate four-hit choreography. The art renderer registers each paired atlas once and retains clipped alpha paths through match resets. Twelve menu cards are hidden with the rest of the menu during a fight.
+
+New built-in image generation assets: `assets/nova-stamp.webp` and `assets/violet-red.webp`. Prompts: two transparent square 4×4 sprite atlases, eight right-facing full-body felt-puppet arcade poses per original fighter (ready, step, punch, kick, block, hurt, jump, signature), matching established illustration style and SBFENT wide-bottom denim construction. Nova: lime-tipped black coils, lime/purple/blue denim and hoops. Big Stamp: stocky flat-top/beard, blue/purple denim and crown chain. Violet V: purple braided buns, purple lightning denim and low sweeping kick. Redline: red-tipped twists, orange/blue/purple denim and uppercut signature. Preserve identity/outfit over poses; no cropped limbs, overlaps, background, UI, labels, props or extra people. Paired alpha metadata is in `nova-stamp-data.mjs` and `violet-red-data.mjs`.
