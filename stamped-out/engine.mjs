@@ -1,27 +1,109 @@
-// Pure combat simulation. Pixels and seconds; rendering and input live in game.js.
-import {PROTOTYPE,moveFor} from "./roster.mjs";
+// Deterministic combat model. Joint sequences own both fighters until they
+// finish; presentation never awards damage or chooses a winner.
+import {PROTOTYPE,moveFor,SUPER_SEQUENCES,THROW_SEQUENCE} from './roster.mjs';
 export const MOVES=PROTOTYPE[0].moves;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export class Fight {
- constructor({difficulty='medium',training=false,random=Math.random}={}){this.difficulty=difficulty;this.training=training;this.random=random;this.wins=[0,0];this.round=1;this.events=[];this.resetRound();}
- resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6;this.events.push({type:'round',round:this.round});}
- makeFighter(id,x){return{id,x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0};}
- attack(id,name){const f=this.fighters[id],m=moveFor(id,name);if(!m||this.phase!=='fight'||f.move||f.stun>0||f.cooldown>0||f.block)return false;if(name==='special'&&f.power<100){this.events.push({type:'empty',id});return false;}if(name==='special'){f.power=0;this.events.push({type:'super',id});}f.move={name,t:0,hit:false,hitsDone:0};return true;}
- step(dt,input={}){if(!Number.isFinite(dt)||dt<=0||this.phase==='done')return;dt=Math.min(dt,.05);this.phaseTime-=dt;if(this.phase==='intro'){if(this.phaseTime<=0){this.phase='fight';this.events.push({type:'fight'});}return;}if(this.phase==='roundover'){if(this.phaseTime<=0){this.round++;this.resetRound();}return;}
- const a=this.fighters[0],b=this.fighters[1];
- this.timer=Math.max(0,this.timer-dt);this.aiTime-=dt;
- const ai={};if(!this.training){const d=Math.abs(a.x-b.x);const toward=a.x<b.x?-1:1;const desired=this.difficulty==='easy'?116:155;ai.left=d>desired&&toward<0;ai.right=d>desired&&toward>0;ai.block=!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12;
- if(this.aiTime<=0){this.aiTime=({easy:.85,medium:.48,hard:.29}[this.difficulty]||.48)+this.random()*.35;if(a.y>60&&this.random()<.3)ai.jump=true;if(d<180){this.attack(1,b.power>=100&&d>125?'special':d>moveFor(1,'punch').range||this.random()>.48?'kick':'punch');}else if(b.power>=100&&d<310)this.attack(1,'special');}}
- [input,ai].forEach((keys,i)=>{const f=this.fighters[i],other=this.fighters[1-i];f.face=other.x>=f.x?1:-1;f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;f.block=!!keys.block&&!f.move&&f.stun<=0&&f.y===0;f.crouch=!!keys.crouch&&f.y===0&&!f.move&&!f.block;f.walking=false;
- if(!f.move&&!f.block&&!f.crouch&&f.stun<=0){const direction=(keys.right?1:0)-(keys.left?1:0);f.x=clamp(f.x+direction*PROTOTYPE[i].speed*dt,75,925);f.walking=direction!==0;if(keys.jump&&f.y===0)f.vy=PROTOTYPE[i].jump;}
- f.y=Math.max(0,f.y+f.vy*dt);if(f.y>0||f.vy>0)f.vy-=1800*dt;if(f.y===0&&f.vy<0)f.vy=0;
- if(f.move){f.move.t+=dt;const m=moveFor(i,f.move.name),hitTimes=m.hits||[m.wind];if(f.move.hitsDone<hitTimes.length&&f.move.t>=hitTimes[f.move.hitsDone]){f.move.hitsDone++;f.move.hit=true;const distance=(other.x-f.x)*f.face;const vertical=Math.abs(f.y-other.y);if(distance>=0&&distance<=m.range&&vertical<100){const blocked=other.block;const damage=blocked?Math.ceil(m.damage*.12):m.damage;other.hp=clamp(other.hp-damage,0,100);other.stun=blocked?.05:.16;other.x=clamp(other.x+f.face*(blocked?9:23),75,925);f.power=clamp(f.power+(f.move.name==='special'?0:blocked?4:15),0,100);other.power=clamp(other.power+9,0,100);if(!blocked){f.combo++;f.comboTime=1.2;}this.events.push({type:blocked?'block':'hit',id:i,x:other.x,y:other.y,move:f.move.name,combo:f.combo,damage,target:1-i,face:f.face});}}
- if(f.move.t>=m.wind+m.active+m.recovery){f.move=null;f.cooldown=.04;}}
- if(this.training)f.power=100;
- });
- // Fighters cannot occupy the same ground position; airborne crossups are allowed.
- if(Math.abs(a.x-b.x)<86&&Math.abs(a.y-b.y)<80){const sign=a.x<b.x?1:-1;const overlap=(86-Math.abs(a.x-b.x))/2;a.x=clamp(a.x-sign*overlap,75,925);b.x=clamp(b.x+sign*overlap,75,925);}
- if(a.hp<=0||b.hp<=0||this.timer<=0){const winner=a.hp===b.hp?-1:a.hp>b.hp?0:1;if(winner>=0)this.wins[winner]++;const done=this.wins.some(w=>w>=2);this.phase=done?'done':'roundover';this.phaseTime=2.8;this.events.push({type:done?'matchover':'roundover',winner,knockout:a.hp<=0||b.hp<=0});}
+ constructor({difficulty='medium',training=false,random=Math.random}={}){
+  Object.assign(this,{difficulty,training,random,wins:[0,0],round:1,events:[]});this.resetRound();
+ }
+ resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6;this.events.push({type:'round',round:this.round});}
+ makeFighter(id,x){return{id,x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0};}
+ attack(id,name,{direction}={}){
+  const f=this.fighters[id],m=moveFor(id,name);if(!f||!m||this.phase!=='fight')return false;
+  if(this.sequence){if(name==='grab'&&this.sequence.kind==='throw'&&this.sequence.target===id&&this.sequence.elapsed<=THROW_SEQUENCE.escapeWindow){this.escapeThrow();return true;}return false;}
+  if(f.move||f.stun>0||f.cooldown>0||f.knockdown>0||(f.block&&name!=='grab'))return false;
+  if(name==='grab'&&f.y>8)return false;
+  if(name==='special'&&f.power<100){this.events.push({type:'empty',id});return false;}
+  if(name==='special'){f.power=0;this.events.push({type:'super',id});}
+  if(name==='grab')f.block=false;
+  f.move={name,t:0,hit:false,throwDirection:direction===-1?-1:direction===1?1:f.face};return true;
+ }
+ beginSequence(kind,id,direction=this.fighters[id].face){
+  const actor=this.fighters[id],target=this.fighters[1-id],center=clamp((actor.x+target.x)/2,250,750);
+  this.sequence={kind,id,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[id].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
+  for(const f of [actor,target]){f.move=null;f.block=false;f.crouch=false;f.walking=false;f.y=0;f.vy=0;}
+  this.events.push({type:kind==='super'?'superConnected':'grabbed',id,target:1-id});
+ }
+ escapeThrow(){
+  const s=this.sequence;if(!s||s.kind!=='throw')return;
+  const a=this.fighters[s.id],b=this.fighters[s.target];a.x=clamp(s.center-s.face*65,75,925);b.x=clamp(s.center+s.face*65,75,925);
+  a.cooldown=.35;b.cooldown=.12;b.throwImmune=.9;this.sequence=null;this.events.push({type:'throwEscape',id:s.target});
+ }
+ applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false}={}){
+  const a=this.fighters[id],b=this.fighters[1-id],actual=blocked?Math.ceil(damage*.12):damage;
+  const before=b.hp;b.hp=clamp(b.hp-actual,sequence&&!final?1:0,100);
+  b.stun=blocked?.05:.18;if(!sequence)b.x=clamp(b.x+a.face*(blocked?9:23),75,925);
+  a.power=clamp(a.power+(move==='special'?0:blocked?4:15),0,100);b.power=clamp(b.power+9,0,100);
+  if(!blocked){a.combo++;a.comboTime=1.2;}
+  this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face:a.face,move,damage:before-b.hp,combo:a.combo,sequence,final});
+ }
+ finishSequence(){
+  const s=this.sequence;if(!s)return;const a=this.fighters[s.id],b=this.fighters[s.target];
+  a.x=clamp(s.center-s.face*80,75,925);b.x=clamp(s.center+s.face*175,75,925);a.face=s.face;b.face=-s.face;
+  this.lastFinisher=s.kind;a.cooldown=s.kind==='throw'?.28:.36;b.stun=.65;b.knockdown=.65;b.throwImmune=1.25;this.sequence=null;
+ }
+ stepSequence(dt){
+  const s=this.sequence;s.elapsed+=dt;
+  if(s.tech&&s.elapsed>=.16&&s.elapsed<=THROW_SEQUENCE.escapeWindow){this.escapeThrow();return;}
+  const beats=s.kind==='super'?SUPER_SEQUENCES[s.id].beats:[{at:THROW_SEQUENCE.impactAt,damage:moveFor(s.id,'grab').damage}];
+  while(s.beat<beats.length&&s.elapsed>=beats[s.beat].at){
+   const final=s.beat===beats.length-1;this.applyHit(s.id,beats[s.beat].damage,{move:s.kind==='super'?'special':'throw',sequence:true,final});s.beat++;
+   if(final&&this.fighters[s.target].hp<=0){s.knockoutPending=true;this.events.push({type:'koImpact',id:s.id,target:s.target});}
+  }
+  if(s.elapsed>=s.duration){this.finishSequence();this.endRound();}
+ }
+ aiInput(){
+  const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
+  const desired=this.difficulty==='easy'?116:155,ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
+  if(this.aiTime<=0){
+   this.aiTime=({easy:.85,medium:.48,hard:.29}[this.difficulty]||.48)+this.random()*.35;
+   if(a.y>60&&this.random()<.3)ai.jump=true;
+   if(d<=moveFor(1,'grab').range&&a.y<8&&(a.block||this.random()<.25))this.attack(1,'grab');
+   else if(b.power>=100&&d<=moveFor(1,'special').range)this.attack(1,'special');
+   else if(d<=185)this.attack(1,d>moveFor(1,'punch').range||this.random()>.48?'kick':'punch');
+  }
+  return ai;
+ }
+ step(dt,input={}){
+  if(!Number.isFinite(dt)||dt<=0||this.phase==='done')return;dt=Math.min(dt,.05);
+  if(this.phase==='intro'||this.phase==='roundover'){
+   this.phaseTime-=dt;if(this.phaseTime<=0){if(this.phase==='intro'){this.phase='fight';this.events.push({type:'fight'});}else{this.round++;this.resetRound();}}return;
+  }
+  if(this.sequence){this.stepSequence(dt);return;}
+  this.lastFinisher=null;this.timer=Math.max(0,this.timer-dt);this.aiTime-=dt;
+  const keys=[input,this.training?{}:this.aiInput()];
+  for(let i=0;i<2;i++){
+   const f=this.fighters[i],other=this.fighters[1-i],key=keys[i];f.face=other.x>=f.x?1:-1;
+   f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.knockdown=Math.max(0,f.knockdown-dt);f.throwImmune=Math.max(0,f.throwImmune-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;
+   f.block=!!key.block&&!f.move&&f.stun<=0&&f.y===0;f.crouch=!!key.crouch&&f.y===0&&!f.move&&!f.block;f.walking=false;
+   if(!f.move&&!f.block&&!f.crouch&&f.stun<=0&&f.knockdown<=0){const direction=(key.right?1:0)-(key.left?1:0);f.x=clamp(f.x+direction*PROTOTYPE[i].speed*dt,75,925);f.walking=direction!==0;if(key.jump&&f.y===0)f.vy=PROTOTYPE[i].jump;}
+   f.y=Math.max(0,f.y+f.vy*dt);if(f.y>0||f.vy>0)f.vy-=1800*dt;if(f.y===0&&f.vy<0)f.vy=0;
+   if(f.move){
+    f.move.t+=dt;const move=f.move,m=moveFor(i,move.name);
+    if(move.t>=m.wind&&!move.hit){
+     move.hit=true;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=m.range;
+     if(move.name==='grab'){
+      if(inRange&&f.y<8&&other.y<8&&other.knockdown<=0&&other.throwImmune<=0){this.beginSequence('throw',i,move.throwDirection);return;}
+      this.events.push({type:'grabMiss',id:i});
+     }else if(inRange&&vertical<100){
+      if(move.name==='special'&&!other.block&&other.knockdown<=0){this.beginSequence('super',i);return;}
+      this.applyHit(i,m.damage,{move:move.name,blocked:other.block});
+     }
+    }
+    if(move.t>=m.wind+m.active+m.recovery){f.move=null;f.cooldown=.04;}
+   }
+   if(this.training)f.power=100;
+  }
+  const [a,b]=this.fighters;
+  if(Math.abs(a.x-b.x)<86&&Math.abs(a.y-b.y)<80){const sign=a.x<b.x?1:-1,overlap=(86-Math.abs(a.x-b.x))/2;a.x=clamp(a.x-sign*overlap,75,925);b.x=clamp(b.x+sign*overlap,75,925);}
+  this.endRound();
+ }
+ endRound(){
+  const [a,b]=this.fighters;if(this.phase!=='fight'||(a.hp>0&&b.hp>0&&this.timer>0))return;
+  const winner=a.hp===b.hp?-1:a.hp>b.hp?0:1;if(winner>=0)this.wins[winner]++;
+  const done=this.wins.some(w=>w>=2);this.phase=done?'done':'roundover';this.phaseTime=2.8;
+  this.events.push({finisher:this.lastFinisher,type:done?'matchover':'roundover',winner,knockout:a.hp<=0||b.hp<=0});
  }
  drainEvents(){return this.events.splice(0);}
 }

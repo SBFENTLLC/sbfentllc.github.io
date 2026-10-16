@@ -9,19 +9,20 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  class Element{
   constructor(){this.events={};this.hidden=false;this.style={};this.value='';this.checked=false;this.classList={add(){},remove(){},toggle(){}};this.dataset={};}
   addEventListener(n,fn){(this.events[n]??=[]).push(fn);}
-  setAttribute(){}append(){}focus(){}matches(){return false;}setPointerCapture(){}
+  setAttribute(){}append(){}focus(){}showModal(){this.open=true;}close(){this.open=false;}matches(){return false;}setPointerCapture(){}
   emit(n,e={}){for(const fn of this.events[n]||[])fn({preventDefault(){},target:this,...e});}
  }
  const elements=Object.fromEntries(ids.map(id=>[id,new Element()]));
  for(const id of ['pauseMenu','hud','controls','nowPlaying'])elements[id].hidden=true;
  elements.difficulty.value='medium';elements.training.checked=true;elements.sound.checked=false;
  const buttons={};for(const key of ['left','right','jump','crouch','block']){buttons[key]=new Element();buttons[key].dataset.hold=key;}
- for(const key of ['punch','kick','special']){buttons[key]=elements[key]||new Element();buttons[key].dataset.action=key;}
+ for(const key of ['punch','kick','grab','special']){buttons[key]=elements[key]||new Element();buttons[key].dataset.action=key;}
  const selects=[new Element(),new Element()],ranges=[new Element(),new Element()],musicButtons=[new Element(),new Element()];
  let draws=0,queue=[];const gradient={addColorStop(){}};
  const ctx=new Proxy({drawImage(){draws++;},createRadialGradient(){return gradient;}},{get:(o,k)=>k in o?o[k]:()=>{}});
  elements.arena.getContext=()=>ctx;
  globalThis.document={hidden:false,getElementById:id=>elements[id],createElement:()=>new Element(),addEventListener(){},querySelectorAll:s=>s==='[data-track]'?selects:s==='[data-volume]'?ranges:s==='[data-music]'?musicButtons:s==='[data-hold],[data-action]'?Object.values(buttons):[]};
+ Object.defineProperty(globalThis,'navigator',{value:{},configurable:true});
  globalThis.matchMedia=()=>({matches:false});globalThis.innerWidth=844;globalThis.innerHeight=390;globalThis.devicePixelRatio=1;
  globalThis.addEventListener=()=>{};globalThis.requestAnimationFrame=fn=>queue.push(fn);
  globalThis.localStorage={getItem:()=>null,setItem(){}};
@@ -32,10 +33,10 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  let clock=performance.now();const frame=()=>{clock+=1000/60;const callbacks=queue;queue=[];for(const fn of callbacks)fn(clock);};
  for(let i=0;i<110;i++)frame();
  buttons.right.emit('pointerdown',{pointerId:1});buttons.punch.emit('pointerdown',{pointerId:2});
- for(let i=0;i<20;i++)frame();buttons.right.emit('pointercancel',{pointerId:1});buttons.punch.emit('pointerup',{pointerId:2});
+ for(let i=0;i<70;i++)frame();buttons.right.emit('pointercancel',{pointerId:1});buttons.punch.emit('pointerup',{pointerId:2});
  buttons.special.emit('pointerdown',{pointerId:3});
- const before=draws;for(let i=0;i<190;i++)frame();assert(draws>before+190,'Cinematic and fighters were rendered');
- assert.equal(elements.timer.textContent.length,2);elements.pause.emit('click');assert.equal(elements.pauseMenu.hidden,false);
+ const before=draws;for(let i=0;i<400;i++)frame();assert(draws>before+400,'Cinematic and fighters were rendered');
+ assert.equal(elements.hp1.style.width,'74%');assert.equal(elements.timer.textContent.length,2);elements.pause.emit('click');assert.equal(elements.pauseMenu.hidden,false);
  const time=elements.timer.textContent;for(let i=0;i<60;i++)frame();assert.equal(elements.timer.textContent,time);
  elements.resume.emit('click');assert.equal(elements.pauseMenu.hidden,true);
  elements.exit.emit('click');assert.equal(elements.menu.hidden,false);assert.equal(elements.controls.hidden,true);

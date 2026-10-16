@@ -2,13 +2,13 @@
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-This prototype has two playable fighters and one rooftop. Existing SBFENT pages are unchanged. The full roster, story chapters, boss unlocks, alternate outfits, seven additional stages, and throws remain future work after combat review.
+This prototype has two playable fighters and one rooftop. Existing SBFENT pages are unchanged. The full roster, story chapters, boss unlocks, alternate outfits, seven additional stages, remain future work after combat review.
 
 ## Combat update
 
-Flex A Lot is a pressure boxer: faster movement and punches, shorter reach, slower committed kicks. His Stamped Out super deals one crown-shockwave hit. The Bootlegger is a trickster kickboxer: longer kicks, slower movement, longer recovery, and a three-hit Counterfeit Combo. Move definitions are in `roster.mjs`; the other fourteen entries are explicit design targets, not implemented fighters.
+Flex A Lot is a pressure boxer: faster movement and punches, shorter reach, slower committed kicks. His Stamped Out super connects body blows, an aerial launch, and a crown-stamp slam. The Bootlegger is a trickster kickboxer: longer kicks, slower movement, longer recovery, and a four-hit Counterfeit Combo with clone crossfire and a flying-kick finish. Move definitions are in `roster.mjs`; the other fourteen entries are explicit design targets, not implemented fighters.
 
-Each super has a 2.25-second screen cut-in with a power-up pose, attack name, diagonal transition panels, energy animation, and a paused combat clock. Standard attacks have trails, contact sparks, damage labels, brief hit-stop, recoil flashes, and afterimages. Knockouts show a fall before the results overlay. Reduced-motion mode suppresses camera shake, lightning, and moving trails.
+Each super has a 2.25-second screen cut-in followed, on unblocked contact, by a three-second choreographed sequence linking both fighters with a power-up pose, attack name, diagonal transition panels, energy animation, and a paused combat clock. Standard attacks have trails, contact sparks, damage labels, brief hit-stop, recoil flashes, and afterimages. Knockouts show a fall before the results overlay. Reduced-motion mode suppresses camera shake, lightning, and moving trails.
 
 ## Soundtrack
 
@@ -23,3 +23,13 @@ Phone: landscape, directional pad, punch, kick, block, special. Keyboard: arrows
 Run `node --test stamped-out/*.test.mjs` from the repository root: 17 checks pass, including combat differences, triple-hit special, cinematic duration, soundtrack state, and a mocked full UI flow. JavaScript syntax checks pass. Browser/device QA remains outstanding; the UI smoke test does not replace it.
 
 Generated fighter/stage artwork is included under assets. The implementation uses no external runtime libraries or asset services.
+
+## Grabs, throws, K.O.s, and Home Screen app
+
+GRAB (I or G) works only at close range and against grounded targets. Hold left/right to choose direction. Throws beat blocks, whiffs have recovery, and the defender can tap GRAB during a 0.3-second window to escape. The CPU can attempt throws and tech with difficulty-based probability. A completed slam deals damage once and grants brief wake-up throw immunity. Both fighters receive new grapple/finishing poses. The engine owns all contact and damage; animation follows the same sequence clock. A super can be blocked for chip damage rather than triggering the connected cinematic. The defender may buffer block during the opponent's power-up cut-in.
+
+Knockout fall and particles run at 32% speed initially, with a camera push-in and delayed results. Reduced-motion settings suppress camera movement.
+
+A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and a versioned service worker support Home Screen installation and cached core gameplay after a successful first load. Music stays streamed on demand; no partial audio responses are cached. Actual iPhone installation, browser input, and offline use require device testing.
+
+Validation after this update: 27 passing checks plus offline canvas inspection of six sequence frames.
