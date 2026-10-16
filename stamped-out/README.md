@@ -97,7 +97,7 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 140 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 143 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
 All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. All eight planned arenas are implemented. All sixteen fighters now have one alternate SBFENT outfit. This completes the current story route, not final device QA or production polish.
 
@@ -162,3 +162,9 @@ Neon Nova adds an asymmetrical purple/blue jacket with orange cargo trousers. Bi
 Violet V adds the purple curved-panel cargo tracksuit and Redline the blue curved-panel set. Their eight poses preserve Violet’s low sweep/high kick and Redline’s high kick/uppercut roles, original hairstyles and accessories. All twelve starting fighters now have alternates; the four bosses also have alternates after unlocking. See `ART-VIOLET-RED-OUTFITS.md`.
 
 Big Pressure, Lady Static, Iron Haul and The False King each have a cosmetic SBFENT tracksuit set. Their chapter unlock requirements, attacks and damage remain the same. Sixteen outfit preferences per side preserve all prior saved choices. See `ART-BOSS-OUTFITS.md` for the two paired generation prompts.
+
+## Release review pass
+
+Version 23 adds a branded launch screen, Home Screen instructions and downloadable story/outfit backups for moving from this private origin to the final website. Restore replaces those two saves only and reloads after success. Interrupted fights require an explicit Resume tap; pagehide, blur and hidden-page events clear held controls and silence music, speech and the transient sound context. Resume unlocks audio again. Core offline caching retains the new UI; music remains online. Existing combat balance is unchanged, with the complete combat regression suite retained.
+
+Before public release, verify on the real phone: install from Safari; finish a story match; download backup; close/reopen; switch apps mid-combo; lock/unlock; resume; test music and K.O.; restore backup on the final URL; play long sessions and mixed matchups. Native phone interruptions, browser download/restore UX and installation cannot be verified with the mocked UI tests. The private review link is not yet a public sharing link. Website branding and the Games section are separate follow-up work.

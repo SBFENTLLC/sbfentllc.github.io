@@ -21,14 +21,15 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  let draws=0,queue=[];const gradient={addColorStop(){}};
  const ctx=new Proxy({drawImage(){draws++;},createRadialGradient(){return gradient;}},{get:(o,k)=>k in o?o[k]:()=>{}});
  elements.arena.getContext=()=>ctx;
- globalThis.document={hidden:false,getElementById:id=>elements[id],createElement:()=>new Element(),addEventListener(){},querySelectorAll:s=>s==='[data-track]'?selects:s==='[data-volume]'?ranges:s==='[data-music]'?musicButtons:s==='[data-hold],[data-action]'?Object.values(buttons):s==='[data-hold]'?Object.values(buttons).filter(b=>b.dataset.hold):[]};
+ const docEvents={},windowEvents={};
+ globalThis.document={hidden:false,getElementById:id=>elements[id],createElement:()=>new Element(),addEventListener(n,fn){(docEvents[n]??=[]).push(fn);},querySelectorAll:s=>s==='[data-track]'?selects:s==='[data-volume]'?ranges:s==='[data-music]'?musicButtons:s==='[data-hold],[data-action]'?Object.values(buttons):s==='[data-hold]'?Object.values(buttons).filter(b=>b.dataset.hold):[]};
  Object.defineProperty(globalThis,'navigator',{value:{},configurable:true});
  globalThis.matchMedia=()=>({matches:false});globalThis.innerWidth=844;globalThis.innerHeight=390;globalThis.devicePixelRatio=1;
- globalThis.addEventListener=()=>{};globalThis.requestAnimationFrame=fn=>queue.push(fn);
+ globalThis.addEventListener=(n,fn)=>{(windowEvents[n]??=[]).push(fn);};globalThis.requestAnimationFrame=fn=>queue.push(fn);
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.Image=class{constructor(){this.complete=true;this.naturalWidth=1261;this.naturalHeight=1247;}decode(){return Promise.resolve();}};
  globalThis.Audio=class{addEventListener(){}pause(){}play(){return Promise.resolve();}};
- await import('./game.js');await Promise.resolve();
+ await import('./game.js');await Promise.resolve();assert.equal(elements.launchPlay.disabled,false);elements.launchPlay.emit('click');assert.equal(elements.launchScreen.hidden,true);assert.equal(elements.menu.hidden,false);
  elements.start.emit('click');assert.equal(elements.menu.hidden,true);assert.equal(elements.controls.hidden,false);
  let clock=performance.now();const frame=()=>{clock+=1000/60;const callbacks=queue;queue=[];for(const fn of callbacks)fn(clock);};
  for(let i=0;i<110;i++)frame();
@@ -39,6 +40,7 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  assert.equal(elements.hp1.style.width,'74%');assert.equal(elements.timer.textContent.length,2);elements.pause.emit('click');assert.equal(elements.pauseMenu.hidden,false);
  const time=elements.timer.textContent;for(let i=0;i<60;i++)frame();assert.equal(elements.timer.textContent,time);
  elements.resume.emit('click');assert.equal(elements.pauseMenu.hidden,true);
+ buttons.right.emit('pointerdown',{pointerId:99});for(const fn of windowEvents.pagehide)fn();assert.equal(elements.pauseMenu.hidden,false);const frozen=elements.timer.textContent;for(let i=0;i<120;i++)frame();assert.equal(elements.timer.textContent,frozen);document.hidden=true;elements.resume.emit('click');assert.equal(elements.pauseMenu.hidden,false);for(const fn of docEvents.visibilitychange)fn();document.hidden=false;for(const fn of docEvents.visibilitychange)fn();assert.equal(elements.pauseMenu.hidden,false);elements.resume.emit('click');assert.equal(elements.pauseMenu.hidden,true);
  elements.exit.emit('click');assert.equal(elements.menu.hidden,false);assert.equal(elements.controls.hidden,true);
  elements.controlSize.value='large';elements.controlSize.emit('change');elements.controlHand.value='left';elements.controlHand.emit('change');assert.equal(elements.controls.dataset.size,'large');assert.equal(elements.controls.dataset.hand,'left');
  elements.dummy.value='guard';elements.start.emit('click');for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:4});for(let i=0;i<70;i++)frame();buttons.right.emit('pointerup',{pointerId:4});buttons.special.emit('pointerdown',{pointerId:5});for(let i=0;i<240;i++)frame();assert.equal(elements.hp1.style.width,'96%','Guard training blocks the super cinematic');assert.equal(elements.coach.hidden,false);
