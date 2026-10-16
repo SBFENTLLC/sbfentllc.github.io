@@ -7,7 +7,7 @@ const step=(g,t,input={})=>{for(let n=0;n<Math.ceil(t*120);n++)g.step(1/120,inpu
 const ready=()=>{const g=new Fight({training:true});step(g,1.7);g.fighters[0].x=400;g.fighters[1].x=500;g.events=[];return g;};
 test('hit-confirmed Flex P P K chain connects before guard can recover',()=>{
  const g=ready();g.attack(0,'punch');step(g,.1);g.queueAttack(0,'punch');step(g,.09);g.queueAttack(0,'kick');g.dummy='guard';step(g,.4);
- const hits=g.drainEvents().filter(e=>e.type==='hit');assert.deepEqual(hits.map(e=>e.move),['punch','punch','kick']);assert.equal(hits.at(-1).combo,3);assert.equal(g.fighters[1].hp,73);
+ const hits=g.drainEvents().filter(e=>e.type==='hit');assert.deepEqual(hits.map(e=>e.move),['punch','punch','kick']);assert.equal(hits.at(-1).combo,3);assert.equal(g.fighters[1].hp,65);
 });
 test('blocked hits and whiffs cannot cancel into another attack',()=>{
  for(const block of [true,false]){const g=ready();if(block){g.dummy='guard';}else g.fighters[1].x=800;g.attack(0,'punch');step(g,.1);g.queueAttack(0,'kick');step(g,.16);assert.equal(g.fighters[0].move.name,'punch');assert.equal(g.fighters[0].buffer,null);}
@@ -20,7 +20,7 @@ test('counter hit interrupts startup and a recovery punish is classified',()=>{
  const p=ready();p.attack(1,'punch');step(p,.18,{block:true});step(p,.08);assert(p.attack(0,'punch'));step(p,.1);assert(p.drainEvents().some(e=>e.punish));
 });
 test('holding jump does not automatically jump again on landing',()=>{const g=ready();step(g,1.1,{jump:true});assert.equal(g.fighters[0].y,0);step(g,.2,{jump:true});assert.equal(g.fighters[0].y,0);step(g,.01);step(g,.1,{jump:true});assert(g.fighters[0].y>0);});
-test('guard is resolved before first-frame contact for either fighter',()=>{const g=ready();g.dummy='guard';g.attack(0,'punch');step(g,.09);assert.equal(g.fighters[1].hp,99);assert(g.drainEvents().some(e=>e.type==='block'));});
+test('guard is resolved before first-frame contact for either fighter',()=>{const g=ready();g.dummy='guard';g.attack(0,'punch');step(g,.09);assert.equal(g.fighters[1].hp,98);assert(g.drainEvents().some(e=>e.type==='block'));});
 test('knocked-down targets cannot be repeatedly struck or grabbed',()=>{const g=ready();g.fighters[1].knockdown=.6;g.attack(0,'punch');step(g,.2);assert.equal(g.fighters[1].hp,100);});
 test('training dummy jumps and guard stops connected supers',()=>{const g=ready();g.dummy='jump';step(g,.15);assert(g.fighters[1].y>0);const b=ready();b.dummy='guard';b.attack(0,'special');step(b,.3);assert.equal(b.sequence,null);assert.equal(b.fighters[1].hp,96);});
 test('records persist once per real match and exclude training',()=>{

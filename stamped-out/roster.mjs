@@ -19,10 +19,10 @@ export const ROSTER=[
  {name:'The False King',style:'Stolen-technique stance switching',strength:'Versatile moves from several disciplines',weakness:'Visible stance changes and costly missed specials',special:'False Coronation',superStyle:'Counterfeit crown storm',boss:true}
 ];
 export const PROTOTYPE=[
- {speed:240,jump:650,moves:{punch:{wind:.085,active:.10,recovery:.17,range:118,damage:8},kick:{wind:.22,active:.13,recovery:.31,range:155,damage:11},special:{wind:.23,active:.18,recovery:.60,range:300,damage:26},grab:{wind:.12,active:.08,recovery:.45,range:108,damage:16}}},
- {speed:210,jump:610,moves:{punch:{wind:.14,active:.10,recovery:.22,range:128,damage:6},kick:{wind:.17,active:.13,recovery:.37,range:185,damage:10},special:{wind:.19,active:.18,recovery:.75,range:260,damage:30},grab:{wind:.15,active:.08,recovery:.5,range:112,damage:14}}},
- {speed:265,jump:635,backSpeed:320,moves:{punch:{wind:.105,active:.09,recovery:.20,range:110,damage:6},kick:{wind:.15,active:.11,recovery:.29,range:178,damage:8},special:{wind:.20,active:.16,recovery:.68,range:285,damage:24},grab:{wind:.115,active:.08,recovery:.43,range:103,damage:12}}},
- {speed:230,jump:765,airSpeed:1.22,moves:{punch:{wind:.12,active:.10,recovery:.21,range:116,damage:7},kick:{wind:.18,active:.12,recovery:.34,range:165,damage:9},special:{wind:.21,active:.18,recovery:.72,range:275,damage:28},grab:{wind:.14,active:.08,recovery:.48,range:105,damage:13}}}
+ {speed:240,jump:650,moves:{punch:{wind:.085,active:.10,recovery:.17,range:118,damage:12},kick:{wind:.22,active:.13,recovery:.31,range:155,damage:11},special:{wind:.23,active:.18,recovery:.60,range:300,damage:26},grab:{wind:.12,active:.08,recovery:.45,range:108,damage:16}}},
+ {speed:210,jump:610,moves:{punch:{wind:.14,active:.10,recovery:.22,range:128,damage:9},kick:{wind:.17,active:.13,recovery:.37,range:185,damage:10},special:{wind:.19,active:.18,recovery:.75,range:260,damage:30},grab:{wind:.15,active:.08,recovery:.5,range:112,damage:14}}},
+ {speed:265,jump:635,backSpeed:320,moves:{punch:{wind:.105,active:.09,recovery:.20,range:110,damage:8},kick:{wind:.15,active:.11,recovery:.29,range:178,damage:8},special:{wind:.20,active:.16,recovery:.68,range:285,damage:24},grab:{wind:.115,active:.08,recovery:.43,range:103,damage:12}}},
+ {speed:230,jump:765,airSpeed:1.22,moves:{punch:{wind:.12,active:.10,recovery:.21,range:116,damage:10},kick:{wind:.18,active:.12,recovery:.34,range:165,damage:9},special:{wind:.21,active:.18,recovery:.72,range:275,damage:28},grab:{wind:.14,active:.08,recovery:.48,range:105,damage:13}}}
 ];
 export const moveFor=(id,name)=>PROTOTYPE[id]?.moves[name];
 
