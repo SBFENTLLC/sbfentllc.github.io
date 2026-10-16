@@ -32,7 +32,7 @@ export class Fight {
   f.chain=cancel?f.chain+1:0;f.buffer=null;if(!cancel){f.combo=0;f.comboTime=0;}
   if(counter){f.counterReady=0;f.block=false;}
   const dash=f.character===8&&name==='punch'&&f.y<8&&f.dashCooldown<=0&&(direction===-1||direction===1),rush=f.character===11&&name==='punch'&&f.y<8;if(dash)f.dashCooldown=.95;
-  f.move={name,t:0,counter,dash,rush,travel:0,direction:dash?direction:f.face,wind:counter?.065:dash?.14:m.wind*(cancel?.55:1),hit:false,connected:false,throwDirection:direction===-1?-1:direction===1?1:f.face};return true;
+  f.move={name,t:0,counter,dash,rush,charge:f.character===12&&name==='kick'&&f.y<8,armorUsed:false,travel:0,direction:dash?direction:f.face,wind:counter?.065:dash?.14:m.wind*(cancel?.55:1),hit:false,connected:false,throwDirection:direction===-1?-1:direction===1?1:f.face};return true;
  }
  beginSequence(kind,id,direction=this.fighters[id].face){
   const actor=this.fighters[id],target=this.fighters[1-id],center=clamp((actor.x+target.x)/2,250,750);
@@ -51,9 +51,11 @@ export class Fight {
   const before=b.hp;b.hp=clamp(b.hp-actual,sequence&&!final?1:0,100);
   const counter=!blocked&&!sequence&&!!b.move&&!b.move.hit;
   const punish=!blocked&&!sequence&&(!!b.move&&b.move.hit||b.cooldown>0);
-  if(!blocked){b.move=null;b.buffer=null;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
-  b.stun=parry?.02:blocked?.09:move==='kick'?.24:.18;
-  if(!blocked&&!sequence&&a.character===10&&move==='kick'&&a.y<8){b.stun=.42;b.knockdown=.42;b.throwImmune=.9;}if(!sequence)b.x=clamp(b.x+face*(blocked?(b.character===7?5:9):move==='kick'?(a.character===9?42:28):a.character===11?8:16),75,925);
+  const armored=!blocked&&!sequence&&b.character===12&&b.move?.charge&&!b.move.armorUsed&&b.move.t<.62&&damage<=12&&(move==='punch'||move==='kick'||move==='wave');
+  if(armored){b.move.armorUsed=true;this.events.push({type:'armor',id:1-id});}
+  if(!blocked&&!armored){b.move=null;b.buffer=null;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
+  b.stun=armored?0:parry?.02:blocked?.09:move==='kick'?.24:.18;
+  if(!blocked&&!sequence&&a.character===10&&move==='kick'&&a.y<8){b.stun=.42;b.knockdown=.42;b.throwImmune=.9;}if(!sequence&&!armored)b.x=clamp(b.x+face*(blocked?(b.character===7?5:9):move==='kick'?(a.character===9?42:28):a.character===11?8:16),75,925);
   a.power=clamp(a.power+(move==='special'?0:blocked?4:15),0,100);b.power=clamp(b.power+(parry?18:9),0,100);
   if(!blocked){a.combo++;a.comboTime=1.2;}
   if(a.character===2&&move==='kick'&&!sequence&&a.y===0)a.x=clamp(a.x-a.face*22,75,925);
@@ -76,7 +78,7 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
+  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
   ai.crouch=ai.block&&a.character===10&&a.move?.name==='kick'&&a.y<8;
   if(b.character===6&&d<155){ai.left=toward>0;ai.right=toward<0;}
   if(b.character===11&&b.move?.name==='punch'&&b.move.connected&&this.difficulty!=='easy')this.attack(1,'punch');
@@ -87,6 +89,7 @@ export class Fight {
    if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<(b.character===9?.6:.25)))this.attack(1,'grab');
    else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
    else if(b.character===8&&d>120&&d<230&&b.dashCooldown<=0)this.attack(1,'punch',{direction:toward});
+   else if(b.character===12&&d<=265)this.attack(1,'kick');
    else if(b.character===6&&d<=480)this.attack(1,'kick');
    else if(d<=moveFor(b.character,'kick').range)this.attack(1,d>moveFor(b.character,'punch').range||this.random()>.48?'kick':'punch');
   }
@@ -115,6 +118,7 @@ export class Fight {
    if(f.move){
     f.move.t+=dt;const move=f.move,m=moveFor(f.character,move.name);
     if((move.dash&&move.t<=.16||move.rush&&move.t<=.13)&&f.y<8){const delta=Math.min((move.dash?650:200)*dt,(move.dash?104:26)-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
+    if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.t>=(move.wind??m.wind)&&!move.hit){
      move.hit=true;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.counter?140:m.range);
      if(f.character===6&&move.name==='kick'&&f.y<8){

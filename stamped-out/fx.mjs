@@ -76,6 +76,7 @@ export class FightFX {
   ctx.save();ctx.globalAlpha=alpha;ctx.translate(f.x,510-flightY-bottom);ctx.rotate(rotation);ctx.scale(f.face,1);
   if(!this.reduced&&!rotation&&!f.move&&!f.stun&&!f.walking&&!f.knockdown&&!this.sequence&&!this.finish)ctx.scale(1,1+Math.sin(this.time*((f.character??f.id)===0?3.8:2.6))*.006);
   if(f.crouch)ctx.scale(1,.72);
+  if(f.character===12&&f.move?.charge&&f.move.t<.62&&!f.move.armorUsed)ctx.filter='sepia(.5) saturate(2) brightness(1.35)';
   if(this.flashes[f.id]>0)ctx.filter='brightness(1.65) saturate(.6)';
   ctx.translate(dx,-height);ctx.scale(scale,scale);
   const paths=newCharacter?expansionPaths:grappling?this.grapplePaths:MASK_PATHS,spans=newCharacter?expansionData.masks[assetIndex][frame]:grappling?this.grappleData.masks[assetIndex][f.grapplePose]:MASK_SPANS[assetIndex][frame];
@@ -99,6 +100,9 @@ export class FightFX {
  }
  after(ctx,fighters=[]){
   for(const f of fighters)this.attackTrail(ctx,f);
+  if(this.sequence?.character===12&&this.sequence.kind==='super'){
+   const s=this.sequence,t=s.elapsed;for(const impact of [1.95,3.05]){const age=t-impact;if(age>=0&&age<.5){ctx.save();ctx.globalAlpha=1-age*2;ctx.strokeStyle='#ffda70';ctx.lineWidth=3;const x=s.center+s.face*(impact>3?175:65);for(let ray=0;ray<7;ray++){const d=ray/7*Math.PI*2,r=35+age*230;ctx.beginPath();ctx.moveTo(x,505);ctx.lineTo(x+Math.cos(d)*r*.5,503+Math.sin(d)*10);ctx.lineTo(x+Math.cos(d)*r,503+Math.sin(d)*22);ctx.stroke();}ctx.restore();}}
+  }
   for(const p of this.projectiles){ctx.save();ctx.translate(p.x,510-p.y);ctx.scale(p.face,1);ctx.strokeStyle='#86e9ff';ctx.lineWidth=4;ctx.shadowBlur=this.reduced?0:14;ctx.shadowColor='#35bfff';for(let i=0;i<3;i++){ctx.globalAlpha=1-i*.22;ctx.beginPath();ctx.ellipse(-i*12,0,18+i*5,48+i*6,0,-1.22,1.22);ctx.stroke();}ctx.restore();}
   for(const f of fighters)if(f.character===7&&f.block){ctx.save();ctx.globalAlpha=.6;ctx.strokeStyle='#f0cc73';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(f.x+f.face*48,350-f.y,28,68,0,-1.2,1.2);ctx.stroke();ctx.restore();}
   for(const p of this.impacts){

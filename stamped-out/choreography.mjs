@@ -92,11 +92,18 @@ export function sequenceFighters(fighters,sequence){
   else if(t<2.35){const p=(t-1.02)/1.33;a.pose=7;a.x=c-d*60;a.y=Math.sin(p*Math.PI/2)*145;a.rotation=p*Math.PI*2*d;b.x=c+d*70;b.y=70+Math.sin(p*Math.PI/2)*80;b.rotation=p*.7*d;}
   else if(t<2.82){const p=smooth((t-2.35)/.47);a.pose=3;a.x=c-d*40;a.y=145*(1-p);b.x=lerp(c+d*70,c+d*175,p);b.y=150*(1-p);b.rotation=-2.3*p*d;}
   else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.rotation=-2.3*d;}
- }else{
+ }else if(character===11){
   // Redline drives a rushing three-punch string into a leaping uppercut.
   if(t<1.8){a.pose=Math.floor(t*14)%2?2:0;a.x=lerp(c-d*170,c-d*75,smooth(t/1.8));b.x=c+d*65+Math.sin(t*23)*8;b.rotation=Math.sin(t*20)*.08;}
   else if(t<2.6){const p=(t-1.8)/.8;a.pose=7;a.x=lerp(c-d*75,c-d*25,smooth(p));a.y=Math.sin(p*Math.PI/2)*120;b.x=c+d*85;b.y=p*160;b.rotation=-p*.5*d;}
   else{const p=smooth((t-2.6)/.5);a.pose=7;a.x=lerp(c-d*25,c-d*80,p);a.y=120*(1-p);b.x=c+d*175;b.y=160*(1-p);b.rotation=-2.3*d;}
+ }
+ if(character===12){
+  a.pose=t<.45?4:t<1.15?2:7;a.x=c-d*80;
+  if(t<1.15){b.x=c+d*40;b.y=smooth(t/1.15)*135;b.rotation=-.25*d;}
+  else if(t<1.95){const p=smooth((t-1.15)/.8);b.x=c+d*65;b.y=135*(1-p);b.rotation=-2.3*p*d;}
+  else if(t<3.05){const p=(t-1.95)/1.1;a.y=Math.sin(p*Math.PI)*75;b.x=c+d*75;b.y=Math.sin(p*Math.PI)*180;b.rotation=(-2.3+p*4)*d;}
+  else{a.pose=3;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
  }
  return out;
 }

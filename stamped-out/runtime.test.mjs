@@ -49,4 +49,17 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  for(const [char,damage,pointer] of [[4,34,10],[5,29,11],[6,29,12],[7,31,13],[8,25,14],[9,36,15],[10,28,16],[11,31,17]]){elements['pick'+char].emit('click');elements.opponentCharacter.value=char===4?'5':'4';elements.opponentCharacter.emit('change');elements.start.emit('click');assert.equal(elements.name0.textContent,({4:'GOLDIE',5:'ONYX',6:'DJ BLACKOUT',7:'QUIET MONEY',8:'NEON NOVA',9:'BIG STAMP',10:'VIOLET V',11:'REDLINE'})[char]);for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:pointer});for(let i=0;i<110;i++)frame();buttons.right.emit('pointerup',{pointerId:pointer});buttons.special.emit('pointerdown',{pointerId:pointer+10});for(let i=0;i<430;i++)frame();assert.equal(elements.hp1.style.width,(100-damage)+'%');elements.exit.emit('click');}
  elements.pick6.emit('click');elements.opponentCharacter.value='0';elements.opponentCharacter.emit('change');elements.start.emit('click');for(let i=0;i<110;i++)frame();assert.equal(elements.kickLabel.textContent,'WAVE');buttons.kick.emit('pointerdown',{pointerId:30});for(let i=0;i<100;i++)frame();assert.equal(elements.hp1.style.width,'91%');elements.exit.emit('click');
  for(const [dummy,hp] of [['guard','90%'],['lowguard','98%']]){elements.pick10.emit('click');elements.dummy.value=dummy;elements.start.emit('click');for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:40});for(let i=0;i<70;i++)frame();buttons.right.emit('pointerup',{pointerId:40});assert.equal(elements.kickLabel.textContent,'SWEEP');buttons.kick.emit('pointerdown',{pointerId:41});for(let i=0;i<80;i++)frame();assert.equal(elements.hp1.style.width,hp);elements.exit.emit('click');}
+ // Drive actual matchover events through the story UI, while model tests
+ // separately cover combat. Story must ignore the training checkbox/roster.
+ const {Fight}=await import('./engine.mjs');const oldStep=Fight.prototype.step;let winner=1;
+ Fight.prototype.step=function(){if(this.phase==='done')return;this.phase='fight';this.wins[winner]=1;this.fighters[1-winner].hp=0;this.endRound();};
+ try{
+  elements.openStory.emit('click');assert.equal(elements.storyMenu.hidden,false);elements.storyStart.emit('click');assert.equal(elements.name0.textContent,'FLEX A LOT');assert.equal(elements.name1.textContent,'THE BOOTLEGGER');
+  for(let i=0;i<260;i++)frame();assert.equal(elements.storyNext.hidden,true);assert.equal(elements.restart.hidden,false);assert.equal(elements.pick12.disabled,true);
+  winner=0;elements.restart.emit('click');for(let i=0;i<260;i++)frame();assert.equal(elements.storyNext.hidden,false);
+  elements.exit.emit('click');elements.openStory.emit('click');assert(elements.storyTitle.textContent.includes('02'));elements.storyStart.emit('click');assert.equal(elements.name1.textContent,'REDLINE');for(let i=0;i<260;i++)frame();
+  elements.storyNext.emit('click');assert.equal(elements.name1.textContent,'BIG PRESSURE');for(let i=0;i<260;i++)frame();assert.equal(elements.pauseTitle.textContent,'CHAPTER CLEARED');assert.equal(elements.pick12.disabled,false);assert.equal(elements.blockpartyOption.disabled,false);
+  elements.storyNext.emit('click');assert.equal(elements.storyTitle.textContent,'CHAPTER 1 CLEARED');elements.storyBack.emit('click');elements.pick12.emit('click');elements.arenaSelect.value='blockparty';elements.start.emit('click');assert.equal(elements.name0.textContent,'BIG PRESSURE');elements.exit.emit('click');
+ }finally{Fight.prototype.step=oldStep;}
+
 });

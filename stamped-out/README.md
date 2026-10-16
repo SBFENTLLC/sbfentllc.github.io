@@ -1,8 +1,14 @@
-# SBFENT: Stamped Out — twelve-fighter review build
+# SBFENT: Stamped Out — Flex story chapter one review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. One rooftop is playable. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
+The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. The rooftop and story-unlockable Carolina Block Party are playable. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
+
+## Flex story: Take Back the Stamp
+
+Chapter one forces Flex as the player and disables training behavior even when the training checkbox is selected. Beat Bootlegger and Redline on the rooftop, then Big Pressure at Carolina Block Party. Each encounter is a best-of-three match. Difficulty follows the menu setting. Defeats retry the same encounter; match wins save immediately to this browser/device. Clearing the chapter unlocks Big Pressure for either match slot and the new arena for arcade/training. Replay retains unlocks and saves its current encounter. Storage failure is reported on the result screen; no cloud or cross-device save is claimed.
+
+Big Pressure has slow heavy punches, a 24-damage escapable grab, and a 19-damage shoulder charge. The charge winds up for 0.62 seconds and glows gold while it can absorb one light strike. It still takes that damage; a second strike, a heavy strike, or a grab interrupts it. Block/jump and punish its 0.72-second recovery. Pressure Break is a 3.6-second double-slam sequence dealing 38 total damage.
 
 ## Twelve distinct styles
 
@@ -21,7 +27,7 @@ The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara
 | Violet V | Low K sweeps standing guard into knockdown | Down + block or jump beats sweep; long recovery | Purple Reign: low sweep, rising spiral, heel drop |
 | Redline | Advancing P → P → P confirms | Blocking stops the chain; misses leave recovery | Overdrive: rushing punches and leaping uppercut |
 
-Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve implemented profiles and four planned boss profiles. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
+Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve starting profiles, the implemented Big Pressure boss, and three future boss profiles. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
 
 Punch damage against 100 HP: Flex 12 (previously 8), Bootlegger 9 (6), Foxy 8 (6), Clara 10 (7). Punch reach and timing retain each character’s style. Flex’s landed P → P → K now deals 35 total damage. Guard still reduces strikes to chip damage.
 
@@ -45,9 +51,9 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 66 checks cover the 144 character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 73 checks cover all 169 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-The twelve starting fighters are implemented. Four boss unlocks, story as Flex, seven additional arenas, and alternate outfits remain future production stages after review of each set.
+The twelve starting fighters and chapter one are implemented. Three more boss chapters, six more arenas, and alternate outfits remain future production stages after review of each set.
 
 Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
 
@@ -79,3 +85,14 @@ Violet's grounded K is a low sweep: standing block loses, down + block reduces i
 Their supers deal 25 / 36 / 28 / 31 respectively, using separate four-hit choreography. The art renderer registers each paired atlas once and retains clipped alpha paths through match resets. Twelve menu cards are hidden with the rest of the menu during a fight.
 
 New built-in image generation assets: `assets/nova-stamp.webp` and `assets/violet-red.webp`. Prompts: two transparent square 4×4 sprite atlases, eight right-facing full-body felt-puppet arcade poses per original fighter (ready, step, punch, kick, block, hurt, jump, signature), matching established illustration style and SBFENT wide-bottom denim construction. Nova: lime-tipped black coils, lime/purple/blue denim and hoops. Big Stamp: stocky flat-top/beard, blue/purple denim and crown chain. Violet V: purple braided buns, purple lightning denim and low sweeping kick. Redline: red-tipped twists, orange/blue/purple denim and uppercut signature. Preserve identity/outfit over poses; no cropped limbs, overlaps, background, UI, labels, props or extra people. Paired alpha metadata is in `nova-stamp-data.mjs` and `violet-red-data.mjs`.
+
+## Chapter-one generated art
+
+Created with the built-in image generation tool, converted to WebP while preserving the boss atlas alpha. Saved project assets:
+
+- `assets/big-pressure.webp` (eight poses; `boss-data.mjs` contains isolated masks and hulls).
+- `assets/blockparty.webp` (Carolina Block Party stage).
+
+Boss prompt: “Use case: stylized-concept. Asset: production fighting-game sprite atlas, transparent RGBA. Create original SBFENT boss BIG PRESSURE, huge imposing dark-brown-skinned heavyweight man, bald with thick square beard, gold chain, sleeveless purple denim vest with lime crown emblem, black tank, wide blue-purple cargo denim pants, gold/lime sneakers, taped fists. Match chunky illustrated arcade sprites with bold clean outlines and textured cel shading. Exactly EIGHT separate full-body sprites in a FOUR-column TWO-row grid, all facing right, same character and consistent size. Top row ready guard, walking step, full extended punch, powerful shoulder charge leaning right. Bottom row arms blocking, recoiling hurt, airborne knees bent, both fists overhead power slam. Every sprite fully visible head to both shoes, generous transparent gutters 35 pixels, no touching or overlap, no labels, no shadows, no extra effects. Wide landscape atlas. Reference image is only style guidance, not identity.” Style reference: the existing Nova/Stamp atlas.
+
+Stage prompt: “Use case: stylized-concept. Asset type: wide 16:9 illustrated background for SBFENT 2D side-view fighting game. Carolina Block Party at dusk in an original Southern US city neighborhood. Purple and lime neon stage lighting, gold crown decorations, brick storefronts, street party DJ speakers in distant background, parked custom cars, strings of glowing lights, small celebratory crowd behind barriers, rich textured arcade cel-painted art. Camera level straight side view, flat clear asphalt fighting floor across bottom 38 percent, no objects or people on this fighting floor, horizon near 60 percent image height. Background detail should be readable but lower contrast than foreground fighters. No fighters, no HUD, no letters or watermarks. Warm dusk sky, vivid purple gold lime brand colors. Production game background.”
