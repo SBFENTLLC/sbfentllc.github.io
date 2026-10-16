@@ -1,8 +1,8 @@
-# SBFENT: Stamped Out — Flex story eight-arena + twelve alternate outfits review build
+# SBFENT: Stamped Out — Flex story eight-arena + sixteen alternate outfits review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. All twelve starting fighters have selectable SBFENT tracksuit alternates. The character menu disappears during combat. Existing SBFENT pages are unchanged.
+The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. All sixteen fighters have selectable SBFENT tracksuit alternates, with boss choices available after their existing story unlocks. The character menu disappears during combat. Existing SBFENT pages are unchanged.
 
 ## Flex story: Take Back the Stamp
 
@@ -36,7 +36,7 @@ Finale art asset paths and exact prompts: [ART-FINALE.md](ART-FINALE.md).
 
 The arena selector contains all eight locations. `arenas.mjs` is the shared registry for names, art, and availability: four starting arenas plus four story-unlock arenas. All use the same flat fight space, gameplay bounds, and camera. Studio, Vault, and Workshop are selectable in arcade and training without changing story progression.
 
-Prematch outfit selectors independently dress the player and opponent, including mirror matches. Flex's purple tracksuit and Bootlegger's blue tracksuit derive from the supplied SBFENT clothing references. Both preserve their original puppet identity, hats, face/mask, body proportions, and style. Each has eight new normal poses plus four matching grappling poses, so cinematic throws/supers retain the selected clothing. Foxy also has a lime hooded tracksuit with purple/blue panels, and Clara has an orange/purple/blue tracksuit. Their existing eight-pose kick, aerial, throw, and super choreography uses the selected clothing. Each preserves the original hair, face, hat/accessories and proportions. Other fighters show Original outfit with the alternate option disabled and labeled coming later.
+Prematch outfit selectors independently dress the player and opponent, including mirror matches. Flex's purple tracksuit and Bootlegger's blue tracksuit derive from the supplied SBFENT clothing references. Both preserve their original puppet identity, hats, face/mask, body proportions, and style. Each has eight new normal poses plus four matching grappling poses, so cinematic throws/supers retain the selected clothing. Foxy also has a lime hooded tracksuit with purple/blue panels, and Clara has an orange/purple/blue tracksuit. Their existing eight-pose kick, aerial, throw, and super choreography uses the selected clothing. Each preserves the original hair, face, hat/accessories and proportions. All four bosses also have eight-pose alternate sets available after their story unlocks.
 
 Preferences save per character and side on this device. Loading the expanded four-character outfit settings preserves earlier Flex/Bootlegger choices. Story uses the player's saved Flex outfit and the opponent's saved outfit for supported opponents. Round resets, clones, power-up portraits, victory poses, and joint sequences preserve appearance. Outfits are cosmetic: model replay checks show identical damage, timing, movement, guard, and outcomes for original/alternate matches. The approved punch contact tuning is unchanged.
 
@@ -97,9 +97,9 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 135 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 140 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. All eight planned arenas are implemented. Additional character outfit sets remain future production stages. This completes the current story route, not final device QA or production polish.
+All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. All eight planned arenas are implemented. All sixteen fighters now have one alternate SBFENT outfit. This completes the current story route, not final device QA or production polish.
 
 Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
 
@@ -159,4 +159,6 @@ DJ Blackout adds a purple/orange-sleeve cargo tracksuit; Quiet Money adds a purp
 
 Neon Nova adds an asymmetrical purple/blue jacket with orange cargo trousers. Big Stamp adds the purple/blue/lime panel tracksuit. Each has eight matching poses preserving original identity and mechanics; earlier outfit choices remain saved. See `ART-NOVA-STAMP-OUTFITS.md` for the built-in generation prompt.
 
-Violet V adds the purple curved-panel cargo tracksuit and Redline the blue curved-panel set. Their eight poses preserve Violet’s low sweep/high kick and Redline’s high kick/uppercut roles, original hairstyles and accessories. All twelve starting fighters now have alternates; the four bosses retain original outfits. See `ART-VIOLET-RED-OUTFITS.md`.
+Violet V adds the purple curved-panel cargo tracksuit and Redline the blue curved-panel set. Their eight poses preserve Violet’s low sweep/high kick and Redline’s high kick/uppercut roles, original hairstyles and accessories. All twelve starting fighters now have alternates; the four bosses also have alternates after unlocking. See `ART-VIOLET-RED-OUTFITS.md`.
+
+Big Pressure, Lady Static, Iron Haul and The False King each have a cosmetic SBFENT tracksuit set. Their chapter unlock requirements, attacks and damage remain the same. Sixteen outfit preferences per side preserve all prior saved choices. See `ART-BOSS-OUTFITS.md` for the two paired generation prompts.
