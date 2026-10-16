@@ -1,0 +1,11 @@
+# SBFENT release handoff
+
+User phone-tested FOUR FLAT, app switching/resume, and story/outfit persistence successfully. Private game v24: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site . All 14 soundtrack files decoded successfully; 145 Node tests pass.
+
+This branch preserves the current main website and adds the final Stamped Out build at /stamped-out/. Adds games.html with all three games, homepage game cards, moves inline Detective Flex from explore.html into Games while retaining archive links, and features the fedora/masked character cream-and-gold logo across standard navigation and homepage. Green artwork sits with existing SBFENT origin copy at explore.html#label. Adds Home Screen instructions and private-to-public backup/restore guidance. Roll to Riches remains at https://sbfent-roll-to-riches.purpleflute8.chatgpt.site .
+
+NOT PUBLISHED: this branch is a saved draft only. Continue QA before publishing. Main website currently https://sbfent.com/ . Local source checks found no duplicate IDs or missing local targets on index.html, games.html, explore.html, or stamped-out/index.html. 145 Node tests pass in stamped-out/. Browser/mobile visual QA of website changes remains outstanding. Managed browser QA was unavailable (no control-browser skill); no server was improvised. Check all Games navigation, mobile card layout, logo dimensions, Games inline lizard controls, final game metadata/relative URLs, backup/restore across origins and Home Screen install.
+
+Important: existing draft PR #2 on game/stamped-out-prototype has a root containing only stamped-out and would remove the main website if merged directly. Do not merge it as-is. This new branch starts from main d9c4ff52d460c8ba8c112e99ea1074ac273165cc and retains all main files. Main was unchanged at handoff. PR #2 notes latest soundtrack changes but is superseded by this combined draft for eventual release.
+
+Artwork sources: libfile_45fef9a16ce081918d1985ca2d7f793a = main fedora logo; libfile_19086f7aa3d481919810d8e96123baf6 = green story art. Original uploaded files preserved. Optimized WebP and touch icon included. User wants a polished website and game, both easy to open, save to Home Screen, and share.
