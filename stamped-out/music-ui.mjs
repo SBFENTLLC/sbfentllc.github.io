@@ -9,7 +9,7 @@ export function setupMusic(){
   document.querySelectorAll('[data-track]').forEach(s=>s.value=selection);
   document.querySelectorAll('[data-volume]').forEach(s=>s.value=Math.round(volume*100));
  });
- const save=()=>{try{localStorage.setItem('sbfent-stamped-out-music',JSON.stringify({enabled:music.enabled,volume:music.audio.volume,selection:music.selection}));}catch{}};
+ const save=()=>{try{localStorage.setItem('sbfent-stamped-out-music',JSON.stringify({enabled:music.enabled,volume:music.level,selection:music.selection}));}catch{}};
  document.querySelectorAll('[data-track]').forEach(s=>{for(const t of TRACKS){const o=document.createElement('option');o.value=t.id;o.textContent=t.title;s.append(o);}s.addEventListener('change',()=>{music.unlocked=true;music.select(s.value);save();});});
  document.querySelectorAll('[data-volume]').forEach(s=>s.addEventListener('input',()=>{music.volume(s.value/100);save();}));
  const toggle=()=>{music.toggle();save();};document.querySelectorAll('[data-music]').forEach(b=>b.addEventListener('click',toggle));$('musicToggle').addEventListener('click',toggle);

@@ -21,7 +21,7 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  let draws=0,queue=[];const gradient={addColorStop(){}};
  const ctx=new Proxy({drawImage(){draws++;},createRadialGradient(){return gradient;}},{get:(o,k)=>k in o?o[k]:()=>{}});
  elements.arena.getContext=()=>ctx;
- globalThis.document={hidden:false,getElementById:id=>elements[id],createElement:()=>new Element(),addEventListener(){},querySelectorAll:s=>s==='[data-track]'?selects:s==='[data-volume]'?ranges:s==='[data-music]'?musicButtons:s==='[data-hold],[data-action]'?Object.values(buttons):[]};
+ globalThis.document={hidden:false,getElementById:id=>elements[id],createElement:()=>new Element(),addEventListener(){},querySelectorAll:s=>s==='[data-track]'?selects:s==='[data-volume]'?ranges:s==='[data-music]'?musicButtons:s==='[data-hold],[data-action]'?Object.values(buttons):s==='[data-hold]'?Object.values(buttons).filter(b=>b.dataset.hold):[]};
  Object.defineProperty(globalThis,'navigator',{value:{},configurable:true});
  globalThis.matchMedia=()=>({matches:false});globalThis.innerWidth=844;globalThis.innerHeight=390;globalThis.devicePixelRatio=1;
  globalThis.addEventListener=()=>{};globalThis.requestAnimationFrame=fn=>queue.push(fn);
@@ -40,4 +40,7 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  const time=elements.timer.textContent;for(let i=0;i<60;i++)frame();assert.equal(elements.timer.textContent,time);
  elements.resume.emit('click');assert.equal(elements.pauseMenu.hidden,true);
  elements.exit.emit('click');assert.equal(elements.menu.hidden,false);assert.equal(elements.controls.hidden,true);
+ elements.controlSize.value='large';elements.controlSize.emit('change');elements.controlHand.value='left';elements.controlHand.emit('change');assert.equal(elements.controls.dataset.size,'large');assert.equal(elements.controls.dataset.hand,'left');
+ elements.dummy.value='guard';elements.start.emit('click');for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:4});for(let i=0;i<70;i++)frame();buttons.right.emit('pointerup',{pointerId:4});buttons.special.emit('pointerdown',{pointerId:5});for(let i=0;i<240;i++)frame();assert.equal(elements.hp1.style.width,'96%','Guard training blocks the super cinematic');assert.equal(elements.coach.hidden,false);
+ elements.pause.emit('click');assert.equal(elements.resetPractice.hidden,false);elements.resetPractice.emit('click');assert.equal(elements.pauseMenu.hidden,true);assert.equal(elements.hp1.style.width,'96%');frame();assert.equal(elements.hp1.style.width,'100%');elements.exit.emit('click');
 });
