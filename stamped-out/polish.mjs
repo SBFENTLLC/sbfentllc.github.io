@@ -9,4 +9,4 @@ export class MatchRecord {
  get summary(){const c=this.current;return `${c.damage} damage · ${c.bestCombo} best combo · ${c.counters} counters · ${c.punishes} punishes · ${c.throws} throws`;}
  get label(){const s=this.saved;return s.matches?`${s.wins} W / ${s.matches-s.wins} L · BEST ${s.bestCombo} HIT COMBO`:'YOUR FIRST STAMP STARTS HERE';}
 }
-export const COACH={stand:'Get close. Tap P, then P → K as the punch lands. Only landed hits can chain.',guard:'The dummy holds BLOCK. Strikes chip; GRAB breaks the guard. Supers can be blocked.',jump:'The dummy jumps. Ground grabs miss airborne targets—wait for the landing.'};
+export const COACH={jab:'Get within punch reach. The dummy jabs regularly. Time BLOCK, then tap P when Onyx’s counter is ready.',stand:'Get close. Tap P, then P → K as the punch lands. Only landed hits can chain.',guard:'The dummy holds BLOCK. Strikes chip; GRAB breaks the guard. Supers can be blocked.',jump:'The dummy jumps. Ground grabs miss airborne targets—wait for the landing.'};

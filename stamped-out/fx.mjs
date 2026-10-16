@@ -28,7 +28,7 @@ export class FightFX {
   const count=this.reduced?5:heavy?35:18;
   for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,s=100+Math.random()*(heavy?500:300);this.particles.push({x,y,vx:Math.cos(a)*s+face*70,vy:Math.sin(a)*s-60,life:.25+Math.random()*.3,color,size:2+Math.random()*4});}
   this.particles=this.particles.slice(-160);
-  this.labels.push({x,y:y-35,life:.75,text:blocked?'BLOCK':'−'+e.damage,color});
+  this.labels.push({x,y:y-35,life:.75,text:e.parry?'PERFECT GUARD':blocked?'BLOCK':'−'+e.damage,color});
   if(e.counter||e.punish)this.labels.push({x,y:y-65,life:1,text:e.counter?'COUNTER HIT':'PUNISH',color:'#cfff66'});
   if(e.combo>=2)this.combo={id:e.id,count:e.combo,life:.9};
  }
@@ -47,14 +47,15 @@ export class FightFX {
   this.ghostTime-=dt;if(!this.reduced&&!this.finish&&!this.cinematic&&!this.sequence&&this.ghostTime<=0){this.ghostTime=.045;for(const f of fighters)if(f.walking||f.move)this.ghosts.push({f:{...f,move:f.move?{...f.move}:null},life:.18});this.ghosts=this.ghosts.slice(-12);}
  }
  frame(f){if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+m.recovery*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
+ setDuo(atlas,data){this.duoAtlas=atlas;this.duoData=data;this.duoPaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
  setExpansion(atlas,data){this.expansionAtlas=atlas;this.expansionData=data;this.expansionPaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
  setGrapples(atlas,data){this.grappleAtlas=atlas;this.grappleData=data;this.grapplePaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
  rawSprite(ctx,f,frame=this.frame(f),alpha=1){
-  const character=f.character??f.id,newCharacter=character>=2,assetIndex=newCharacter?character-2:character;
+  const character=f.character??f.id,newCharacter=character>=2,assetIndex=character>=4?character-4:newCharacter?character-2:character,expansionAtlas=character>=4?this.duoAtlas:this.expansionAtlas,expansionData=character>=4?this.duoData:this.expansionData,expansionPaths=character>=4?this.duoPaths:this.expansionPaths;
   const grappling=!newCharacter&&f.grapplePose!==undefined&&this.grappleAtlas?.naturalWidth&&this.grappleData;
-  const img=newCharacter?this.expansionAtlas:grappling?this.grappleAtlas:this.atlas;if(!img)return;if(!img.complete||!img.naturalWidth)return;
-  const [sx,sy,sw,sh]=newCharacter?this.expansionData.boxes[assetIndex][frame]:grappling?this.grappleData.boxes[assetIndex][f.grapplePose]:SPRITES[assetIndex][frame];
-  const scale=newCharacter?this.expansionData.scale[assetIndex]:grappling?this.grappleData.scale:.96,offset=grappling?0:frame===2||frame===7?35:frame===3?48:0;
+  const img=newCharacter?expansionAtlas:grappling?this.grappleAtlas:this.atlas;if(!img)return;if(!img.complete||!img.naturalWidth)return;
+  const [sx,sy,sw,sh]=newCharacter?expansionData.boxes[assetIndex][frame]:grappling?this.grappleData.boxes[assetIndex][f.grapplePose]:SPRITES[assetIndex][frame];
+  const scale=newCharacter?expansionData.scale[assetIndex]:grappling?this.grappleData.scale:.96,offset=grappling?0:frame===2||frame===7?35:frame===3?48:0;
   let rotation=f.rotation||0,fall=0;
   if(!this.reduced&&f.rotation===undefined&&!this.finish&&f.knockdown<=0&&f.pose===undefined){
    if(f.stun>0)rotation=-f.face*.12*Math.min(1,f.stun/.14);
@@ -65,7 +66,7 @@ export class FightFX {
   const width=sw*scale,height=sh*scale,dx=-width/2+offset;
   // Align the rotated sprite's lowest corner with its trajectory. A throw
   // should never push the victim's head beneath the arena floor.
-  const hull=newCharacter?this.expansionData.hulls[assetIndex][frame]:grappling?SPRITE_HULLS.grapple[assetIndex][f.grapplePose]:SPRITE_HULLS.normal[assetIndex][frame];
+  const hull=newCharacter?expansionData.hulls[assetIndex][frame]:grappling?SPRITE_HULLS.grapple[assetIndex][f.grapplePose]:SPRITE_HULLS.normal[assetIndex][frame];
   const corners=hull.map(([x,y])=>(dx+x*scale)*f.face*Math.sin(rotation)+(-height+y*scale)*Math.cos(rotation));
   const bottom=Math.max(...corners),projectedHeight=bottom-Math.min(...corners);
   const flightY=Math.min(f.y,Math.max(0,510-70-projectedHeight));
@@ -74,7 +75,7 @@ export class FightFX {
   if(f.crouch)ctx.scale(1,.72);
   if(this.flashes[f.id]>0)ctx.filter='brightness(1.65) saturate(.6)';
   ctx.translate(dx,-height);ctx.scale(scale,scale);
-  const paths=newCharacter?this.expansionPaths:grappling?this.grapplePaths:MASK_PATHS,spans=newCharacter?this.expansionData.masks[assetIndex][frame]:grappling?this.grappleData.masks[assetIndex][f.grapplePose]:MASK_SPANS[assetIndex][frame];
+  const paths=newCharacter?expansionPaths:grappling?this.grapplePaths:MASK_PATHS,spans=newCharacter?expansionData.masks[assetIndex][frame]:grappling?this.grappleData.masks[assetIndex][f.grapplePose]:MASK_SPANS[assetIndex][frame];
   if(paths)ctx.clip(paths[assetIndex][grappling?f.grapplePose:frame]);else{ctx.beginPath();for(const [y,x,w] of spans)ctx.rect(x,y,w,1);ctx.clip();}
   ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);ctx.restore();
  }
