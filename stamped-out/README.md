@@ -1,8 +1,8 @@
-# SBFENT: Stamped Out — Flex story chapters one through three + K.O. announcer review build
+# SBFENT: Stamped Out — Flex story complete four-chapter story review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. The rooftop, Carolina Block Party, Neon Underground, and Flex Motor Yard are playable; the latter three unlock through story wins. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
+The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, Big Stamp, Violet V, or Redline against any of those twelve CPU opponents, including mirror matches. The rooftop, Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse are playable; the latter four unlock through story wins. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
 
 ## Flex story: Take Back the Stamp
 
@@ -21,6 +21,16 @@ Lady Static's ground K plants a stationary trap 130 units ahead. A visible ring 
 Clear chapter two, select Heavy Freight, and face Big Stamp at Carolina Block Party, Quiet Money at Neon Underground, then Iron Haul at Flex Motor Yard. Completing all three best-of-three matches unlocks Iron Haul and Flex Motor Yard for arcade/training. Save format three migrates both prior formats, preserving earlier unlocks and unfinished replay cursors. Chapter selection and unlocks remain sequential.
 
 Iron Haul's ground K braces after a 0.25-second setup. It grants a 1.8-second opportunity for P: a 22-damage heavy straight with 0.45-second startup and 0.70-second recovery. One light strike can be absorbed during startup while still dealing damage; a second light strike, a heavy hit, a grab, or a post-startup hit breaks it. Ordinary P has no armor. Moving, jumping, getting hit, or entering a joint sequence cancels brace. Full Load is a 3.45-second four-beat freight carry and shoulder smash dealing 35 total.
+
+## Final chapter: The Real Crown
+
+Clear Heavy Freight to select The Real Crown. Flex faces Neon Nova at Flex Motor Yard, Goldie at Neon Underground, then The False King at Crown Penthouse. Clearing the finale unlocks The False King for both arcade/training slots and Crown Penthouse in the arena selector. The result and chapter screens conclude Flex's counterfeit-crown story. All prior unlocks persist, and replaying any chapter keeps the full roster and arenas. Save format four migrates versions one through three in place, including unfinished replays.
+
+The False King's ground K visibly cycles RUSH → REACH → POWER. Switching takes a vulnerable 0.35-second wind-up plus 0.10-second active and 0.30-second recovery, causing no damage; a hit before the swap interrupts it. Names and color-coded floor markers identify the stance. RUSH moves at 255 and punches for 10 with 0.10-second startup/155 reach; REACH moves at 200 and punches for 13 with 0.24-second startup/190 reach; POWER moves at 175 and punches for 20 with 0.38-second startup/150 reach and 0.65-second recovery. Power has no armor; blocking, interrupting, throws and recovery punishes are valid counters. Air K remains an 11-damage kick. Round reset restores Rush. False Coronation is a 3.6-second four-hit stolen-technique sequence for 36 damage.
+
+Story CPU pressure now rises gradually across the twelve encounters: decision pace starts at 0.85 and ends at 1.235 (arcade/training remain 1). The selected Easy/Medium/Hard rules, all damage, and the approved punch contact tuning remain unchanged. Later opponents decide more quickly rather than receiving hidden damage or health bonuses. Human phone testing must still judge whether the ramp feels fair.
+
+Finale art asset paths and exact prompts: [ART-FINALE.md](ART-FINALE.md).
 
 ## Music and fighter voices
 
@@ -47,7 +57,7 @@ Chapter-three art paths and exact generation prompts: [ART-CHAPTER3.md](ART-CHAP
 | Violet V | Low K sweeps standing guard into knockdown | Down + block or jump beats sweep; long recovery | Purple Reign: low sweep, rising spiral, heel drop |
 | Redline | Advancing P → P → P confirms | Blocking stops the chain; misses leave recovery | Overdrive: rushing punches and leaping uppercut |
 
-Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve starting profiles, implemented Big Pressure, Lady Static, and Iron Haul bosses, and one future boss profile. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
+Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains twelve starting profiles, implemented Big Pressure, Lady Static, Iron Haul, and The False King bosses. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
 
 Punch damage against 100 HP: Flex 12 (previously 8), Bootlegger 9 (6), Foxy 8 (6), Clara 10 (7). Punch reach and timing retain each character’s style. Flex’s landed P → P → K now deals 35 total damage. Guard still reduces strikes to chip damage.
 
@@ -77,9 +87,9 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 100 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 110 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-The twelve starting fighters and three story chapters are implemented. The False King finale, four more arenas, and alternate outfits remain future production stages after review of each set.
+All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. Three additional arcade arenas and alternate outfits remain future production stages. This completes the current story route, not final device QA or production polish.
 
 Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
 

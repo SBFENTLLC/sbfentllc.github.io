@@ -10,7 +10,7 @@ import {NOVA_STAMP_DATA} from './nova-stamp-data.mjs';
 import {VIOLET_RED_DATA} from './violet-red-data.mjs';
 const step=(g,t,keys={})=>{for(let n=0;n<Math.ceil(t*120);n++)g.step(1/120,keys);};
 function ready(characters){const g=new Fight({characters,training:true});step(g,1.7);g.fighters[0].x=400;g.fighters[1].x=500;g.events=[];return g;}
-test('all 225 selections use character moves independently of match side',()=>{
+test('all 256 selections use character moves independently of match side',()=>{
  for(let a=0;a<FIGHTERS.length;a++)for(let b=0;b<FIGHTERS.length;b++)for(const id of [0,1]){const g=ready([a,b]),char=[a,b][id];assert.equal(g.fighters[id].character,char);assert(g.attack(id,'punch'));step(g,.3);assert.equal(g.fighters[1-id].hp,100-moveFor(char,'punch').damage);assert.equal(g.fighters[id].hp,100);}
 });
 test('all supers in both slots deal their own four-hit damage and respect guard',()=>{

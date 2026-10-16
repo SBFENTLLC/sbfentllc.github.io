@@ -15,11 +15,16 @@ export const CHAPTERS=[
   {opponent:9,title:'01 / Freight check',arena:'blockparty',text:'The signal points to stolen cargo leaving the city. Big Stamp holds the freight manifest.',hint:'Stay outside his grab range. Bait a slow approach, then punish. Tap GRAB quickly if caught.'},
   {opponent:7,title:'02 / Follow the money',arena:'underground',text:'Quiet Money financed the convoy. Flex needs the destination before the trucks roll out.',hint:'Grabs beat his strong guard. Bait a heavy straight and punish its long recovery.'},
   {opponent:14,title:'03 / Iron Haul',arena:'motoryard',text:'Iron Haul is loading the last truck at Flex Motor Yard. Stop the convoy and take back the cargo.',hint:'K braces, then P unleashes a heavy armored straight. It absorbs one light hit during wind-up. Grab, use a heavy strike, or block and punish recovery.'}
+ ]},
+ {name:'The Real Crown',reward:'THE FALSE KING + CROWN PENTHOUSE',boss:15,arena:'penthouse',encounters:[
+  {opponent:8,title:'01 / Last delivery',arena:'motoryard',text:'The convoy is stopped, but Neon Nova carries one final crown upstairs. Flex has to catch her first.',hint:'Block her dash and punish its recovery. Her speed is high, but clean punches still stop her approach.'},
+  {opponent:4,title:'02 / Gold at the gate',arena:'underground',text:'Goldie guards the penthouse access. Take the key and finish what started on the rooftop.',hint:'Avoid walking into her clinch. Bait a missed grab, punish, and be ready to escape a throw.'},
+  {opponent:15,title:'03 / The False King',arena:'penthouse',text:'The counterfeit crown belongs to one man. Flex steps into Crown Penthouse to take the whole operation down.',hint:'Watch his named stance: RUSH is quick, REACH has long punches, POWER is slow and heavy. K switches stance during a vulnerable pause. Block, bait a miss, then punish.'}
  ]}
 
 ];
 export class StoryProgress{
- constructor(storage){this.storage=storage;this.chapters=CHAPTERS.map(()=>({next:0,cleared:false}));this.active=0;this.saved=true;try{const v=JSON.parse(storage.getItem(STORY_KEY));if(v?.version===1)this.chapters[0]=this.valid(v);else if(v?.version===2||v?.version===3){this.chapters=this.chapters.map((_,i)=>this.valid(v.chapters?.[i]));for(let i=1;i<this.chapters.length;i++)if(!this.chapters[i-1].cleared)this.chapters[i]={next:0,cleared:false};this.active=Number.isInteger(v.active)&&this.chapters[v.active]&&(v.active===0||this.chapters[v.active-1].cleared)?v.active:0;}}catch{}}
+ constructor(storage){this.storage=storage;this.chapters=CHAPTERS.map(()=>({next:0,cleared:false}));this.active=0;this.saved=true;try{const v=JSON.parse(storage.getItem(STORY_KEY));if(v?.version===1)this.chapters[0]=this.valid(v);else if(v?.version===2||v?.version===3||v?.version===4){this.chapters=this.chapters.map((_,i)=>this.valid(v.chapters?.[i]));for(let i=1;i<this.chapters.length;i++)if(!this.chapters[i-1].cleared)this.chapters[i]={next:0,cleared:false};this.active=Number.isInteger(v.active)&&this.chapters[v.active]&&(v.active===0||this.chapters[v.active-1].cleared)?v.active:0;}}catch{}}
  valid(v){const cleared=v?.cleared===true;return {cleared,next:Number.isInteger(v?.next)?Math.max(0,Math.min(cleared?3:2,v.next)):0};}
  get chapter(){return CHAPTERS[this.active];}
  get next(){return this.chapters[this.active].next;}
@@ -31,5 +36,9 @@ export class StoryProgress{
  select(chapter){if(!Number.isInteger(chapter)||!CHAPTERS[chapter]||chapter>0&&!this.chapters[chapter-1].cleared)return false;this.active=chapter;this.persist();return true;}
  win(index){if(index!==this.next||this.next>=3)return false;const c=this.chapters[this.active];c.next++;c.cleared=c.cleared||c.next===3;this.persist();return true;}
  replay(){if(!this.cleared)return false;this.chapters[this.active].next=0;this.persist();return true;}
- persist(){try{this.storage.setItem(STORY_KEY,JSON.stringify({version:3,active:this.active,chapters:this.chapters}));this.saved=true;}catch{this.saved=false;}}
+ persist(){try{this.storage.setItem(STORY_KEY,JSON.stringify({version:4,active:this.active,chapters:this.chapters}));this.saved=true;}catch{this.saved=false;}}
 }
+
+// CPU decisions get gradually quicker; damage and the selected difficulty
+// rules do not change. Arcade/training keep their usual pace.
+export const storyPace=(chapter,encounter)=>.85+Math.max(0,Math.min(11,chapter*3+encounter))*.035;

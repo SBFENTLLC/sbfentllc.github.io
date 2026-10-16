@@ -1,4 +1,4 @@
-import {moveFor,fighterFor,SUPER_SEQUENCES} from './roster.mjs';
+import {moveFor,fighterFor,SUPER_SEQUENCES,KING_STANCES} from './roster.mjs';
 import {SPRITES} from './sprites.mjs';
 import {SPRITE_HULLS} from './sprite-hulls.mjs';
 import {MASK_SPANS} from './sprite-masks.mjs';
@@ -48,7 +48,7 @@ export class FightFX {
   for(const g of this.ghosts)g.life-=dt;this.ghosts=this.ghosts.filter(g=>g.life>0);
   this.ghostTime-=dt;if(!this.reduced&&!this.finish&&!this.cinematic&&!this.sequence&&this.ghostTime<=0){this.ghostTime=.045;for(const f of fighters)if(f.walking||f.move)this.ghosts.push({f:{...f,move:f.move?{...f.move}:null},life:.18});this.ghosts=this.ghosts.slice(-12);}
  }
- frame(f){if(f.character===14&&f.move?.braceSetup)return 3;if(f.character===14&&f.brace>0&&!f.move&&!this.finish)return 3;if(f.character===13&&f.move?.name==='kick'&&f.y>8)return 6;if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+m.recovery*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
+ frame(f){if(f.character===15&&f.move?.stanceShift)return 7;if(f.character===14&&f.move?.braceSetup)return 3;if(f.character===14&&f.brace>0&&!f.move&&!this.finish)return 3;if(f.character===13&&f.move?.name==='kick'&&f.y>8)return 6;if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+(f.move.recovery??m.recovery)*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
  setRosterAtlas(first,atlas,data){this.rosterAtlases??={};this.rosterAtlases[first]={atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}))};}
  setSound(atlas,data){this.setRosterAtlas(6,atlas,data);}
  setDuo(atlas,data){this.setRosterAtlas(4,atlas,data);}
@@ -63,7 +63,7 @@ export class FightFX {
   let rotation=f.rotation||0,fall=0,poseShift=0;
   if(!this.reduced&&f.rotation===undefined&&!this.finish&&f.knockdown<=0&&f.pose===undefined){
    if(f.stun>0)rotation=-f.face*.12*Math.min(1,f.stun/.14);
-   else if(f.move){const m=moveFor(f.character??f.id,f.move.name),t=f.move.t,wind=f.move.wind??m.wind,recovery=f.move.load?.70:f.move.counter?.48:f.move.dash?.36:m.recovery;
+   else if(f.move){const m=moveFor(f.character??f.id,f.move.name),t=f.move.t,wind=f.move.wind??m.wind,recovery=f.move.load?.70:f.move.counter?.48:f.move.dash?.36:f.move.recovery??m.recovery;
     if(f.move.name==='punch'||f.move.name==='kick'){
      if(t<wind){const p=clamp(t/wind,0,1);rotation=-f.face*.09*p;poseShift=-8*p;}
      else if(t<wind+m.active){let p=clamp((t-wind)/Math.max(.01,m.active*.45),0,1);p=p*p*(3-2*p);rotation=f.face*(-.09+.19*p);poseShift=-8+22*p;}
@@ -108,6 +108,8 @@ export class FightFX {
  }
  after(ctx,fighters=[]){
   for(const f of fighters)this.attackTrail(ctx,f);
+  for(const f of fighters)if(f.character===15&&!this.sequence&&!this.cinematic){const stance=KING_STANCES[f.stance??0];ctx.save();ctx.fillStyle=stance.color;ctx.strokeStyle=stance.color;ctx.lineWidth=3;ctx.font='bold 16px Arial';ctx.textAlign='center';ctx.fillText(f.move?.stanceShift?'SWITCHING…':stance.name,f.x,160-f.y*.15);ctx.beginPath();ctx.ellipse(f.x,505,62,10,0,0,Math.PI*2);ctx.stroke();ctx.restore();}
+
   if(this.sequence?.character===12&&this.sequence.kind==='super'){
    const s=this.sequence,t=s.elapsed;for(const impact of [1.95,3.05]){const age=t-impact;if(age>=0&&age<.5){ctx.save();ctx.globalAlpha=1-age*2;ctx.strokeStyle='#ffda70';ctx.lineWidth=3;const x=s.center+s.face*(impact>3?175:65);for(let ray=0;ray<7;ray++){const d=ray/7*Math.PI*2,r=35+age*230;ctx.beginPath();ctx.moveTo(x,505);ctx.lineTo(x+Math.cos(d)*r*.5,503+Math.sin(d)*10);ctx.lineTo(x+Math.cos(d)*r,503+Math.sin(d)*22);ctx.stroke();}ctx.restore();}}
   }
@@ -146,6 +148,7 @@ export class FightFX {
   }
   if(special&&character===2&&s.elapsed<2.55&&!this.reduced){const f=fighters[s.id];for(let i=1;i<=2;i++){ctx.save();ctx.filter='sepia(1) saturate(2) hue-rotate(270deg)';this.rawSprite(ctx,{...f,x:f.x-f.face*i*55},f.pose,.16/i);ctx.restore();}}
   if(special&&character===3&&s.elapsed>1.02&&s.elapsed<2.85&&!this.reduced){const f=fighters[s.id];ctx.save();ctx.strokeStyle=color;ctx.lineWidth=4;ctx.globalAlpha=.7;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(f.x,370-f.y*.45,70+i*23,24+i*12,s.elapsed*3+i,0,Math.PI*1.45);ctx.stroke();}ctx.restore();}
+  if(special&&character===15){const color=KING_STANCES[s.elapsed<1.3?0:s.elapsed<1.9?1:2].color;ctx.save();ctx.strokeStyle=color;ctx.lineWidth=5;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(s.center,330,180,105,0,-1.3,1.3);ctx.stroke();ctx.restore();}
   if(special&&character===14&&s.elapsed>1.4){const f=fighters[s.id];ctx.save();ctx.strokeStyle=color;ctx.lineWidth=5;ctx.globalAlpha=.65;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(f.x-s.face*(90+i*22),320+i*30);ctx.lineTo(f.x-s.face*25,320+i*30);ctx.stroke();}ctx.restore();}
   if(special&&character===13){const victim=fighters[s.target];ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.globalAlpha=.7;ctx.shadowColor=color;ctx.shadowBlur=this.reduced?0:12;const x=victim.x,y=510-victim.y;for(const side of [-1,1]){ctx.beginPath();ctx.moveTo(x+side*70,510);for(let i=0;i<6;i++)ctx.lineTo(x+side*(60+(i%2)*14),510-i*55);ctx.stroke();}ctx.beginPath();ctx.ellipse(x,y-110,90,135,0,0,Math.PI*2);ctx.stroke();if(s.elapsed>=2.6){ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x,65);ctx.lineTo(x-30,150);ctx.lineTo(x+15,145);ctx.lineTo(x-20,y-80);ctx.lineTo(x+20,y-90);ctx.lineTo(x,y);ctx.stroke();}ctx.restore();}
   if(special&&character===6&&!this.reduced){const f=fighters[s.id];ctx.save();ctx.strokeStyle=color;ctx.lineWidth=5;ctx.globalCompositeOperation='screen';for(let i=0;i<4;i++){const p=(s.elapsed*1.5+i/4)%1;ctx.globalAlpha=(1-p)*.7;ctx.beginPath();ctx.ellipse(f.x+s.face*60,355,30+p*300,35+p*130,0,-1.4,1.4);ctx.stroke();}ctx.restore();}

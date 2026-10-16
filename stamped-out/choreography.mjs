@@ -121,7 +121,16 @@ export function sequenceFighters(fighters,sequence){
   else if(t<2.95){const p=smooth((t-2.35)/.6);a.x=lerp(c-d*140,c-d*50,p);b.x=lerp(c+d*100,c+d*175,p);b.y=Math.sin(p*Math.PI)*100;b.rotation=p*1.5*d;}
   else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
  }
+ if(character===15){
+  // The fake crown combines stolen rushes, a long straight and a heavy slam.
+  if(t<1.3){const side=Math.floor(t/.55)%2?-d:d;a.face=side;a.pose=2;a.x=c-side*95;b.x=c+Math.sin(t*18)*10;b.rotation=Math.sin(t*15)*.12;}
+  else if(t<1.9){const p=(t-1.3)/.6;a.face=d;a.pose=2;a.x=lerp(c-d*155,c-d*65,smooth(p));b.x=c+d*85;b.y=p*125;b.rotation=-p*.4*d;}
+  else if(t<2.65){const p=(t-1.9)/.75;a.pose=7;a.face=d;a.x=c-d*60;a.y=Math.sin(p*Math.PI)*95;b.x=c+d*80;b.y=125+Math.sin(p*Math.PI)*60;b.rotation=p*.65*d;}
+  else if(t<3.05){const p=smooth((t-2.65)/.4);a.pose=7;a.face=d;a.y=0;b.x=lerp(c+d*80,c+d*175,p);b.y=125*(1-p);b.rotation=-2.3*p*d;}
+  else{a.pose=7;a.face=d;a.x=c-d*80;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
+ }
  return out;
 }
+
 
 
