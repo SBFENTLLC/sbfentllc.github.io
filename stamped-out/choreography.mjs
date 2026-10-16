@@ -105,5 +105,14 @@ export function sequenceFighters(fighters,sequence){
   else if(t<3.05){const p=(t-1.95)/1.1;a.y=Math.sin(p*Math.PI)*75;b.x=c+d*75;b.y=Math.sin(p*Math.PI)*180;b.rotation=(-2.3+p*4)*d;}
   else{a.pose=3;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
  }
+ if(character===13){
+  // Trap cage launches the victim, then a grounded lightning command slams.
+  a.pose=t<.4?3:7;a.x=c-d*125;b.x=c+d*65;
+  if(t<1.12){b.y=smooth(t/1.12)*100;b.rotation=Math.sin(t*18)*.12;}
+  else if(t<2.6){b.y=110+Math.sin((t-1.12)/1.48*Math.PI)*55;b.rotation=Math.sin(t*22)*.2;}
+  else if(t<3){const p=smooth((t-2.6)/.4);b.y=110*(1-p);b.rotation=-2.3*p*d;b.x=lerp(c+d*65,c+d*175,p);}
+  else{a.pose=7;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
+ }
  return out;
 }
+
