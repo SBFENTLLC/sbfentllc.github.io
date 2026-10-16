@@ -172,3 +172,14 @@ Before public release, verify on the real phone: install from Safari; finish a s
 ## Soundtrack update (v24)
 
 Replaced the invalid FOUR FLAT container with a new AAC encode from the replacement WAV, using a fresh URL to avoid stale browser audio. Added ANDALAY, BIG OLE BITTIES, BANDZ ON YOUR KNEEZ, FOCUS, POD DAT, SKY IS THA LIMIT, RAIN DOWN and THROW IT. All fourteen tracks are manually selectable; automatic fights rotate all twelve fight tracks, with MODEST for menus and ONE NIGHT STAND for training. Audio remains streamed on demand. Real iPhone playback and mix review remain required.
+
+## v26 — Victory, air combat and story update
+
+- Sixteen distinct match-win celebrations, with Flex counting the user's supplied Flex bill artwork. Five seconds of celebration remain visible before results or story aftermath.
+- Movement is 13% faster. All fighters can confirm airborne P/K strings; three air attacks per jump (Clara four). Aerial hits deal reduced damage, launch into brief juggles and force descent after repeated lifts. Whiffs cannot cancel, grabs remain grounded, and landing resets aerial budgets.
+- Standard match damage is 62% of original move damage (rounded per hit). Training Lab retains original ground damage for drills. CPU guards and confirms more often on Medium/Hard. A deterministic repeated-pressure comparison took 39 seconds versus 21 seconds with original damage; actual player results will vary.
+- Fixed viewport and non-passive touch guards block browser page scroll, pinch and long-press during combat. Menus retain their own scrolling. Optional fullscreen/orientation lock fails safely. iOS system edge gestures cannot be disabled by a website.
+- Eight distinct arena mixes cover all fourteen songs, advance automatically at song end, and persist each arena's position. Existing music preferences migrate once to Auto arena mix, preserving mute/volume; subsequent manual track choices persist.
+- A chapter journey panel and 12 unique illustrated before/after story scenes connect every encounter. Loss scenes support retries; Next and Skip are explicit controls. Unlocks save on victory independently of scene completion, keeping existing v4 progress and outfits intact.
+
+Validation: 157 Node checks pass, including the actual UI with DOM/audio doubles, all sixteen fighters' air chains in either slot, finite juggles, music cursors, touch guards, all celebrations and story progression. Module imports, UI IDs and 80 service-worker cache targets resolve. Sample artwork was rendered with a canvas-to-SVG adapter for visual inspection. Real browser/device QA was unavailable; iPhone gesture behavior, rendered menu layout and play feel still need phone review.
