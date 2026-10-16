@@ -1,16 +1,18 @@
+import {outfitFor} from './outfits.mjs';
 // Deterministic combat model. Joint sequences own both fighters until they
 // finish; presentation never awards damage or chooses a winner.
 import {PROTOTYPE,moveFor,SUPER_SEQUENCES,THROW_SEQUENCE,FIGHTERS,KING_STANCES} from './roster.mjs';
 export const MOVES=PROTOTYPE[0].moves;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export class Fight {
- constructor({difficulty='medium',training=false,dummy='stand',characters=[0,1],random=Math.random,pace=1}={}){
+ constructor({difficulty='medium',training=false,dummy='stand',characters=[0,1],random=Math.random,pace=1,outfits=[0,0]}={}){
   this.characters=[0,1].map((slot)=>Number.isInteger(characters?.[slot])&&FIGHTERS[characters[slot]]?characters[slot]:slot);
+  this.outfits=this.characters.map((character,id)=>outfitFor(character,outfits?.[id]));
   this.pace=Number.isFinite(pace)?clamp(pace,.8,1.25):1;
   Object.assign(this,{difficulty,training,dummy,random,wins:[0,0],round:1,events:[]});this.resetRound();
  }
  resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.projectiles=[];this.traps=[];this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6/this.pace;this.events.push({type:'round',round:this.round});}
- makeFighter(id,x){return{id,character:this.characters[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0};}
+ makeFighter(id,x){return{id,character:this.characters[id],outfit:this.outfits[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0};}
  // One recent tap survives the tail of recovery; a held button never repeats.
  queueAttack(id,name,options={}){
   if(this.attack(id,name,options))return true;

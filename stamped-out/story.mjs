@@ -1,3 +1,4 @@
+import {availableArena} from './arenas.mjs';
 export const STORY_KEY='sbfent-story-v1';
 export const ENCOUNTERS=[
  {opponent:1,title:'01 / Counterfeit trail',arena:'rooftop',text:'Bootleg stamps are flooding the block. Flex follows the first lead to the rooftop.',hint:'Bootlegger has long kicks. Block, close in, then confirm your punches.'},
@@ -32,7 +33,7 @@ export class StoryProgress{
  get encounter(){return this.chapter.encounters[Math.min(this.next,2)];}
  get unlocked(){return this.chapters[0].cleared;}
  isUnlocked(character){return character>=12?this.chapters[character-12]?.cleared===true:character>=0&&character<12;}
- arenaUnlocked(key){return key==='rooftop'||CHAPTERS.some((c,i)=>c.arena===key&&this.chapters[i].cleared);}
+ arenaUnlocked(key){return availableArena(key,this.chapters);}
  select(chapter){if(!Number.isInteger(chapter)||!CHAPTERS[chapter]||chapter>0&&!this.chapters[chapter-1].cleared)return false;this.active=chapter;this.persist();return true;}
  win(index){if(index!==this.next||this.next>=3)return false;const c=this.chapters[this.active];c.next++;c.cleared=c.cleared||c.next===3;this.persist();return true;}
  replay(){if(!this.cleared)return false;this.chapters[this.active].next=0;this.persist();return true;}

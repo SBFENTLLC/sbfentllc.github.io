@@ -50,16 +50,18 @@ export class FightFX {
  }
  frame(f){if(f.character===15&&f.move?.stanceShift)return 7;if(f.character===14&&f.move?.braceSetup)return 3;if(f.character===14&&f.brace>0&&!f.move&&!this.finish)return 3;if(f.character===13&&f.move?.name==='kick'&&f.y>8)return 6;if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+(f.move.recovery??m.recovery)*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
  setRosterAtlas(first,atlas,data){this.rosterAtlases??={};this.rosterAtlases[first]={atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}))};}
+ setOutfitAtlas(atlas,data,grapple=false){const group={first:0,atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const p=new Path2D();for(const [y,x,w] of spans)p.rect(x,y,w,1);return p;}))};if(grapple)this.outfitGrapples={0:group,1:group};else this.outfitAtlases={0:group,1:group};}
  setSound(atlas,data){this.setRosterAtlas(6,atlas,data);}
  setDuo(atlas,data){this.setRosterAtlas(4,atlas,data);}
  setExpansion(atlas,data){this.setRosterAtlas(2,atlas,data);}
  setGrapples(atlas,data){this.grappleAtlas=atlas;this.grappleData=data;this.grapplePaths=typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}));}
  rawSprite(ctx,f,frame=this.frame(f),alpha=1){
-  const character=f.character??f.id,newCharacter=character>=2,first=character-character%2,own=this.rosterAtlases?.[character],assetIndex=own?0:character%2,group=own??this.rosterAtlases?.[first],expansionAtlas=group?.atlas,expansionData=group?.data,expansionPaths=group?.paths;
+  const character=f.character??f.id,alternate=f.outfit===1?this.outfitAtlases?.[character]:null,alternateGrapple=alternate&&f.grapplePose!==undefined?this.outfitGrapples?.[character]:null,newCharacter=character>=2||!!alternate,first=character-character%2,own=this.rosterAtlases?.[character],assetIndex=alternate?character-alternate.first:own?0:character%2,group=alternateGrapple??alternate??own??this.rosterAtlases?.[first],expansionAtlas=group?.atlas,expansionData=group?.data,expansionPaths=group?.paths;
+  if(alternateGrapple)frame=f.grapplePose;else if(alternate&&f.grapplePose!==undefined)frame=[4,4,7,2][f.grapplePose];
   const grappling=!newCharacter&&f.grapplePose!==undefined&&this.grappleAtlas?.naturalWidth&&this.grappleData;
   const img=newCharacter?expansionAtlas:grappling?this.grappleAtlas:this.atlas;if(!img)return;if(!img.complete||!img.naturalWidth)return;
   const [sx,sy,sw,sh]=newCharacter?expansionData.boxes[assetIndex][frame]:grappling?this.grappleData.boxes[assetIndex][f.grapplePose]:SPRITES[assetIndex][frame];
-  const scale=newCharacter?expansionData.scale[assetIndex]:grappling?this.grappleData.scale:.96,offset=grappling?0:frame===2||frame===7?35:frame===3?48:0;
+  const scale=newCharacter?expansionData.scale[assetIndex]:grappling?this.grappleData.scale:.96,offset=grappling||alternateGrapple?0:frame===2||frame===7?35:frame===3?48:0;
   let rotation=f.rotation||0,fall=0,poseShift=0;
   if(!this.reduced&&f.rotation===undefined&&!this.finish&&f.knockdown<=0&&f.pose===undefined){
    if(f.stun>0)rotation=-f.face*.12*Math.min(1,f.stun/.14);
