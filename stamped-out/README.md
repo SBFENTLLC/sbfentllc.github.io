@@ -1,8 +1,8 @@
-# SBFENT: Stamped Out — Flex story eight-arena + ten alternate outfits review build
+# SBFENT: Stamped Out — Flex story eight-arena + twelve alternate outfits review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. Flex, Bootlegger, Foxy, Clara, Goldie, Onyx, DJ Blackout, Quiet Money, Neon Nova, and Big Stamp have selectable SBFENT tracksuit alternates. The character menu disappears during combat. Existing SBFENT pages are unchanged.
+The current build has twelve starting fighters, four unlockable bosses, eight arenas, and Flex’s four-chapter story. SBFENT Rooftop, SBFENT Studio, The Vault, and Bootleg Workshop are available immediately. Carolina Block Party, Neon Underground, Flex Motor Yard, and Crown Penthouse retain their story unlock requirements. All twelve starting fighters have selectable SBFENT tracksuit alternates. The character menu disappears during combat. Existing SBFENT pages are unchanged.
 
 ## Flex story: Take Back the Stamp
 
@@ -97,7 +97,7 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 131 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 135 checks cover all 256 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
 All twelve starting fighters, four unlockable bosses, and four story chapters are implemented. All eight planned arenas are implemented. Additional character outfit sets remain future production stages. This completes the current story route, not final device QA or production polish.
 
@@ -158,3 +158,5 @@ Goldie adds a blue/purple crown-stripe tracksuit and Onyx a blue/purple side-str
 DJ Blackout adds a purple/orange-sleeve cargo tracksuit; Quiet Money adds a purple/blue jacket and lime cargo trousers. Both preserve their hats, accessories and original mechanics. See `ART-DJ-QUIET-OUTFITS.md` for the built-in generation prompt.
 
 Neon Nova adds an asymmetrical purple/blue jacket with orange cargo trousers. Big Stamp adds the purple/blue/lime panel tracksuit. Each has eight matching poses preserving original identity and mechanics; earlier outfit choices remain saved. See `ART-NOVA-STAMP-OUTFITS.md` for the built-in generation prompt.
+
+Violet V adds the purple curved-panel cargo tracksuit and Redline the blue curved-panel set. Their eight poses preserve Violet’s low sweep/high kick and Redline’s high kick/uppercut roles, original hairstyles and accessories. All twelve starting fighters now have alternates; the four bosses retain original outfits. See `ART-VIOLET-RED-OUTFITS.md`.
