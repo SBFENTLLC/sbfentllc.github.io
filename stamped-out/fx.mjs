@@ -60,10 +60,16 @@ export class FightFX {
   const img=newCharacter?expansionAtlas:grappling?this.grappleAtlas:this.atlas;if(!img)return;if(!img.complete||!img.naturalWidth)return;
   const [sx,sy,sw,sh]=newCharacter?expansionData.boxes[assetIndex][frame]:grappling?this.grappleData.boxes[assetIndex][f.grapplePose]:SPRITES[assetIndex][frame];
   const scale=newCharacter?expansionData.scale[assetIndex]:grappling?this.grappleData.scale:.96,offset=grappling?0:frame===2||frame===7?35:frame===3?48:0;
-  let rotation=f.rotation||0,fall=0;
+  let rotation=f.rotation||0,fall=0,poseShift=0;
   if(!this.reduced&&f.rotation===undefined&&!this.finish&&f.knockdown<=0&&f.pose===undefined){
    if(f.stun>0)rotation=-f.face*.12*Math.min(1,f.stun/.14);
-   else if(f.move){const m=moveFor(f.character??f.id,f.move.name),t=f.move.t,wind=f.move.wind??m.wind;rotation=f.face*(t<wind?-.045*(t/wind):.07*Math.max(0,1-(t-wind)/(m.active+m.recovery)));}
+   else if(f.move){const m=moveFor(f.character??f.id,f.move.name),t=f.move.t,wind=f.move.wind??m.wind,recovery=f.move.load?.70:f.move.counter?.48:f.move.dash?.36:m.recovery;
+    if(f.move.name==='punch'||f.move.name==='kick'){
+     if(t<wind){const p=clamp(t/wind,0,1);rotation=-f.face*.09*p;poseShift=-8*p;}
+     else if(t<wind+m.active){let p=clamp((t-wind)/Math.max(.01,m.active*.45),0,1);p=p*p*(3-2*p);rotation=f.face*(-.09+.19*p);poseShift=-8+22*p;}
+     else{const p=1-clamp((t-wind-m.active)/Math.max(.01,recovery),0,1);rotation=f.face*.10*p*p;poseShift=14*p*p;}
+    }else rotation=f.face*(t<wind?-.045*(t/wind):.07*Math.max(0,1-(t-wind)/(m.active+m.recovery)));
+   }
    else if(f.walking)rotation=f.face*.025;
   }
   if(f.rotation===undefined&&((this.finish?.knockout&&this.finish.winner!==f.id)||f.knockdown>0)){fall=this.finish?(this.finish.finisher?1:clamp((this.finish.elapsed-.12)/.6,0,1)):clamp(f.knockdown/.25,0,1);rotation=2.3*fall*f.face;}
@@ -74,7 +80,7 @@ export class FightFX {
   const corners=hull.map(([x,y])=>(dx+x*scale)*f.face*Math.sin(rotation)+(-height+y*scale)*Math.cos(rotation));
   const bottom=Math.max(...corners),projectedHeight=bottom-Math.min(...corners);
   const flightY=Math.min(f.y,Math.max(0,510-70-projectedHeight));
-  ctx.save();ctx.globalAlpha=alpha;ctx.translate(f.x,510-flightY-bottom);ctx.rotate(rotation);ctx.scale(f.face,1);
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(f.x+f.face*poseShift,510-flightY-bottom);ctx.rotate(rotation);ctx.scale(f.face,1);
   if(!this.reduced&&!rotation&&!f.move&&!f.stun&&!f.walking&&!f.knockdown&&!this.sequence&&!this.finish)ctx.scale(1,1+Math.sin(this.time*((f.character??f.id)===0?3.8:2.6))*.006);
   if(f.crouch)ctx.scale(1,.72);
   if(f.character===14&&f.move?.load&&!f.move.armorUsed&&f.move.t<.45)ctx.filter='sepia(.45) saturate(1.7) brightness(1.3)';

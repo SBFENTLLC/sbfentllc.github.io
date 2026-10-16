@@ -25,3 +25,5 @@
 .roster-picks #pick8[aria-pressed="true"]{border-color:#bcff46}.roster-picks #pick9[aria-pressed="true"]{border-color:#81a9ff}.roster-picks #pick10[aria-pressed="true"]{border-color:#ce9bff}.roster-picks #pick11[aria-pressed="true"]{border-color:#ff9455}@media(orientation:landscape) and (min-width:720px){.roster-picks{grid-template-columns:repeat(6,minmax(0,1fr))}.roster-picks canvas{height:68px}.roster-picks b{font-size:8px}.roster-picks span{font-size:5.5px}}
 
 .roster-picks button:disabled{opacity:.4;filter:grayscale(.8);cursor:default}#storyMenu .panel{border-color:#c7ff65}#storyTitle{color:#c7ff65;font-weight:800}#storyHint{line-height:1.6}#openStory{border-color:#c7ff65;color:#c7ff65;width:100%;margin:10px 0}#storyStatus{color:#c7ff65}
+
+.health{position:relative}.health i.hp-trail{position:absolute;top:0;bottom:0;left:0;background:#e56c78;transition:width .45s ease-out .15s}.rival .health i.hp-trail{left:auto;right:0}.health i:not(.hp-trail){position:relative;z-index:1}.health i.critical{background:linear-gradient(#ffc38f,#ed614f)}

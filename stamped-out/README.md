@@ -1,4 +1,4 @@
-# SBFENT: Stamped Out — Flex story chapters one through three + vocal audio review build
+# SBFENT: Stamped Out — Flex story chapters one through three + K.O. announcer review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
@@ -26,7 +26,7 @@ Iron Haul's ground K braces after a 0.25-second setup. It grants a 1.8-second op
 
 Each arcade, training, story, and rematch calls the soundtrack's match-start path: unlock, resume, select a song, and reset its playback position. Manual track choice, volume, and mute remain respected. If the browser blocks playback, the next movement/attack gesture or music button retries without muting it. Music loops within each match; one player avoids overlapping songs.
 
-All fifteen implemented fighters have distinct synthesized hit-grunt profiles and their own spoken intro, special-name, and win catchphrases. Catchphrases use the device's built-in speech voices, with character-specific pitch/rate; no paid generation or runtime service is required. Voices vary by available device voices and may be unavailable in some contexts. Existing visual intro/win captions remain. The Fighter voices checkbox controls vocals independently from impact sounds and music. Pause, menu exit, rematch, and new priority lines cancel stale speech; at most two intro lines queue. Hit grunts are short, rate-limited Web Audio formant effects, not recorded actors. Music ducks under voices and retains deeper K.O./special ducking. Real phone listening is still required to judge pronunciation, loudness, timing, and playback reliability. Speech API reference: https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis
+Only knockouts use spoken audio: one short ‘K.O.’ announcer call per knockout round, including the final match knockout. Fighter intro, special, win dialogue, and vocal grunts are removed. Impact effects and soundtrack remain. A delayed red health-bar trail makes lost damage easier to read, low health changes the bar color, and landed attacks show HIT CONFIRMED. Punch/kick sprites now pull back during startup, extend through contact, and ease back during recovery; reduced-motion mode skips the added pose movement. The K.O. announcer checkbox controls speech separately from impacts and music. It uses the device's built-in speech voice, with no paid voice clips or paid runtime service. Timeout results do not speak; repeated result events cannot repeat the call. Pause/menu exit cancel speech. Visual intro/win catchphrases and the K.O. caption remain. Actual phone playback and audio mix still require listening tests.
 
 Chapter-three art paths and exact generation prompts: [ART-CHAPTER3.md](ART-CHAPTER3.md).
 
@@ -71,7 +71,7 @@ A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, inst
 
 ## Validation and remaining scope
 
-Run `node --test stamped-out/*.test.mjs` from the repository root. 96 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 95 checks cover all 225 implemented character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
 The twelve starting fighters and three story chapters are implemented. The False King finale, four more arenas, and alternate outfits remain future production stages after review of each set.
 
