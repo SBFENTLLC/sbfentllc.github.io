@@ -1,27 +1,28 @@
 // Deterministic combat model. Joint sequences own both fighters until they
 // finish; presentation never awards damage or chooses a winner.
-import {PROTOTYPE,moveFor,SUPER_SEQUENCES,THROW_SEQUENCE} from './roster.mjs';
+import {PROTOTYPE,moveFor,SUPER_SEQUENCES,THROW_SEQUENCE,FIGHTERS} from './roster.mjs';
 export const MOVES=PROTOTYPE[0].moves;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export class Fight {
- constructor({difficulty='medium',training=false,dummy='stand',random=Math.random}={}){
+ constructor({difficulty='medium',training=false,dummy='stand',characters=[0,1],random=Math.random}={}){
+  this.characters=[0,1].map((slot)=>Number.isInteger(characters?.[slot])&&FIGHTERS[characters[slot]]?characters[slot]:slot);
   Object.assign(this,{difficulty,training,dummy,random,wins:[0,0],round:1,events:[]});this.resetRound();
  }
  resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6;this.events.push({type:'round',round:this.round});}
- makeFighter(id,x){return{id,x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0};}
+ makeFighter(id,x){return{id,character:this.characters[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0};}
  // One recent tap survives the tail of recovery; a held button never repeats.
  queueAttack(id,name,options={}){
   if(this.attack(id,name,options))return true;
-  const f=this.fighters[id];if(!f||!moveFor(id,name)||this.phase!=='fight'||this.sequence||name==='special'&&f.power<100)return false;
+  const f=this.fighters[id];if(!f||!moveFor(f.character,name)||this.phase!=='fight'||this.sequence||name==='special'&&f.power<100)return false;
   f.buffer={name,options,ttl:.16};return false;
  }
  attack(id,name,{direction}={}){
-  const f=this.fighters[id],m=moveFor(id,name);if(!f||!m||this.phase!=='fight')return false;
+  const f=this.fighters[id],m=moveFor(f?.character,name);if(!f||!m||this.phase!=='fight')return false;
   if(this.sequence){if(name==='grab'&&this.sequence.kind==='throw'&&this.sequence.target===id&&this.sequence.elapsed<=THROW_SEQUENCE.escapeWindow){this.escapeThrow();return true;}return false;}
   // Flex confirms fast hands into a kick. Bootlegger confirms a kick into
   // a punch. Whiffs and blocked hits must complete their recovery.
-  const cancel=!!f.move&&f.move.connected&&f.move.t>=(f.move.wind??moveFor(id,f.move.name).wind)+moveFor(id,f.move.name).active*.35&&f.chain<2&&
-   (id===0&&f.move.name==='punch'&&(name==='punch'||name==='kick')||id===1&&f.move.name==='kick'&&name==='punch');
+  const cancel=!!f.move&&f.move.connected&&f.move.t>=(f.move.wind??moveFor(f.character,f.move.name).wind)+moveFor(f.character,f.move.name).active*.35&&f.chain<(FIGHTERS[f.character].maxCancels??2)&&
+   FIGHTERS[f.character].cancels[f.move.name]?.includes(name);
   if(f.move&&!cancel||f.stun>0||f.cooldown>0||f.knockdown>0||(f.block&&name!=='grab'))return false;
   if(name==='grab'&&f.y>8)return false;
   if(name==='special'&&f.power<100){this.events.push({type:'empty',id});return false;}
@@ -32,7 +33,7 @@ export class Fight {
  }
  beginSequence(kind,id,direction=this.fighters[id].face){
   const actor=this.fighters[id],target=this.fighters[1-id],center=clamp((actor.x+target.x)/2,250,750);
-  this.sequence={kind,id,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[id].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
+  this.sequence={kind,id,character:actor.character,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[actor.character].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
   for(const f of [actor,target]){f.move=null;f.buffer=null;f.block=false;f.crouch=false;f.walking=false;f.y=0;f.vy=0;}
   this.events.push({type:kind==='super'?'superConnected':'grabbed',id,target:1-id});
  }
@@ -45,11 +46,12 @@ export class Fight {
   const a=this.fighters[id],b=this.fighters[1-id],actual=blocked?Math.ceil(damage*.12):damage;
   const before=b.hp;b.hp=clamp(b.hp-actual,sequence&&!final?1:0,100);
   const counter=!blocked&&!sequence&&!!b.move&&!b.move.hit;
-  const punish=!blocked&&!sequence&&!!b.move&&b.move.hit;
+  const punish=!blocked&&!sequence&&(!!b.move&&b.move.hit||b.cooldown>0);
   if(!blocked){b.move=null;b.buffer=null;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
   b.stun=blocked?.09:move==='kick'?.24:.18;if(!sequence)b.x=clamp(b.x+a.face*(blocked?9:move==='kick'?28:16),75,925);
   a.power=clamp(a.power+(move==='special'?0:blocked?4:15),0,100);b.power=clamp(b.power+9,0,100);
   if(!blocked){a.combo++;a.comboTime=1.2;}
+  if(a.character===2&&move==='kick'&&!sequence&&a.y===0)a.x=clamp(a.x-a.face*22,75,925);
   this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face:a.face,move,damage:before-b.hp,combo:a.combo,sequence,final,counter,punish});
  }
  finishSequence(){
@@ -60,7 +62,7 @@ export class Fight {
  stepSequence(dt){
   const s=this.sequence;s.elapsed+=dt;
   if(s.tech&&s.elapsed>=.16&&s.elapsed<=THROW_SEQUENCE.escapeWindow){this.escapeThrow();return;}
-  const beats=s.kind==='super'?SUPER_SEQUENCES[s.id].beats:[{at:THROW_SEQUENCE.impactAt,damage:moveFor(s.id,'grab').damage}];
+  const beats=s.kind==='super'?SUPER_SEQUENCES[s.character].beats:[{at:THROW_SEQUENCE.impactAt,damage:moveFor(s.character,'grab').damage}];
   while(s.beat<beats.length&&s.elapsed>=beats[s.beat].at){
    const final=s.beat===beats.length-1;this.applyHit(s.id,beats[s.beat].damage,{move:s.kind==='super'?'special':'throw',sequence:true,final});s.beat++;
    if(final&&this.fighters[s.target].hp<=0){s.knockoutPending=true;this.events.push({type:'koImpact',id:s.id,target:s.target});}
@@ -69,13 +71,13 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:155,ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
+  const desired=this.difficulty==='easy'?116:[105,155,155,130][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
   if(this.aiTime<=0){
    this.aiTime=({easy:.85,medium:.48,hard:.29}[this.difficulty]||.48)+this.random()*.35;
-   if(a.y>60&&this.random()<.3)ai.jump=true;
-   if(d<=moveFor(1,'grab').range&&a.y<8&&(a.block||this.random()<.25))this.attack(1,'grab');
-   else if(b.power>=100&&d<=moveFor(1,'special').range)this.attack(1,'special');
-   else if(d<=185)this.attack(1,d>moveFor(1,'punch').range||this.random()>.48?'kick':'punch');
+   if(a.y>60&&this.random()<.3||b.character===3&&d<250&&this.random()<.45)ai.jump=true;
+   if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<.25))this.attack(1,'grab');
+   else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
+   else if(d<=moveFor(b.character,'kick').range)this.attack(1,d>moveFor(b.character,'punch').range||this.random()>.48?'kick':'punch');
   }
   return ai;
  }
@@ -95,11 +97,11 @@ export class Fight {
    f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.knockdown=Math.max(0,f.knockdown-dt);f.throwImmune=Math.max(0,f.throwImmune-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;
    f.crouch=!!key.crouch&&f.y===0&&!f.move&&!f.block;f.walking=false;
    if(f.buffer){f.buffer.ttl-=dt;if(f.buffer.ttl<=0)f.buffer=null;else this.attack(i,f.buffer.name,f.buffer.options);}
-   if(!f.move&&!f.block&&!f.crouch&&f.stun<=0&&f.knockdown<=0){const direction=(key.right?1:0)-(key.left?1:0);f.x=clamp(f.x+direction*PROTOTYPE[i].speed*dt,75,925);f.walking=direction!==0;if(key.jump&&!f.jumpHeld&&f.y===0)f.vy=PROTOTYPE[i].jump;}
+   if(!f.move&&!f.block&&!f.crouch&&f.stun<=0&&f.knockdown<=0){const direction=(key.right?1:0)-(key.left?1:0);f.x=clamp(f.x+direction*(direction===-f.face?PROTOTYPE[f.character].backSpeed??PROTOTYPE[f.character].speed:PROTOTYPE[f.character].speed)*(f.y>0?PROTOTYPE[f.character].airSpeed??1:1)*dt,75,925);f.walking=direction!==0;if(key.jump&&!f.jumpHeld&&f.y===0)f.vy=PROTOTYPE[f.character].jump;}
    f.jumpHeld=!!key.jump;
-   f.y=Math.max(0,f.y+f.vy*dt);if(f.y>0||f.vy>0)f.vy-=1800*dt;if(f.y===0&&f.vy<0)f.vy=0;
+   const wasAir=f.y>0;f.y=Math.max(0,f.y+f.vy*dt);if(f.y>0||f.vy>0)f.vy-=1800*dt;if(f.y===0&&f.vy<0)f.vy=0;if(wasAir&&f.y===0&&f.character===3){f.cooldown=Math.max(f.cooldown,.16);f.move=null;f.chain=0;}
    if(f.move){
-    f.move.t+=dt;const move=f.move,m=moveFor(i,move.name);
+    f.move.t+=dt;const move=f.move,m=moveFor(f.character,move.name);
     if(move.t>=(move.wind??m.wind)&&!move.hit){
      move.hit=true;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=m.range;
      if(move.name==='grab'){

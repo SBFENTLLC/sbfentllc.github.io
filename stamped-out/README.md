@@ -1,46 +1,42 @@
-# SBFENT: Stamped Out — combat review build
+# SBFENT: Stamped Out — four-fighter review build
 
 Private playable test: https://sbfent-stamped-out-test.purpleflute8.chatgpt.site
 
-This prototype has two fighters and one rooftop. Existing SBFENT pages are unchanged. The full roster, story chapters, boss unlocks, alternate outfits, seven additional stages, remain future work after combat review.
+The current build lets the player choose Flex A Lot, the Bootlegger, Foxy, or Clara against any of those four CPU opponents, including mirror matches. One rooftop is playable. Character selection is contained in the menu and disappears during combat. Existing SBFENT pages are unchanged.
 
-## Combat update
+## Four distinct styles
 
-Flex A Lot is a pressure boxer: faster movement and punches, shorter reach, slower committed kicks. His Stamped Out super connects body blows, an aerial launch, and a crown-stamp slam. The Bootlegger is a trickster kickboxer: longer kicks, slower movement, longer recovery, and a four-hit Counterfeit Combo with clone crossfire and a flying-kick finish. Move definitions are in `roster.mjs`; the other fourteen entries are explicit design targets, not implemented fighters.
+| Fighter | Combat identity | Counterplay | Signature |
+| --- | --- | --- | --- |
+| Flex A Lot | Fast pressure boxing; landed P → P → K confirms | Short punches and committed kicks | Stamped Out: body blows, launch, crown-stamp slam |
+| The Bootlegger | Long kicks; close K → P confirm | Slower movement and long recovery | Counterfeit Combo: clone crossfire and flying kick |
+| Foxy | Quick retreat; kick contact creates distance; landed K → K | Low damage, limited retreat in a corner | Foxy Rush: alternating kick passes and heel drop |
+| Clara | High jump, faster air movement, landed P → K | Landing recovery; airborne spacing can cause misses | Scarlet Spin: launch, aerial corkscrew and downward kick |
 
-Each super has a 2.25-second screen cut-in followed, on unblocked contact, by a three-second choreographed sequence linking both fighters with a power-up pose, attack name, diagonal transition panels, energy animation, and a paused combat clock. Standard attacks have trails, contact sparks, damage labels, brief hit-stop, recoil flashes, and afterimages. Knockouts show a fall before the results overlay. Reduced-motion mode suppresses camera shake, lightning, and moving trails.
+Match slot and character identity are separate, so each character keeps their moves, artwork, throws, timing, and special on either side. `roster.mjs` contains four implemented profiles and twelve future design targets. Foxy and Clara use the supplied main-outfit references and eight illustrated poses each. Animation transforms these poses; it is not fully frame-drawn animation. `expansion-data.mjs` defines isolated alpha regions and hulls for the new atlas.
 
-## Soundtrack
+## Combat and practice
 
-All six user-supplied instrumentals are included as mobile AAC copies; original uploads are unchanged. One audio element loads only the selected track. Playback begins on a user gesture. Music pauses when the game is paused or the tab loses visibility. Track selection, mute, and volume persist locally.
+Best of three, sixty-second rounds, easy/medium/hard CPU, Stamp Meter, blocked chip damage, hit-stop, counters, recovery punishes, knockdowns, slow-motion K.O.s, character intro/win cards, and match records. Recent taps buffer for 160 ms; only unblocked contact allows a character's specified cancel route. A clean hit interrupts the opponent and clears queued input. Chains have bounded cancels; whiffs and blocked attacks recover normally. Grounded knockdown prevents repeated strikes and grabs.
 
-Auto placement in this two-fighter build: MODEST on return to menu; HUSTLE / FOUR FLAT / MONEY MACHINE rotate across matches; ONE NIGHT STAND in training. All six including EXQUISTE are manually selectable. Future placement targets: FOUR FLAT for the motor yard, MONEY MACHINE for the vault, EXQUISTE for the penthouse, with the remaining tracks shared between menu, street fights, and training.
+Supers have a 2.25-second cut-in. Unblocked in-range contact starts a four-hit sequence lasting about three seconds, with a paused clock and synchronized damage/animation. Guard reduces the special to chip damage and prevents the connected sequence. CPU power-up cut-ins allow the player to buffer block.
 
-## Controls and validation
+GRAB is ground-only, beats guard, and misses airborne targets. Hold a direction to choose the throw. The defender may tap GRAB within 0.3 seconds to escape. CPU tech probability follows difficulty. Slams damage once and give wake-up throw immunity. Foxy uses a kick-assisted toss; Clara uses an aerial turning toss.
 
-Phone: landscape, directional pad, punch, kick, block, special. Keyboard: arrows/WASD, J/K/L/U, Escape. Training starts with a full meter for trying a super immediately.
+Training starts with a full meter and has standing, blocking, or jumping dummies, character-specific coaching, stats, and a pause-menu reset. Training matches do not change saved W/L or best-combo records. Records and controls are stored on this device; storage failures are tolerated. Story and cloud saving are not implemented.
 
-Run `node --test stamped-out/*.test.mjs` from the repository root: 37 checks pass, including combat differences, four-hit specials, hit-confirmed chains, input buffering, guard timing, interruptions, throws, records, soundtrack ducking, and a mocked full UI flow. JavaScript syntax checks pass. Browser/device QA remains outstanding; the UI smoke test does not replace it.
+## Phone, audio, and Home Screen
 
-Generated fighter/stage artwork is included under assets. The implementation uses no external runtime libraries or asset services.
+Landscape touch controls: directional pad plus punch, kick, block, grab, and special. Standard/large button options and left/right attack hand. Captured movement pointers can slide between buttons. Keyboard: arrows/WASD, J punch, K kick, L block, I/G grab, U special, Escape pause. Holding jump does not repeat after landing.
 
-## Grabs, throws, K.O.s, and Home Screen app
+All six supplied instrumentals are included as mobile AAC copies; originals are unchanged. One lazy audio element avoids overlapping tracks. MODEST plays on return to menu; HUSTLE / FOUR FLAT / MONEY MACHINE rotate across matches; ONE NIGHT STAND plays in training; all six, including EXQUISTE, are manually selectable. Music ducks around power-ups and K.O.s without altering the saved volume, and pauses with the game/background tab. Layered synthesized combat sounds begin after a gesture.
 
-GRAB (I or G) works only at close range and against grounded targets. Hold left/right to choose direction. Throws beat blocks, whiffs have recovery, and the defender can tap GRAB during a 0.3-second window to escape. The CPU can attempt throws and tech with difficulty-based probability. A completed slam deals damage once and grants brief wake-up throw immunity. Both fighters receive new grapple/finishing poses. The engine owns all contact and damage; animation follows the same sequence clock. A super can be blocked for chip damage rather than triggering the connected cinematic. The defender may buffer block during the opponent's power-up cut-in.
+A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and v5 service worker support Home Screen installation and cached core gameplay after a successful first load. Music streams on demand and partial audio responses are not cached. Reduced-motion mode suppresses camera movement, moving trails, and energy animation.
 
-Knockout fall and particles run at 32% speed initially, with a camera push-in and delayed results. Reduced-motion settings suppress camera movement.
+## Validation and remaining scope
 
-A relative-scope web manifest, 192/512px icons, Apple touch icon/meta tags, install instructions, and a versioned service worker support Home Screen installation and cached core gameplay after a successful first load. Music stays streamed on demand; no partial audio responses are cached. Actual iPhone installation, browser input, and offline use require device testing.
+Run `node --test stamped-out/*.test.mjs` from the repository root. 45 checks cover the sixteen character pairings, both slots' moves/supers/throws, guard, chains, buffers, interrupts, escape windows, AI, records, soundtrack state, offline asset paths, and mocked menu/selection/combat flows. Offline Canvas inspection covers the new poses and cinematic frames. Browser QA was unavailable in this environment; actual phone input, audio mix, performance, installation, and offline operation still require device testing.
 
-Validation after this update: 37 passing checks plus offline canvas inspection of sequence and presentation frames.
+The remaining eight starting fighters, four boss unlocks, story as Flex, seven additional arenas, and alternate outfits remain future production stages after review of each set.
 
-
-## Combat polish pass
-
-Recent taps buffer for 160 ms through recovery. Flex can confirm P → P → K; Bootlegger can confirm a close kick into a punch. Follow-up startup is shortened only after unblocked contact; a chain has at most two cancels. Whiffs and blocked strikes must recover normally. A clean hit interrupts an opponent’s attack and clears their queued input. The HUD distinguishes counter hits from recovery punishes. Combo counting resets on an unlinked attack or interruption. Guard is sampled for both fighters before contact. Grounded knockdown prevents repeated strikes and grabs, and holding jump no longer causes automatic hops after landing.
-
-Wind-up lean, recoil, recovery poses, idle breathing, character intro cards, win quotes and victory poses add personality. New layered synthesized impact/guard/power-up/KO sounds run after a gesture; soundtrack ducking lowers music around a super or knockout and restores the chosen level without changing saved preferences. The animations still transform a finite set of illustrated poses rather than using fully frame-drawn animations.
-
-Phone settings offer standard/large controls and either attack hand. Captured movement pointers can slide between directional buttons. The training dummy can stand, block, or jump; coaching, match stats, and a pause-menu position reset support practice. Completed non-training matches save W/L and best combo on this device. Storage errors are tolerated. This record is not story progress or a cloud save.
-
-The service worker cache advances to v4. On-device feel, actual iPhone Home Screen/offline behavior, audio mix, and performance still require a phone playtest; no browser QA was available in this managed environment. Full roster, story, boss unlocks, additional arenas, and alternate costumes remain the next production stages.
+Artwork: generated with the built-in image tool, using the supplied Foxy/Clara references and the existing fighter atlas. Final project asset: `assets/foxy-clara.webp`. Prompt: a transparent 4×4 atlas of sixteen full-body, right-facing felt-puppet arcade sprites; Foxy in the first two rows and Clara in the last two rows; each with ready, step, punch, high kick, guard, hurt, jump, and power poses; preserve reference faces, camo/cream outfit for Foxy and purple/camo/red-ponytail outfit for Clara, with no props, background, UI, or labels. Alpha bounds/masks prevent adjacent atlas poses bleeding into gameplay.
