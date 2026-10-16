@@ -1,4 +1,4 @@
-export const hasAlternate=character=>Number.isInteger(character)&&character>=0&&character<4;
+export const hasAlternate=character=>Number.isInteger(character)&&character>=0&&character<6;
 export const outfitFor=(character,outfit)=>hasAlternate(character)&&Number(outfit)===1?1:0;
-export const outfitName=character=>['Purple SBFENT tracksuit','Blue SBFENT tracksuit','Lime SBFENT tracksuit','Orange SBFENT tracksuit'][character]||'Original outfit';
-export function loadOutfits(storage){let v;try{v=JSON.parse(storage.getItem('sbfent-outfits')||'{}');}catch{}return Object.fromEntries(['player','opponent'].map(slot=>[slot,Object.fromEntries([0,1,2,3].map(character=>[character,outfitFor(character,v?.[slot]?.[character])]))]));}
+export const outfitName=character=>['Purple SBFENT tracksuit','Blue SBFENT tracksuit','Lime SBFENT tracksuit','Orange SBFENT tracksuit','Crown-stripe SBFENT tracksuit','Side-stripe SBFENT tracksuit'][character]||'Original outfit';
+export function loadOutfits(storage){let v;try{v=JSON.parse(storage.getItem('sbfent-outfits')||'{}');}catch{}return Object.fromEntries(['player','opponent'].map(slot=>[slot,Object.fromEntries([0,1,2,3,4,5].map(character=>[character,outfitFor(character,v?.[slot]?.[character])]))]));}
