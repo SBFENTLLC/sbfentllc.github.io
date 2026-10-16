@@ -17,3 +17,7 @@
 .roster-picks{grid-template-columns:repeat(3,minmax(0,1fr))}.roster-picks canvas{height:112px}.roster-picks #pick4[aria-pressed="true"]{border-color:#ffda70;background:radial-gradient(ellipse at center,#715226,#1b1510)}.roster-picks #pick5[aria-pressed="true"]{border-color:#a5defa;background:radial-gradient(ellipse at center,#2f5065,#11151e)}
 @media(orientation:landscape) and (min-width:720px){.roster-picks{grid-template-columns:repeat(6,minmax(0,1fr))}.roster-picks canvas{height:85px}.roster-picks b{font-size:9px}.roster-picks span{font-size:6px}}
 @media(max-width:440px){.roster-picks canvas{height:85px}.roster-picks b{font-size:10px}.roster-picks span{font-size:7px}}
+
+.roster-picks{grid-template-columns:repeat(4,minmax(0,1fr))}.roster-picks #pick6[aria-pressed="true"]{border-color:#6ddfff;background:radial-gradient(ellipse at center,#244b7b,#0d1624)}.roster-picks #pick7[aria-pressed="true"]{border-color:#f0cc73;background:radial-gradient(ellipse at center,#345a3f,#101c16)}@media(orientation:landscape) and (min-width:720px){.roster-picks{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+@media(orientation:landscape) and (min-width:720px){.roster-picks{grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}.roster-picks canvas{height:76px}.roster-picks b{font-size:8px}.roster-picks span{font-size:5.5px;letter-spacing:0}}

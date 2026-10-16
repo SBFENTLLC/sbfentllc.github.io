@@ -8,7 +8,7 @@ export class Fight {
   this.characters=[0,1].map((slot)=>Number.isInteger(characters?.[slot])&&FIGHTERS[characters[slot]]?characters[slot]:slot);
   Object.assign(this,{difficulty,training,dummy,random,wins:[0,0],round:1,events:[]});this.resetRound();
  }
- resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6;this.events.push({type:'round',round:this.round});}
+ resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.projectiles=[];this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6;this.events.push({type:'round',round:this.round});}
  makeFighter(id,x){return{id,character:this.characters[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0};}
  // One recent tap survives the tail of recovery; a held button never repeats.
  queueAttack(id,name,options={}){
@@ -35,7 +35,7 @@ export class Fight {
  }
  beginSequence(kind,id,direction=this.fighters[id].face){
   const actor=this.fighters[id],target=this.fighters[1-id],center=clamp((actor.x+target.x)/2,250,750);
-  this.sequence={kind,id,character:actor.character,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[actor.character].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
+  this.projectiles=[];this.sequence={kind,id,character:actor.character,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[actor.character].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
   for(const f of [actor,target]){f.move=null;f.buffer=null;f.counterReady=0;f.guardWindow=0;f.block=false;f.crouch=false;f.walking=false;f.y=0;f.vy=0;}
   this.events.push({type:kind==='super'?'superConnected':'grabbed',id,target:1-id});
  }
@@ -44,18 +44,18 @@ export class Fight {
   const a=this.fighters[s.id],b=this.fighters[s.target];a.x=clamp(s.center-s.face*65,75,925);b.x=clamp(s.center+s.face*65,75,925);
   a.cooldown=.35;b.cooldown=.12;b.throwImmune=.9;this.sequence=null;this.events.push({type:'throwEscape',id:s.target});
  }
- applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false}={}){
-  const a=this.fighters[id],b=this.fighters[1-id],parry=blocked&&!sequence&&b.character===5&&b.guardWindow>0&&(move==='punch'||move==='kick'),actual=parry?0:blocked?Math.ceil(damage*.12):damage;
+ applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false,face=this.fighters[id].face}={}){
+  const a=this.fighters[id],b=this.fighters[1-id],parry=blocked&&!sequence&&b.character===5&&b.guardWindow>0&&(move==='punch'||move==='kick'),actual=parry?0:blocked?Math.ceil(damage*(b.character===7?.06:.12)):damage;
   if(parry){b.counterReady=.5;b.guardWindow=0;}
   const before=b.hp;b.hp=clamp(b.hp-actual,sequence&&!final?1:0,100);
   const counter=!blocked&&!sequence&&!!b.move&&!b.move.hit;
   const punish=!blocked&&!sequence&&(!!b.move&&b.move.hit||b.cooldown>0);
   if(!blocked){b.move=null;b.buffer=null;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
-  b.stun=parry?.02:blocked?.09:move==='kick'?.24:.18;if(!sequence)b.x=clamp(b.x+a.face*(blocked?9:move==='kick'?28:16),75,925);
+  b.stun=parry?.02:blocked?.09:move==='kick'?.24:.18;if(!sequence)b.x=clamp(b.x+face*(blocked?(b.character===7?5:9):move==='kick'?28:16),75,925);
   a.power=clamp(a.power+(move==='special'?0:blocked?4:15),0,100);b.power=clamp(b.power+(parry?18:9),0,100);
   if(!blocked){a.combo++;a.comboTime=1.2;}
   if(a.character===2&&move==='kick'&&!sequence&&a.y===0)a.x=clamp(a.x-a.face*22,75,925);
-  this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face:a.face,move,damage:before-b.hp,combo:a.combo,sequence,final,counter,punish,parry});
+  this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face,move,damage:before-b.hp,combo:a.combo,sequence,final,counter,punish,parry});
  }
  finishSequence(){
   const s=this.sequence;if(!s)return;const a=this.fighters[s.id],b=this.fighters[s.target];
@@ -74,13 +74,15 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
+  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<.12};
+  if(b.character===6&&d<155){ai.left=toward>0;ai.right=toward<0;}
   if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');
   if(this.aiTime<=0){
    this.aiTime=({easy:.85,medium:.48,hard:.29}[this.difficulty]||.48)+this.random()*.35;
    if(a.y>60&&this.random()<.3||b.character===3&&d<250&&this.random()<.45)ai.jump=true;
    if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<.25))this.attack(1,'grab');
    else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
+   else if(b.character===6&&d<=480)this.attack(1,'kick');
    else if(d<=moveFor(b.character,'kick').range)this.attack(1,d>moveFor(b.character,'punch').range||this.random()>.48?'kick':'punch');
   }
   return ai;
@@ -109,7 +111,9 @@ export class Fight {
     f.move.t+=dt;const move=f.move,m=moveFor(f.character,move.name);
     if(move.t>=(move.wind??m.wind)&&!move.hit){
      move.hit=true;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.counter?140:m.range);
-     if(move.name==='grab'){
+     if(f.character===6&&move.name==='kick'&&f.y<8){
+      if(!this.projectiles.some(p=>p.id===i)){this.projectiles.push({id:i,x:f.x+f.face*45,y:150,face:f.face,travel:0});this.events.push({type:'wave',id:i});}
+     }else if(move.name==='grab'){
       if(inRange&&f.y<8&&other.y<8&&other.knockdown<=0&&other.throwImmune<=0){this.beginSequence('throw',i,move.throwDirection);return;}
       this.events.push({type:'grabMiss',id:i});
      }else if(inRange&&vertical<100){
@@ -123,12 +127,20 @@ export class Fight {
   }
   const [a,b]=this.fighters;
   if(Math.abs(a.x-b.x)<86&&Math.abs(a.y-b.y)<80){const sign=a.x<b.x?1:-1,overlap=(86-Math.abs(a.x-b.x))/2;a.x=clamp(a.x-sign*overlap,75,925);b.x=clamp(b.x+sign*overlap,75,925);}
-  this.endRound();
+  this.stepProjectiles(dt);this.endRound();
+ }
+ stepProjectiles(dt){
+  for(const p of this.projectiles){const before=p.x;p.x+=p.face*650*dt;p.travel+=650*dt;const b=this.fighters[1-p.id];
+   if(b.knockdown<=0&&Math.abs(p.y-(b.y+150))<80&&b.x>=Math.min(before,p.x)-32&&b.x<=Math.max(before,p.x)+32){this.applyHit(p.id,9,{move:'wave',blocked:b.block,face:p.face});p.dead=true;}
+   if(p.travel>=440||p.x<25||p.x>975)p.dead=true;
+  }
+  if(this.projectiles.length===2){const [a,b]=this.projectiles;if(!a.dead&&!b.dead&&a.id!==b.id&&Math.abs(a.x-b.x)<28){a.dead=b.dead=true;this.events.push({type:'waveClash',x:(a.x+b.x)/2,y:150});}}
+  this.projectiles=this.projectiles.filter(p=>!p.dead);
  }
  endRound(){
   const [a,b]=this.fighters;if(this.phase!=='fight'||(a.hp>0&&b.hp>0&&this.timer>0))return;
   const winner=a.hp===b.hp?-1:a.hp>b.hp?0:1;if(winner>=0)this.wins[winner]++;
-  const done=this.wins.some(w=>w>=2);this.phase=done?'done':'roundover';this.phaseTime=2.8;
+  const done=this.wins.some(w=>w>=2);this.projectiles=[];this.phase=done?'done':'roundover';this.phaseTime=2.8;
   this.events.push({finisher:this.lastFinisher,type:done?'matchover':'roundover',winner,knockout:a.hp<=0||b.hp<=0});
  }
  drainEvents(){return this.events.splice(0);}

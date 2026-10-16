@@ -17,6 +17,7 @@ export function sequenceFighters(fighters,sequence){
   if(t>=.82){b.x=c+d*175;b.y=0;b.rotation=-2.3*d;a.grapplePose=3;}
   if(character>=2){a.grapplePose=undefined;a.pose=t<.3?4:t<.65?7:3;if(character===3){a.y=t>.3&&t<.82?Math.sin(flight*Math.PI)*95:0;a.rotation=t>.3&&t<.82?-flight*Math.PI*1.2*d:0;}else a.rotation=t>.3&&t<.82?-.16*d:0;}
   if(character===4){a.pose=t<.3?4:t<.65?7:2;a.rotation=t>.3&&t<.82?-.06*d:0;}if(character===5){a.pose=t<.3?4:2;a.x=lerp(c-d*80,c-d*115,smooth(flight));}
+  if(character===6)a.pose=7;if(character===7)a.pose=t<.3?4:2;
   return out;
  }
  if(character===0){
@@ -50,12 +51,25 @@ export function sequenceFighters(fighters,sequence){
   else if(t<2.42){const p=(t-1.08)/1.34;a.y=Math.sin(p*Math.PI)*30;b.x=c+d*10;b.y=145+Math.sin(p*Math.PI)*45;b.rotation=(.4+p*Math.PI*.7)*d;}
   else if(t<2.9){const p=smooth((t-2.42)/.48);a.pose=2;a.x=lerp(c-d*75,c-d*35,p);b.x=lerp(c+d*10,c+d*175,p);b.y=145*(1-p);b.rotation=lerp(Math.PI*.7,-2.3,p)*d;}
   else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.rotation=-2.3*d;}
- }else{
+ }else if(character===5){
   // Onyx slips back, reverses with a straight, and circles for the last hit.
   if(t<.3){a.pose=4;a.x=lerp(c-d*70,c-d*135,smooth(t/.3));}
   else if(t<1.5){const pass=Math.floor((t-.3)/.6),side=pass%2?-d:d,p=(t-.3-pass*.6)/.6;a.pose=2;a.face=side;a.x=lerp(c-side*155,c-side*115,smooth(p));b.x=c+Math.sin(t*23)*9;b.rotation=Math.sin(t*18)*.1;}
   else if(t<2.6){const p=(t-1.5)/1.1;a.pose=2;a.face=d;a.x=lerp(c-d*160,c-d*35,smooth(p));a.y=Math.sin(p*Math.PI)*35;b.x=c+d*lerp(40,90,p);b.y=p*65;b.rotation=-p*.5*d;}
   else{const p=smooth((t-2.6)/.5);a.pose=7;a.x=lerp(c-d*35,c-d*80,p);b.x=c+d*175;b.y=(1-p)*65;b.rotation=-2.3*d;}
+ }else if(character===6){
+  // DJ holds the sound lane, lifts with rising bass, then drops the final beat.
+  a.pose=7;a.x=c-d*155;
+  if(t<.98){b.x=c+d*50+Math.sin(t*24)*10;b.rotation=Math.sin(t*20)*.1;}
+  else if(t<2.3){const p=(t-.98)/1.32;b.x=c+d*80;b.y=80*Math.sin(p*Math.PI/2);a.y=Math.sin(p*Math.PI)*30;b.rotation=-.35*d;}
+  else if(t<2.8){const p=smooth((t-2.3)/.5);a.pose=3;b.x=lerp(c+d*80,c+d*175,p);b.y=80*(1-p);b.rotation=-2.3*p*d;}
+  else{a.pose=7;a.x=c-d*80;b.x=c+d*175;b.rotation=-2.3*d;}
+ }else{
+  // Quiet Money advances behind guard, works the body, then commits a straight.
+  if(t<1.05){a.pose=t<.42?4:2;a.x=lerp(c-d*140,c-d*95,smooth(t/1.05));b.x=c+d*65;b.rotation=Math.sin(t*22)*.08;}
+  else if(t<2.15){a.pose=Math.floor(t*10)%2?2:4;a.x=c-d*95;b.x=c+d*70;b.y=Math.max(0,Math.sin((t-1.05)*3)*35);}
+  else if(t<2.75){const p=(t-2.15)/.6;a.pose=p<.55?4:2;a.x=lerp(c-d*130,c-d*45,smooth(p));b.x=c+d*75;}
+  else{const p=smooth((t-2.75)/.5);a.pose=2;a.x=lerp(c-d*45,c-d*80,p);b.x=c+d*175;b.y=Math.sin(p*Math.PI)*55;b.rotation=-2.3*d;}
  }
  return out;
 }
