@@ -27,9 +27,9 @@ export function sequenceFighters(fighters,sequence){
  if(character===0){
   // Body blow -> uppercut -> aerial carry -> two-handed crown-stamp slam.
   const approach=smooth(t/.32);a.x=lerp(s.origin[0].x,c-d*85,approach);
-  if(t<.85){a.pose=Math.floor(t*13)%2?2:0;b.x=c+d*(65+Math.sin(t*20)*7);b.rotation=Math.sin(t*17)*.08;}
+  if(t<.85){a.pose=Math.floor(t*16)%2?2:4;b.x=c+d*(65+Math.sin(t*20)*7);b.rotation=Math.sin(t*17)*.08;}
   else if(t<1.5){const p=(t-.85)/.65;a.pose=7;b.y=Math.sin(p*Math.PI/2)*145;b.rotation=-.25*d;b.x=c+d*80;}
-  else if(t<2.25){const p=(t-1.5)/.75;a.x=c-d*30;a.y=Math.sin(p*Math.PI/2)*150;a.grapplePose=2;b.x=c+d*45;b.y=150+Math.sin(p*Math.PI)*25;b.rotation=.6*d;}
+  else if(t<2.25){const p=(t-1.5)/.75;a.x=c-d*30;a.y=Math.sin(p*Math.PI/2)*150;a.pose=t<1.9?2:7;a.rotation=-.18*d;a.grapplePose=undefined;b.x=c+d*45;b.y=150+Math.sin(p*Math.PI)*25;b.rotation=.6*d;}
   else if(t<2.65){const p=smooth((t-2.25)/.4);a.x=c-d*50;a.y=150*(1-p);a.grapplePose=3;b.x=lerp(c+d*45,c+d*175,p);b.y=150*(1-p);b.rotation=lerp(.6,-2.3,p)*d;}
   else{a.x=c-d*80;a.grapplePose=3;b.x=c+d*175;b.rotation=-2.3*d;}
  }else if(character===1){

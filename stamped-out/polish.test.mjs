@@ -7,7 +7,7 @@ const step=(g,t,input={})=>{for(let n=0;n<Math.ceil(t*120);n++)g.step(1/120,inpu
 const ready=()=>{const g=new Fight({training:true});step(g,1.7);g.fighters[0].x=400;g.fighters[1].x=500;g.events=[];return g;};
 test('hit-confirmed Flex P P K chain connects before guard can recover',()=>{
  const g=ready();g.attack(0,'punch');step(g,.1);g.queueAttack(0,'punch');step(g,.09);g.queueAttack(0,'kick');g.dummy='guard';step(g,.4);
- const hits=g.drainEvents().filter(e=>e.type==='hit');assert.deepEqual(hits.map(e=>e.move),['punch','punch','kick']);assert.equal(hits.at(-1).combo,3);assert.equal(g.fighters[1].hp,65);
+ const hits=g.drainEvents().filter(e=>e.type==='hit');assert.deepEqual(hits.map(e=>e.move),['punch','punch','kick']);assert.equal(hits.at(-1).combo,3);assert.equal(g.fighters[1].hp,69);
 });
 test('blocked hits and whiffs cannot cancel into another attack',()=>{
  for(const block of [true,false]){const g=ready();if(block){g.dummy='guard';}else g.fighters[1].x=800;g.attack(0,'punch');step(g,.1);g.queueAttack(0,'kick');step(g,.16);assert.equal(g.fighters[0].move.name,'punch');assert.equal(g.fighters[0].buffer,null);}

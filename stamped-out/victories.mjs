@@ -1,5 +1,5 @@
 import {fighterFor} from './roster.mjs';
-export const VICTORY_SECONDS=5.8;
+export const VICTORY_SECONDS=7.2;
 export const VICTORIES=[
  {title:'COUNT THE STAMP',action:'Flex counts his Flex bills.',prop:'bills'},
  {title:'STAMP DENIED',action:'Bootlegger tries his counterfeit stamp. It jams.',prop:'denied'},
@@ -36,6 +36,13 @@ export function victoryPose(character,time,reduced=false){
  if(character===13){p.pose=t<2?4:7;p.y=8+Math.sin(t*2)*8;}
  if(character===14){p.pose=7;p.y=Math.sin(Math.min(t,1)*Math.PI)*12;}
  if(character===15)p.pose=t<2.4?4:7;
+ // A second gesture follows the signature action instead of holding one frame.
+ if(t>2.6){const q=(t-2.6)%2;p.x+=Math.sin(q*Math.PI)*12;p.y+=Math.max(0,Math.sin(q*Math.PI*2))*14;
+  if(![0,6,7,13].includes(character)){p.pose=q<.45?4:q<1?2:7;p.rotation+=Math.sin(q*Math.PI)*.07;}
+ }
+ if(character===0){const count=t%1.1;p.pose=count<.55?4:2;p.rotation=Math.sin(count*Math.PI*2)*.045;p.x+=Math.sin(t*2)*8;}
+ if(character===6){p.pose=t%1<.5?4:2;p.rotation=Math.sin(t*5)*.06;}
+ if(character===7){p.pose=t%2<1.4?4:7;p.rotation=Math.sin(t*3)*.045;}
  return p;
 }
 function crown(ctx,x,y,size,color){ctx.save();ctx.translate(x,y);ctx.scale(size/100,size/100);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-50,-30);ctx.lineTo(-35,30);ctx.lineTo(35,30);ctx.lineTo(50,-30);ctx.lineTo(18,-5);ctx.lineTo(0,-45);ctx.lineTo(-18,-5);ctx.closePath();ctx.fill();ctx.restore();}
@@ -45,12 +52,13 @@ export function drawCelebration(ctx,fx,f,time,bills){
  const character=f.character??f.id,profile=fighterFor(f),v=VICTORIES[character],t=Math.max(0,time),motion=fx.reduced?0:t;
  ctx.save();ctx.fillStyle='#090611e8';ctx.fillRect(0,0,1000,562.5);
  const light=ctx.createRadialGradient(500,330,20,500,330,350);light.addColorStop(0,profile.color+'55');light.addColorStop(1,profile.color+'00');ctx.fillStyle=light;ctx.fillRect(100,90,800,450);
+ if(!fx.reduced){for(let i=0;i<28;i++){const q=(motion*.22+i/28)%1;ctx.save();ctx.translate((i*137+Math.sin(motion+i)*24)%1000,100+q*410);ctx.rotate(motion+i);ctx.fillStyle=i%2?profile.color:'#efd69b';ctx.globalAlpha=.5;ctx.fillRect(-3,-6,6,12);ctx.restore();}}
  for(let i=0;i<3;i++)ring(ctx,500,505,120+i*40,profile.color+'55');
  ctx.fillStyle=profile.color;ctx.textAlign='center';ctx.font='900 12px Arial';ctx.fillText('S B F E N T   /   V I C T O R Y',500,45);ctx.fillStyle='#fff0cc';ctx.font='italic 900 30px Arial';ctx.fillText(profile.name.toUpperCase()+' WINS',500,84);
  const pose={...f,...victoryPose(character,motion,fx.reduced),move:null,stun:0,knockdown:0,crouch:false,grapplePose:undefined};
  if(character===8&&!fx.reduced)for(let i=1;i<=3;i++)fx.rawSprite(ctx,{...pose,x:pose.x-i*55},pose.pose,.12/i);
  if(character===10){ctx.save();ctx.strokeStyle='#cf9bff';ctx.lineWidth=9;ctx.globalAlpha=.65;ctx.beginPath();ctx.ellipse(pose.x,355,135,80,motion*2,0,Math.PI*1.6);ctx.stroke();ctx.restore();}
- fx.rawSprite(ctx,pose,pose.pose);
+ ctx.save();const zoom=fx.reduced?1:1+Math.min(t/1.4,1)*.08;ctx.translate(500,505);ctx.scale(zoom,zoom);ctx.translate(-500,-505);fx.rawSprite(ctx,pose,pose.pose);ctx.restore();
  ctx.save();ctx.translate(pose.x-500,0);
  switch(v.prop){
  case 'bills':{

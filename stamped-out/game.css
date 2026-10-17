@@ -44,3 +44,20 @@ body.fighting{user-select:none;-webkit-user-select:none;-webkit-touch-callout:no
 @media(orientation:portrait){.story-dialogue{margin-bottom:8px;max-height:48dvh}.story-journey{grid-template-columns:1fr}.story-dialogue>p:not(.eyebrow){font-size:16px}}
 
 body.celebrating #hud,body.celebrating #controls,body.celebrating #combatState,body.celebrating #nowPlaying,body.celebrating #combo{visibility:hidden}#storyScene:not([hidden])~#rotate{display:none}
+
+/* Stable play surface: browser toolbar resizing cannot drag controls mid-match. */
+body.fighting{width:var(--play-width,100vw);height:var(--play-height,100svh);overflow:hidden;inset:0 auto auto 0}
+body.fighting #game{width:100%;height:100%;overflow:hidden}body.fighting #arena{width:100%;height:100%}
+body.fighting #controls,body.fighting #controls *{touch-action:none!important;overscroll-behavior:none}
+.attacks .run{background:#765019dc}.attacks{display:grid;grid-template-columns:repeat(3,52px);gap:22px 9px;align-items:center}.attacks .special{grid-column:auto;grid-row:auto;align-self:center}
+@media(orientation:landscape){.attacks{bottom:max(25px,env(safe-area-inset-bottom));grid-template-columns:repeat(3,48px);gap:18px 9px}.attacks button,#controls[data-size="large"] .attacks button{width:48px;height:48px}.attacks span{top:calc(100% + 2px);font-size:8px}}
+@media(orientation:portrait){.attacks,#controls[data-size="large"] .attacks{grid-template-columns:repeat(3,43px);gap:24px 8px}.attacks .special{grid-column:auto;grid-row:auto}}
+
+/* SBFENT title scene: independent motion; never moves the play surface. */
+.launch-screen{background:radial-gradient(ellipse at 20% 40%,#8c26cb44,transparent 60%),linear-gradient(0deg,#090511 5%,#120a1c99 65%),url('assets/rooftop.webp') center/cover;isolation:isolate}
+.launch-screen:before{content:'';position:absolute;inset:5%;border:1px solid #bdff6533;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);pointer-events:none;background:repeating-linear-gradient(110deg,transparent 0 90px,#c3ff6508 91px 93px);animation:stamp-grid 8s ease-in-out infinite alternate;z-index:-1}
+.launch-inner{position:relative;width:min(850px,100%);max-width:850px}.launch-inner .eyebrow{letter-spacing:.22em;color:#d9ff94;font-size:11px}.launch-inner h1{position:relative;font-size:clamp(64px,12vw,108px);margin:5px 0 20px;text-shadow:3px 4px #6220ae,0 0 40px #a054ff66;letter-spacing:-.06em}.launch-inner h1 br{display:none}.launch-inner h1 em{margin-left:.12em}.launch-inner p{letter-spacing:.12em;font-size:12px}.launch-inner #launchStatus{letter-spacing:0;color:#e6d9ee}.launch-inner .primary{border-radius:2px;border:1px solid #dfff91;box-shadow:0 0 35px #bfff6522}.launch-inner small{font-size:10px}
+#launchArena{display:block;width:100%;height:min(36vh,310px);object-fit:contain;margin:0 auto -10px;pointer-events:none}
+@keyframes stamp-grid{to{transform:translateY(12px);opacity:.45}}
+@media(max-height:480px){#launchArena{height:36vh;margin-top:-16px}.launch-inner .eyebrow{margin:0}.launch-inner h1{font-size:56px;margin:0 0 6px}.launch-inner .primary{min-height:44px;margin:6px auto}.launch-inner #launchStatus{margin:4px}.launch-screen{padding:12px}}
+@media(prefers-reduced-motion:reduce){.launch-screen:before{animation:none}}

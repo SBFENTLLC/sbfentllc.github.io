@@ -1,3 +1,4 @@
+import {ArenaBeat} from './arena-beat.mjs';
 export const TRACKS=[
  {id:'modest',title:'MODEST',file:'modest.m4a'},
  {id:'hustle',title:'HUSTLE',file:'hustle.m4a'},
@@ -29,7 +30,7 @@ export const ARENA_MIXES={
 // A single lazy audio element prevents overlapping songs and avoids loading
 // the full soundtrack before a phone player has selected a track.
 export class Soundtrack {
- constructor(element,onChange=()=>{},storage=null){this.audio=element;this.audio.preload='none';this.audio.loop=true;this.audio.volume=.35;this.level=.35;this.duckTime=0;this.duckGain=1;this.onChange=onChange;this.selection='auto';this.enabled=true;this.unlocked=false;this.context='menu';this.match=0;this.current=null;this.suspended=false;this.status='idle';this.request=0;this.arena=null;this.arenaVisits={};this.arenaIndex=0;this.storage=storage;try{const saved=JSON.parse(storage?.getItem('sbfent-arena-mixes'));for(const key of Object.keys(ARENA_MIXES))if(Number.isInteger(saved?.[key])&&saved[key]>=0)this.arenaVisits[key]=saved[key]%100000;}catch{}
+ constructor(element,onChange=()=>{},storage=null){this.beat=new ArenaBeat();this.audio=element;this.audio.preload='none';this.audio.loop=true;this.audio.volume=.35;this.level=.35;this.duckTime=0;this.duckGain=1;this.onChange=onChange;this.selection='auto';this.enabled=true;this.unlocked=false;this.context='menu';this.match=0;this.current=null;this.suspended=false;this.status='idle';this.request=0;this.arena=null;this.arenaVisits={};this.arenaIndex=0;this.storage=storage;try{const saved=JSON.parse(storage?.getItem('sbfent-arena-mixes'));for(const key of Object.keys(ARENA_MIXES))if(Number.isInteger(saved?.[key])&&saved[key]>=0)this.arenaVisits[key]=saved[key]%100000;}catch{}
   this.audio.addEventListener('ended',()=>{if(this.selection==='auto'&&this.context==='fight'&&this.arena&&!this.suspended&&this.enabled){this.arenaIndex=(this.arenaIndex+1)%ARENA_MIXES[this.arena].length;this.arenaVisits[this.arena]++;this.persistMixes();this.play();}});
   this.audio.addEventListener('error',()=>{this.status='unavailable';this.report();});
  }
@@ -40,15 +41,15 @@ export class Soundtrack {
   const track=this.choose();if(this.current?.id!==track.id){this.audio.pause();this.audio.src='audio/'+track.file;this.current=track;}
   try{this.status='loading';this.report();await this.audio.play();if(generation!==this.request)return;this.status='playing';}catch{if(generation!==this.request)return;this.status='tap';}this.report();
  }
- unlock(){this.unlocked=true;return this.play();}
- beginMatch(context='fight',match=this.match,arena=null){this.context=context;this.match=match;this.arena=ARENA_MIXES[arena]?arena:null;if(this.arena&&context==='fight'){this.arenaIndex=(this.arenaVisits[this.arena]||0)%ARENA_MIXES[this.arena].length;this.arenaVisits[this.arena]=(this.arenaVisits[this.arena]||0)+1;this.persistMixes();}this.suspended=false;this.unlocked=true;try{this.audio.currentTime=0;}catch{}return this.play();}
+ unlock(){this.beat.connect(this.audio);this.unlocked=true;return this.play();}
+ beginMatch(context='fight',match=this.match,arena=null){this.beat.connect(this.audio);this.context=context;this.match=match;this.arena=ARENA_MIXES[arena]?arena:null;if(this.arena&&context==='fight'){this.arenaIndex=(this.arenaVisits[this.arena]||0)%ARENA_MIXES[this.arena].length;this.arenaVisits[this.arena]=(this.arenaVisits[this.arena]||0)+1;this.persistMixes();}this.suspended=false;this.unlocked=true;try{this.audio.currentTime=0;}catch{}return this.play();}
  retry(){if(this.status==='tap'||this.status==='unavailable'){if(this.status==='unavailable')this.current=null;this.unlocked=true;return this.play();}}
  setScene(context,match=this.match){this.context=context;this.match=match;return this.play();}
  select(id){this.selection=id==='auto'||TRACKS.some(t=>t.id===id)?id:'auto';return this.play();}
  toggle(){this.enabled=!this.enabled;this.unlocked=true;return this.play();}
  volume(value){this.level=Math.max(0,Math.min(1,Number(value)||0));this.audio.volume=this.level;this.report();}
  duck(gain=.25,seconds=.6){if(seconds<=0){this.duckGain=1;this.duckTime=0;return;}const next=Math.max(0,Math.min(1,gain));this.duckGain=this.duckTime>0?Math.min(this.duckGain,next):next;this.duckTime=Math.max(this.duckTime,seconds);}
- tick(dt){this.duckTime=Math.max(0,this.duckTime-dt);const target=this.level*(this.duckTime>0?this.duckGain:1);this.audio.volume+=(target-this.audio.volume)*Math.min(1,dt*(this.duckTime>0?18:4));}
+ tick(dt){this.beat.tick(dt,this.enabled&&!this.suspended&&this.status==='playing');this.duckTime=Math.max(0,this.duckTime-dt);const target=this.level*(this.duckTime>0?this.duckGain:1);this.audio.volume+=(target-this.audio.volume)*Math.min(1,dt*(this.duckTime>0?18:4));}
  suspend(){this.suspended=true;return this.play();}
  resume(){this.suspended=false;return this.play();}
 }

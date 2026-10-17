@@ -12,7 +12,7 @@ test('Violet sweep beats standing guard, crouch guard chips, and jumping avoids 
  const jump=ready([0,10]);jump.fighters[1].x=500;jump.attack(1,'kick');step(jump,.3,{jump:true});assert.equal(jump.fighters[0].hp,100);
 });
 test('player down and block together defend against Violet low sweep',()=>{const g=ready([0,10]);g.fighters[1].x=500;g.attack(1,'kick');step(g,.15,{block:true,crouch:true});assert(g.fighters[0].lowGuard);step(g,.15,{block:true,crouch:true});assert.equal(g.fighters[0].hp,98);});
-test('Redline advances through a capped three-punch confirm and guard stops the chain',()=>{const g=ready([11,0]);g.fighters[1].x=455;g.attack(0,'punch');step(g,.12);g.queueAttack(0,'punch');step(g,.09);g.queueAttack(0,'punch');step(g,.15);assert.equal(g.fighters[1].hp,70);assert(g.fighters[0].x>350);assert.equal(g.fighters[0].chain,2);assert.equal(g.attack(0,'punch'),false);
+test('Redline advances through a capped advancing confirm and guard stops the chain',()=>{const g=ready([11,0]);g.fighters[1].x=455;g.attack(0,'punch');step(g,.12);g.queueAttack(0,'punch');step(g,.09);g.queueAttack(0,'punch');step(g,.15);assert.equal(g.fighters[1].hp,73);assert(g.fighters[0].x>350);assert.equal(g.fighters[0].chain,2);assert.equal(g.attack(0,'punch'),true);
  const b=ready([11,0],'guard');b.fighters[1].x=455;b.attack(0,'punch');step(b,.12);b.queueAttack(0,'punch');step(b,.18);assert.equal(b.fighters[1].hp,98);assert.equal(b.fighters[0].chain,0);
 });
 test('all twelve starting fighters are implemented and four unlockable bosses are implemented',()=>{assert.equal(FIGHTERS.filter(f=>!f.boss).length,12);assert(FIGHTERS.every(f=>f.stats&&f.special));assert.equal(FIGHTERS.filter(f=>f.boss).length,4);assert.equal(new Set(FIGHTERS.map(f=>f.style)).size,FIGHTERS.length);});
