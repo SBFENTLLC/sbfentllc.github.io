@@ -13,8 +13,8 @@ function ready(characters){const g=new Fight({characters,training:true});step(g,
 test('all 256 selections use character moves independently of match side',()=>{
  for(let a=0;a<FIGHTERS.length;a++)for(let b=0;b<FIGHTERS.length;b++)for(const id of [0,1]){const g=ready([a,b]),char=[a,b][id];assert.equal(g.fighters[id].character,char);assert(g.attack(id,'punch'));step(g,.3);assert.equal(g.fighters[1-id].hp,100-moveFor(char,'punch').damage);assert.equal(g.fighters[id].hp,100);}
 });
-test('all supers in both slots deal their own four-hit damage and respect guard',()=>{
- for(let char=0;char<FIGHTERS.length;char++)for(const id of [0,1]){const chars=id===0?[char,0]:[0,char],g=ready(chars);g.attack(id,'special');step(g,4);const hits=g.drainEvents().filter(e=>e.type==='hit');assert.equal(hits.length,4);assert.equal(g.fighters[1-id].hp,100-PROTOTYPE[char].moves.special.damage);
+test('all supers in both slots deal their own multi-hit damage and respect guard',()=>{
+ for(let char=0;char<FIGHTERS.length;char++)for(const id of [0,1]){const chars=id===0?[char,0]:[0,char],g=ready(chars);g.attack(id,'special');step(g,4);const hits=g.drainEvents().filter(e=>e.type==='hit');assert.equal(hits.length,char===0?6:4);assert.equal(g.fighters[1-id].hp,100-PROTOTYPE[char].moves.special.damage);
   const blocked=ready(chars);if(id===0)blocked.dummy='guard';blocked.attack(id,'special');step(blocked,.4,id===1?{block:true}:{});assert.equal(blocked.sequence,null);assert.equal(blocked.fighters[1-id].hp,100-Math.ceil(PROTOTYPE[char].moves.special.damage*.12));
  }
 });
@@ -22,7 +22,7 @@ test('all throws work in either slot and preserve the selected character on roun
  for(let char=0;char<FIGHTERS.length;char++)for(const id of [0,1]){const g=ready(id===0?[char,0]:[0,char]);g.attack(id,'grab',{direction:-1});step(g,1.3);assert.equal(g.fighters[1-id].hp,100-moveFor(char,'grab').damage);assert(g.fighters[1-id].x<g.fighters[id].x);g.fighters[1-id].hp=0;step(g,4.5);assert.equal(g.fighters[id].character,char);}
 });
 test('Foxy retreats on a kick, confirms K K, and has low per-hit damage',()=>{
- const g=ready([2,1]);g.attack(0,'kick');step(g,.17);assert(g.fighters[0].x<400);g.queueAttack(0,'kick');step(g,.3);const hits=g.drainEvents().filter(e=>e.type==='hit');assert.equal(hits.length,2);assert.equal(hits[1].combo,2);assert.equal(g.fighters[1].hp,84);assert.equal(g.attack(0,'punch'),false);assert(PROTOTYPE[2].backSpeed>PROTOTYPE[2].speed);
+ const g=ready([2,1]);g.attack(0,'kick');step(g,.17);assert(g.fighters[0].x<400);g.queueAttack(0,'kick');step(g,.3);const hits=g.drainEvents().filter(e=>e.type==='hit');assert.equal(hits.length,2);assert.equal(hits[1].combo,2);assert.equal(g.fighters[1].hp,85);assert.equal(g.attack(0,'punch'),true);assert(PROTOTYPE[2].backSpeed>PROTOTYPE[2].speed);
 });
 test('Clara has higher air mobility and a vulnerable landing recovery',()=>{
  const g=ready([3,1]);g.fighters[1].x=900;step(g,.35,{jump:true,right:true});assert(g.fighters[0].y>130);for(let n=0;n<100&&g.fighters[0].y>0;n++)g.step(1/120);assert.equal(g.fighters[0].y,0);assert(g.fighters[0].cooldown>0);assert.equal(g.attack(0,'kick'),false);step(g,.2);assert(g.attack(0,'kick'));assert(PROTOTYPE[3].airSpeed>1);

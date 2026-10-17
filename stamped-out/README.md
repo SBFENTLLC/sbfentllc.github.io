@@ -183,3 +183,14 @@ Replaced the invalid FOUR FLAT container with a new AAC encode from the replacem
 - A chapter journey panel and 12 unique illustrated before/after story scenes connect every encounter. Loss scenes support retries; Next and Skip are explicit controls. Unlocks save on victory independently of scene completion, keeping existing v4 progress and outfits intact.
 
 Validation: 157 Node checks pass, including the actual UI with DOM/audio doubles, all sixteen fighters' air chains in either slot, finite juggles, music cursors, touch guards, all celebrations and story progression. Module imports, UI IDs and 80 service-worker cache targets resolve. Sample artwork was rendered with a canvas-to-SVG adapter for visual inspection. Real browser/device QA was unavailable; iPhone gesture behavior, rendered menu layout and play feel still need phone review.
+
+
+## v27 — stable arena and combat expansion
+
+The play surface is fixed while bass energy animates only the arena backdrop. The mobile viewport stays pinned during combat; reduced-motion users get a still backdrop.
+
+RUN / Shift bursts through an opponent with a one-second cooldown and no contact damage. A runner can be hit or blocked. P and K during a run become advancing strikes. DOWN+P is a low body hook; DOWN+K is a sweep. Low guard defends both. Confirm P/K hits into mixed four-hit strings, or five hits for Flex and Redline. Sweeps finish a string; whiffs, blocks, loaded heavies, counters and stance punches retain recovery. Damage scales down through long strings.
+
+Story aftermath scenes flow directly into the next encounter and chapter; losses retain retry and the finale retains its completion screen. Wins still save and unlock rewards individually. Flex has a new staged power-up and six-impact finisher. Winner animations include a second signature gesture and confetti.
+
+The animated title screen uses the actual masked fighter sprites. Installed home screen icons use matching SBFENT crown artwork. Run `node --test *.test.mjs` for the deterministic model, mocked UI, worker-upgrade and audio/backdrop checks. These checks do not replace physical phone play testing.

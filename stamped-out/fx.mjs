@@ -1,3 +1,4 @@
+import {drawFlexPower} from './flex-power.mjs';
 import {drawCelebration} from './victories.mjs';
 import {moveFor,fighterFor,SUPER_SEQUENCES,KING_STANCES} from './roster.mjs';
 import {SPRITES} from './sprites.mjs';
@@ -49,7 +50,7 @@ export class FightFX {
   for(const g of this.ghosts)g.life-=dt;this.ghosts=this.ghosts.filter(g=>g.life>0);
   this.ghostTime-=dt;if(!this.reduced&&!this.finish&&!this.cinematic&&!this.sequence&&this.ghostTime<=0){this.ghostTime=.045;for(const f of fighters)if(f.walking||f.move)this.ghosts.push({f:{...f,move:f.move?{...f.move}:null},life:.18});this.ghosts=this.ghosts.slice(-12);}
  }
- frame(f){if(f.character===15&&f.move?.stanceShift)return 7;if(f.character===14&&f.move?.braceSetup)return 3;if(f.character===14&&f.brace>0&&!f.move&&!this.finish)return 3;if(f.character===13&&f.move?.name==='kick'&&f.y>8)return 6;if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+(f.move.recovery??m.recovery)*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*((f.character??f.id)===0?10:7))%2?1:0;}
+ frame(f){if(f.move?.variant==='uppercut'&&f.move.t>=f.move.wind&&f.move.t<f.move.wind+.13)return 7;if(f.character===15&&f.move?.stanceShift)return 7;if(f.character===14&&f.move?.braceSetup)return 3;if(f.character===14&&f.brace>0&&!f.move&&!this.finish)return 3;if(f.character===13&&f.move?.name==='kick'&&f.y>8)return 6;if(f.pose!==undefined)return f.pose;if(f.knockdown>0)return 5;if(f.stun>0||this.finish?.knockout&&this.finish.winner!==f.id)return 5;if(this.finish?.winner===f.id&&this.finish.elapsed>.8)return (f.character??f.id)===1?4:7;if(f.move){const m=moveFor(f.character??f.id,f.move.name);return f.move.t<(f.move.wind??m.wind)*.65||f.move.t>(f.move.wind??m.wind)+m.active+(f.move.recovery??m.recovery)*.55?0:({punch:2,kick:3,special:7,grab:2}[f.move.name]);}return f.block?4:f.y>0?6:f.walking&&Math.floor(this.time*(f.running?18:(f.character??f.id)===0?10:7))%2?1:0;}
  setRosterAtlas(first,atlas,data){this.rosterAtlases??={};this.rosterAtlases[first]={atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const path=new Path2D();for(const [y,x,w] of spans)path.rect(x,y,w,1);return path;}))};}
  setOutfitAtlas(atlas,data,grapple=false,first=0){const group={first,atlas,data,paths:typeof Path2D==='undefined'?null:data.masks.map(frames=>frames.map(spans=>{const p=new Path2D();for(const [y,x,w] of spans)p.rect(x,y,w,1);return p;}))};const registry=grapple?(this.outfitGrapples??={}):(this.outfitAtlases??={});for(let i=0;i<data.boxes.length;i++)registry[first+i]=group;}
  setSound(atlas,data){this.setRosterAtlas(6,atlas,data);}
@@ -73,7 +74,8 @@ export class FightFX {
      else{const p=1-clamp((t-wind-m.active)/Math.max(.01,recovery),0,1);rotation=f.face*.10*p*p;poseShift=14*p*p;}
     }else rotation=f.face*(t<wind?-.045*(t/wind):.07*Math.max(0,1-(t-wind)/(m.active+m.recovery)));
    }
-   else if(f.walking)rotation=f.face*.025;
+   else if(f.walking)rotation=f.face*(f.running?.12:.025);
+   if(f.move?.variant){const v=f.move.variant,t=f.move.t,w=f.move.wind||.1,p=clamp((t-w)/.12,0,1),drive=Math.sin(p*Math.PI);if(v.includes('hook')){rotation+=f.face*drive*.14;poseShift+=drive*8;}if(v==='uppercut')rotation-=f.face*drive*.2;if(v.includes('roundhouse')||v.includes('heel'))rotation+=f.face*drive*.18;} 
   }
   if(f.rotation===undefined&&((this.finish?.knockout&&this.finish.winner!==f.id)||f.knockdown>0)){fall=this.finish?(this.finish.finisher?1:clamp((this.finish.elapsed-.12)/.6,0,1)):clamp(f.knockdown/.25,0,1);rotation=2.3*fall*f.face;}
   const width=sw*scale,height=sh*scale,dx=-width/2+offset;
@@ -85,7 +87,7 @@ export class FightFX {
   const flightY=Math.min(f.y,Math.max(0,510-70-projectedHeight));
   ctx.save();ctx.globalAlpha=alpha;ctx.translate(f.x+f.face*poseShift,510-flightY-bottom);ctx.rotate(rotation);ctx.scale(f.face,1);
   if(!this.reduced&&!rotation&&!f.move&&!f.stun&&!f.walking&&!f.knockdown&&!this.sequence&&!this.finish)ctx.scale(1,1+Math.sin(this.time*((f.character??f.id)===0?3.8:2.6))*.006);
-  if(f.crouch)ctx.scale(1,.72);
+  if(f.crouch||f.move?.low)ctx.scale(1,f.move?.sweep?.58:.72);
   if(f.character===14&&f.move?.load&&!f.move.armorUsed&&f.move.t<.45)ctx.filter='sepia(.45) saturate(1.7) brightness(1.3)';
   if(f.character===12&&f.move?.charge&&f.move.t<.62&&!f.move.armorUsed)ctx.filter='sepia(.5) saturate(2) brightness(1.35)';
   if(this.flashes[f.id]>0)ctx.filter='brightness(1.65) saturate(.6)';
@@ -102,9 +104,9 @@ export class FightFX {
   if(!f.move||f.move.name==='grab')return;const m=f.move.name,elapsed=f.move.t-(f.move.wind??moveFor(f.character??f.id,m).wind),active=moveFor(f.character??f.id,m).active;
   if(elapsed<-.05||elapsed>active+.15)return;
   const p=clamp((elapsed+.05)/(active+.2),0,1),special=m==='special',kick=m==='kick';
-  ctx.save();ctx.translate(f.x,510-f.y);ctx.scale(f.face,1);ctx.globalCompositeOperation='screen';ctx.globalAlpha=Math.sin(p*Math.PI)*.85;
+  ctx.save();ctx.translate(f.x,510-f.y);ctx.scale(f.face,1);if(f.move.low)ctx.translate(0,95);ctx.globalCompositeOperation='screen';ctx.globalAlpha=Math.sin(p*Math.PI)*.85;
   ctx.strokeStyle=special?fighterFor(f).color:kick?'#ffe693':'#e7ffaf';ctx.lineWidth=special?15:kick?10:6;ctx.shadowBlur=special?25:12;ctx.shadowColor=ctx.strokeStyle;
-  ctx.beginPath();ctx.ellipse(40,kick?-175:-145,special?205:kick?135:95,special?60:kick?70:22,-.15,-1.35,1.15);ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();
+  ctx.beginPath();if(!kick&&!special&&!f.move.variant?.includes('hook')){ctx.moveTo(30,-145);ctx.lineTo(85+p*75,f.move.variant==='uppercut'?-210:-145);}else ctx.ellipse(40,kick?-175:-145,special?205:kick?135:95,special?60:kick?70:32,f.move.variant?.includes('heel')?-.55:-.15,-1.35,1.15);ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();
   if(special){const g=ctx.createRadialGradient(150,-140,3,150,-140,130);g.addColorStop(0,'#f6e7ffdd');g.addColorStop(.25,'#b556ffc0');g.addColorStop(1,'#a332ff00');ctx.fillStyle=g;ctx.fillRect(20,-270,260,260);}
   if(special&&(f.character??f.id)===1){for(let copy=1;copy<=2;copy++){ctx.save();ctx.globalAlpha=.28;this.rawSprite(ctx,{...f,x:copy*80,y:510,face:1},2,.28);ctx.restore();}}
   ctx.restore();
@@ -146,6 +148,7 @@ export class FightFX {
   ctx.save();ctx.fillStyle='#080313cc';ctx.fillRect(0,0,1000,46);ctx.fillRect(0,526,1000,37);
   ctx.font='italic 900 22px Arial';ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(special?profile.special.toUpperCase():'GRAB & THROW',500,32);
   ctx.font='900 11px Arial';ctx.fillStyle='#f5e4ff';ctx.fillText(special?'SBFENT SIGNATURE COMBO':s.elapsed<.3?'TAP GRAB TO ESCAPE':'SLAM INCOMING',500,549);
+  if(special&&character===0){const f=fighters[s.id];ctx.save();ctx.strokeStyle='#caff65';ctx.lineWidth=3;ctx.globalAlpha=.6;for(let i=0;i<3;i++){const q=(s.elapsed*2+i/3)%1;ctx.beginPath();ctx.ellipse(f.x+f.face*60,365-f.y,30+q*65,18+q*35,-.3,-1.4,1.4);ctx.stroke();}ctx.restore();}
   if(special&&character===1&&s.elapsed<1.95&&!this.reduced){
    for(const direction of [-1,1]){const clone={...fighters[s.id],x:s.center+direction*155,y:0,face:-direction,pose:2,grapplePose:undefined};ctx.save();ctx.filter='sepia(1) saturate(3) hue-rotate(230deg)';this.rawSprite(ctx,clone,2,.23);ctx.restore();}
   }
@@ -165,7 +168,7 @@ export class FightFX {
   ctx.restore();
  }
  drawSuper(ctx,fighters){
-  const c=this.cinematic,f=fighters[c.id];if(!f)return;const profile=fighterFor(f);
+  const c=this.cinematic,f=fighters[c.id];if(!f)return;if((f.character??f.id)===0){drawFlexPower(ctx,this,f,c.elapsed);return;}const profile=fighterFor(f);
   const p=c.elapsed/c.duration,entry=clamp(p/.18,0,1),exit=clamp((1-p)/.15,0,1),opacity=Math.min(entry,exit);
   ctx.save();ctx.fillStyle=`rgba(10,2,25,${.8*opacity})`;ctx.fillRect(0,0,1000,562.5);
   const purple=profile.color;

@@ -24,7 +24,7 @@ export const KING_STANCES=[
  {name:'POWER',color:'#ffd271',speed:175,punch:{wind:.38,active:.10,recovery:.65,range:150,damage:20}}
 ];
 export const PROTOTYPE=[
- {speed:240,jump:650,moves:{punch:{wind:.085,active:.10,recovery:.17,range:155,damage:12},kick:{wind:.22,active:.13,recovery:.31,range:155,damage:11},special:{wind:.23,active:.18,recovery:.60,range:300,damage:26},grab:{wind:.12,active:.08,recovery:.45,range:108,damage:16}}},
+ {speed:240,jump:650,moves:{punch:{wind:.085,active:.10,recovery:.17,range:155,damage:12},kick:{wind:.22,active:.13,recovery:.31,range:155,damage:11},special:{wind:.23,active:.18,recovery:.60,range:300,damage:28},grab:{wind:.12,active:.08,recovery:.45,range:108,damage:16}}},
  {speed:210,jump:610,moves:{punch:{wind:.14,active:.10,recovery:.22,range:163,damage:9},kick:{wind:.17,active:.13,recovery:.37,range:185,damage:10},special:{wind:.19,active:.18,recovery:.75,range:260,damage:30},grab:{wind:.15,active:.08,recovery:.5,range:112,damage:14}}},
  {speed:265,jump:635,backSpeed:320,moves:{punch:{wind:.105,active:.09,recovery:.20,range:145,damage:8},kick:{wind:.15,active:.11,recovery:.29,range:178,damage:8},special:{wind:.20,active:.16,recovery:.68,range:285,damage:24},grab:{wind:.115,active:.08,recovery:.43,range:103,damage:12}}},
  {speed:230,jump:765,airSpeed:1.22,moves:{punch:{wind:.12,active:.10,recovery:.21,range:151,damage:10},kick:{wind:.18,active:.12,recovery:.34,range:165,damage:9},special:{wind:.21,active:.18,recovery:.72,range:275,damage:28},grab:{wind:.14,active:.08,recovery:.48,range:105,damage:13}}},
@@ -44,7 +44,7 @@ export const PROTOTYPE=[
 export const moveFor=(id,name)=>PROTOTYPE[id]?.moves[name];
 
 export const SUPER_SEQUENCES=[
- {duration:3.15,beats:[{at:.35,damage:5},{at:.9,damage:5},{at:1.5,damage:6},{at:2.65,damage:10}]},
+ {duration:3.15,beats:[{at:.35,damage:4},{at:.62,damage:3},{at:.9,damage:3},{at:1.5,damage:5},{at:2.15,damage:4},{at:2.65,damage:9}]},
  {duration:3.25,beats:[{at:.4,damage:6},{at:1,damage:6},{at:1.6,damage:6},{at:2.7,damage:12}]},
  {duration:3.05,beats:[{at:.32,damage:4},{at:.86,damage:5},{at:1.45,damage:5},{at:2.55,damage:10}]},
  {duration:3.35,beats:[{at:.38,damage:5},{at:1.02,damage:5},{at:1.8,damage:7},{at:2.85,damage:11}]},
