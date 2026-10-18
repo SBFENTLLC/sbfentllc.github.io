@@ -1,8 +1,8 @@
 {
   "id": "/detective-flex-app.html",
-  "name": "Detective Flex — Big Ole Rig",
+  "name": "Detective Flex \u2014 Big Ole Rig",
   "short_name": "Detective Flex",
-  "description": "Search four SBFENT locations in Detective Flex’s walkable 3D lizard hunt.",
+  "description": "Search four SBFENT locations in Detective Flex\u2019s walkable 3D lizard hunt.",
   "start_url": "/detective-flex-app.html",
   "scope": "/",
   "display": "standalone",
@@ -10,7 +10,17 @@
   "theme_color": "#080f0c",
   "lang": "en",
   "icons": [
-    {"src": "/detective-flex-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-    {"src": "/detective-flex-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    {
+      "src": "/sbfent-detective-flex-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/sbfent-detective-flex-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
