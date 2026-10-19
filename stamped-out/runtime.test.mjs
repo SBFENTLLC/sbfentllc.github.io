@@ -16,7 +16,7 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  for(const id of ['pauseMenu','hud','controls','nowPlaying'])elements[id].hidden=true;
  elements.difficulty.value='medium';elements.training.checked=true;elements.sound.checked=false;
  const buttons={};for(const key of ['left','right','jump','crouch','block']){buttons[key]=new Element();buttons[key].dataset.hold=key;}
- for(const key of ['punch','kick','grab','special','ability']){buttons[key]=elements[key]||new Element();buttons[key].dataset.action=key;}
+ for(const key of ['punch','kick','grab','special','ability','mix']){buttons[key]=elements[key]||new Element();buttons[key].dataset.action=key;}
  const selects=[new Element(),new Element()],ranges=[new Element(),new Element()],musicButtons=[new Element(),new Element()];
  let draws=0,queue=[];const gradient={addColorStop(){}};
  const ctx=new Proxy({drawImage(){draws++;},createRadialGradient(){return gradient;}},{get:(o,k)=>k in o?o[k]:()=>{}});
@@ -52,6 +52,8 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  for(const [char,damage,pointer] of [[4,34,10],[5,29,11],[6,29,12],[7,31,13],[8,25,14],[9,36,15],[10,28,16],[11,31,17]]){elements['pick'+char].emit('click');elements.opponentCharacter.value=char===4?'5':'4';elements.opponentCharacter.emit('change');elements.start.emit('click');assert.equal(elements.name0.textContent,({4:'GOLDIE',5:'ONYX',6:'DJ BLACKOUT',7:'QUIET MONEY',8:'NEON NOVA',9:'BIG STAMP',10:'VIOLET V',11:'REDLINE'})[char]);for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:pointer});for(let i=0;i<110;i++)frame();buttons.right.emit('pointerup',{pointerId:pointer});buttons.special.emit('pointerdown',{pointerId:pointer+10});for(let i=0;i<430;i++)frame();assert.equal(elements.hp1.style.width,(100-damage)+'%');elements.exit.emit('click');}
  elements.pick6.emit('click');elements.opponentCharacter.value='0';elements.opponentCharacter.emit('change');elements.start.emit('click');for(let i=0;i<110;i++)frame();assert.equal(elements.kickLabel.textContent,'WAVE');buttons.kick.emit('pointerdown',{pointerId:30});for(let i=0;i<100;i++)frame();assert.equal(elements.hp1.style.width,'91%');elements.exit.emit('click');
  for(const [dummy,hp] of [['guard','90%'],['lowguard','98%']]){elements.pick10.emit('click');elements.dummy.value=dummy;elements.start.emit('click');for(let i=0;i<110;i++)frame();buttons.right.emit('pointerdown',{pointerId:40});for(let i=0;i<70;i++)frame();buttons.right.emit('pointerup',{pointerId:40});assert.equal(elements.kickLabel.textContent,'SWEEP');buttons.kick.emit('pointerdown',{pointerId:41});for(let i=0;i<80;i++)frame();assert.equal(elements.hp1.style.width,hp);elements.exit.emit('click');}
+ // The actual Mix & Drop touch button works in a fresh practice fight.
+ elements.pick0.emit('click');elements.dummy.value='stand';elements.opponentCharacter.value='1';elements.opponentCharacter.emit('change');elements.start.emit('click');for(let i=0;i<110;i++)frame();assert.equal(elements.mix.disabled,false);buttons.right.emit('pointerdown',{pointerId:152});for(let i=0;i<50;i++)frame();buttons.right.emit('pointerup',{pointerId:152});buttons.mix.emit('pointerdown',{pointerId:153});for(let i=0;i<50;i++)frame();assert.equal(elements.hp1.style.width,'96%');assert.equal(elements.mix.disabled,true);assert(elements.mixLabel.textContent.includes('DROP'));elements.exit.emit('click');
  // Independent outfit selectors, unsupported characters, and all free arenas.
  elements.pick0.emit('click');elements.playerOutfit.value='1';elements.playerOutfit.emit('change');assert.equal(elements.playerOutfit.value,'1');elements.opponentCharacter.value='0';elements.opponentCharacter.emit('change');assert.equal(elements.opponentOutfit.value,'0');elements.opponentOutfit.value='1';elements.opponentOutfit.emit('change');assert.equal(elements.playerOutfit.value,'1');elements.playerOutfit.value='0';elements.playerOutfit.emit('change');assert.equal(elements.opponentOutfit.value,'1');elements.pick0.emit('click');elements.playerOutfit.value='1';elements.playerOutfit.emit('change');
  for(const arena of ['studio','vault','workshop']){elements.arenaSelect.value=arena;elements.arenaSelect.emit('change');elements.start.emit('click');for(let i=0;i<5;i++)frame();elements.exit.emit('click');}
@@ -86,3 +88,4 @@ test('UI starts, handles multi-touch, renders a complete cinematic, and pauses',
  }finally{Fight.prototype.step=oldStep;}
 
 });
+
