@@ -37,8 +37,8 @@ function mashMatch(damageScale){const g=new Fight({random:()=>.5,damageScale});l
  assert.equal(g.phase,'done');return t;
 }
 test('production damage stretches a repeated-pressure match without changing its win rules',()=>{
- const old=mashMatch(1),current=mashMatch(.62);assert(current>old*1.3);assert(current<90);
- const g=new Fight();assert.equal(g.damageScale,.62);g.phase='fight';g.applyHit(0,12);assert.equal(g.fighters[1].hp,93);
+ const old=mashMatch(1),current=mashMatch(.55);assert(current>old*1.3);assert(current<90);
+ const g=new Fight();assert.equal(g.damageScale,.55);g.phase='fight';g.applyHit(0,12);assert.equal(g.fighters[1].hp,93);
 });
 test('movement is quicker in both directions while heavy fighters retain their identity',()=>{
  for(const c of [0,4,8,12]){const g=new Fight({training:true,characters:[c,1]});g.phase='fight';g.fighters[0].x=200;step(g,.1,{right:true});assert(g.fighters[0].x>200+([240,185,285,165][[0,4,8,12].indexOf(c)])*.1);}

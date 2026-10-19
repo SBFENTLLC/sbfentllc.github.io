@@ -49,7 +49,7 @@ export class Soundtrack {
  toggle(){this.enabled=!this.enabled;this.unlocked=true;return this.play();}
  volume(value){this.level=Math.max(0,Math.min(1,Number(value)||0));this.audio.volume=this.level;this.report();}
  duck(gain=.25,seconds=.6){if(seconds<=0){this.duckGain=1;this.duckTime=0;return;}const next=Math.max(0,Math.min(1,gain));this.duckGain=this.duckTime>0?Math.min(this.duckGain,next):next;this.duckTime=Math.max(this.duckTime,seconds);}
- tick(dt){this.beat.tick(dt,this.enabled&&!this.suspended&&this.status==='playing');this.duckTime=Math.max(0,this.duckTime-dt);const target=this.level*(this.duckTime>0?this.duckGain:1);this.audio.volume+=(target-this.audio.volume)*Math.min(1,dt*(this.duckTime>0?18:4));}
+ tick(dt){this.beat.tick(dt,this.enabled&&!this.suspended&&this.level>0&&!this.audio.paused&&this.status==='playing');this.duckTime=Math.max(0,this.duckTime-dt);const target=this.level*(this.duckTime>0?this.duckGain:1);this.audio.volume+=(target-this.audio.volume)*Math.min(1,dt*(this.duckTime>0?18:4));}
  suspend(){this.suspended=true;return this.play();}
  resume(){this.suspended=false;return this.play();}
 }
