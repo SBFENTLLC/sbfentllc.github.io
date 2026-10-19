@@ -6,18 +6,18 @@ export const ENCOUNTERS=[
  {opponent:12,title:'03 / Big Pressure',arena:'blockparty',text:'Big Pressure has the stolen shipment. Take back the stamp in front of the whole block.',hint:'His shoulder charge flashes gold and absorbs one light hit. Block, jump, or grab; punish the long recovery.'}
 ];
 export const CHAPTERS=[
- {name:'Take Back the Stamp',reward:'BIG PRESSURE + CAROLINA BLOCK PARTY',boss:12,arena:'blockparty',encounters:ENCOUNTERS},
- {name:'Signal Lost',reward:'LADY STATIC + NEON UNDERGROUND',boss:13,arena:'underground',encounters:[
+ {name:'Take Back the Stamp',reward:'CAROLINA BLOCK PARTY ARENA',boss:12,arena:'blockparty',encounters:ENCOUNTERS},
+ {name:'Signal Lost',reward:'NEON UNDERGROUND ARENA',boss:13,arena:'underground',encounters:[
   {opponent:6,title:'01 / Follow the bass',arena:'blockparty',text:'The recovered shipment carries a hijacked broadcast signal. DJ Blackout knows where it started.',hint:'Block or jump his waves, then close the gap while he recovers.'},
   {opponent:5,title:'02 / Dead air',arena:'rooftop',text:'Onyx stands between Flex and the underground relay. Keep your timing sharp.',hint:'Avoid predictable punches into perfect guard. Mix your timing and threaten GRAB.'},
   {opponent:13,title:'03 / Lady Static',arena:'underground',text:'Lady Static is broadcasting counterfeit stamps from the Neon Underground. Shut her signal down.',hint:'Ground K plants a trap. Watch the cyan ring: jump, block, or hit Lady Static to break it. Punish the setup.'}
  ]},
- {name:'Heavy Freight',reward:'IRON HAUL + FLEX MOTOR YARD',boss:14,arena:'motoryard',encounters:[
+ {name:'Heavy Freight',reward:'FLEX MOTOR YARD ARENA',boss:14,arena:'motoryard',encounters:[
   {opponent:9,title:'01 / Freight check',arena:'blockparty',text:'The signal points to stolen cargo leaving the city. Big Stamp holds the freight manifest.',hint:'Stay outside his grab range. Bait a slow approach, then punish. Tap GRAB quickly if caught.'},
   {opponent:7,title:'02 / Follow the money',arena:'underground',text:'Quiet Money financed the convoy. Flex needs the destination before the trucks roll out.',hint:'Grabs beat his strong guard. Bait a heavy straight and punish its long recovery.'},
   {opponent:14,title:'03 / Iron Haul',arena:'motoryard',text:'Iron Haul is loading the last truck at Flex Motor Yard. Stop the convoy and take back the cargo.',hint:'K braces, then P unleashes a heavy armored straight. It absorbs one light hit during wind-up. Grab, use a heavy strike, or block and punish recovery.'}
  ]},
- {name:'The Real Crown',reward:'THE FALSE KING + CROWN PENTHOUSE',boss:15,arena:'penthouse',encounters:[
+ {name:'The Real Crown',reward:'CROWN PENTHOUSE ARENA',boss:15,arena:'penthouse',encounters:[
   {opponent:8,title:'01 / Last delivery',arena:'motoryard',text:'The convoy is stopped, but Neon Nova carries one final crown upstairs. Flex has to catch her first.',hint:'Block her dash and punish its recovery. Her speed is high, but clean punches still stop her approach.'},
   {opponent:4,title:'02 / Gold at the gate',arena:'underground',text:'Goldie guards the penthouse access. Take the key and finish what started on the rooftop.',hint:'Avoid walking into her clinch. Bait a missed grab, punish, and be ready to escape a throw.'},
   {opponent:15,title:'03 / The False King',arena:'penthouse',text:'The counterfeit crown belongs to one man. Flex steps into Crown Penthouse to take the whole operation down.',hint:'Watch his named stance: RUSH is quick, REACH has long punches, POWER is slow and heavy. K switches stance during a vulnerable pause. Block, bait a miss, then punish.'}
