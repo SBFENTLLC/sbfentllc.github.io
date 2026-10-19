@@ -1,3 +1,4 @@
+import {powerFor} from './powers.mjs';
 // Design targets for the complete roster. The first twelve are playable in
 // the starting roster, followed by story bosses. Each entry names both its advantage and its counterplay.
 export const ROSTER=[
@@ -41,7 +42,7 @@ export const PROTOTYPE=[
  {speed:180,jump:545,moves:{punch:{wind:.24,active:.10,recovery:.38,range:160,damage:14},kick:{wind:.25,active:.10,recovery:.25,range:155,damage:12},special:{wind:.30,active:.18,recovery:1.0,range:235,damage:35},grab:{wind:.20,active:.10,recovery:.60,range:116,damage:21}}},
  {speed:255,jump:640,moves:{punch:{wind:.10,active:.10,recovery:.25,range:155,damage:10},kick:{wind:.35,active:.10,recovery:.30,range:175,damage:11},special:{wind:.30,active:.18,recovery:1.05,range:290,damage:36},grab:{wind:.17,active:.10,recovery:.56,range:112,damage:18}}}
 ];
-export const moveFor=(id,name)=>PROTOTYPE[id]?.moves[name];
+export const moveFor=(id,name)=>name==='ability'?powerFor(id):PROTOTYPE[id]?.moves[name];
 
 export const SUPER_SEQUENCES=[
  {duration:3.15,beats:[{at:.35,damage:4},{at:.62,damage:3},{at:.9,damage:3},{at:1.5,damage:5},{at:2.15,damage:4},{at:2.65,damage:9}]},

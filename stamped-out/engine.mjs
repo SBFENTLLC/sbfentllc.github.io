@@ -1,3 +1,4 @@
+import {powerFor,powerProjectile} from './powers.mjs';
 import {strikeVariant,canGroundChain} from './combat-strings.mjs';
 import {outfitFor} from './outfits.mjs';
 // Deterministic combat model. Joint sequences own both fighters until they
@@ -14,7 +15,7 @@ export class Fight {
   Object.assign(this,{difficulty,training,dummy,random,wins:[0,0],round:1,events:[]});this.resetRound();
  }
  resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.projectiles=[];this.traps=[];this.lastFinisher=null;this.timer=60;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6/this.pace;this.events.push({type:'round',round:this.round});}
- makeFighter(id,x){return{id,character:this.characters[id],outfit:this.outfits[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0,airAttacks:0,juggleHits:0,runTime:0,runCooldown:0,runHeld:false,runDirection:1,running:false};}
+ makeFighter(id,x){return{id,character:this.characters[id],outfit:this.outfits[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0,airAttacks:0,juggleHits:0,runTime:0,runCooldown:0,runHeld:false,runDirection:1,running:false,abilityCooldown:0};}
  // One recent tap survives the tail of recovery; a held button never repeats.
  queueAttack(id,name,options={}){
   if(this.attack(id,name,options))return true;
@@ -35,6 +36,7 @@ export class Fight {
   if(!crouch&&!f.crouch&&f.character===14&&name==='kick'&&f.y<8&&f.brace>0)return false;
   if(!crouch&&!f.crouch&&f.character===13&&name==='kick'&&f.y<8&&this.traps.some(t=>t.id===id))return false;
   if(name==='grab'&&f.y>8)return false;
+  if(name==='ability'){if(f.y>8||f.abilityCooldown>0||this.projectiles.some(p=>p.id===id&&!p.dead))return false;f.abilityCooldown=powerFor(f.character).cooldown;f.runTime=0;f.running=false;}
   if(name==='special'&&f.power<100){this.events.push({type:'empty',id});return false;}
   if(name==='special'){f.power=0;this.events.push({type:'super',id});}
   if(name==='grab')f.block=false;
@@ -58,16 +60,16 @@ export class Fight {
   const a=this.fighters[s.id],b=this.fighters[s.target];a.x=clamp(s.center-s.face*65,75,925);b.x=clamp(s.center+s.face*65,75,925);
   a.cooldown=.35;b.cooldown=.12;b.throwImmune=.9;this.sequence=null;this.events.push({type:'throwEscape',id:s.target});
  }
- applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false,face=this.fighters[id].face}={}){
+ applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false,face=this.fighters[id].face,push}={}){
   const a=this.fighters[id],b=this.fighters[1-id],parry=blocked&&!sequence&&b.character===5&&b.guardWindow>0&&(move==='punch'||move==='kick'),actual=parry?0:blocked?Math.ceil(damage*(b.character===7?.06:.12)):damage;
   if(!blocked)this.traps=this.traps.filter(t=>t.id!==1-id);
   if(parry){b.counterReady=.5;b.guardWindow=0;}
-  const aerial=!sequence&&a.move?.airborne,scaled=actual===0?0:Math.max(1,Math.round(actual*this.damageScale*(aerial?.8:1)));
-  const sweep=!!a.move?.sweep;
+  const aerial=!sequence&&(move==='punch'||move==='kick')&&a.move?.airborne,scaled=actual===0?0:Math.max(1,Math.round(actual*this.damageScale*(aerial?.8:1)));
+  const sweep=move==='kick'&&!!a.move?.sweep;
   const before=b.hp;b.hp=clamp(b.hp-scaled,sequence&&!final?1:0,100);
   const counter=!blocked&&!sequence&&!!b.move&&!b.move.hit;
   const punish=!blocked&&!sequence&&(!!b.move&&b.move.hit||b.cooldown>0);
-  const armored=!blocked&&!sequence&&((b.character===12&&b.move?.charge&&b.move.t<.62)||(b.character===14&&b.move?.load&&b.move.t<.45))&&!b.move.armorUsed&&damage<=12&&(move==='punch'||move==='kick'||move==='wave');
+  const armored=!blocked&&!sequence&&((b.character===12&&b.move?.charge&&b.move.t<.62)||(b.character===14&&b.move?.load&&b.move.t<.45))&&!b.move.armorUsed&&damage<=12&&(move==='punch'||move==='kick'||move==='wave'||move==='ability');
   if(armored){b.move.armorUsed=true;this.events.push({type:'armor',id:1-id});}
   if(!blocked&&!armored){b.move=null;b.buffer=null;b.brace=0;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
   b.stun=armored?0:parry?.02:blocked?.09:move==='kick'?.24:.18;
@@ -76,11 +78,12 @@ export class Fight {
    if(b.juggleHits<=2){b.y=Math.max(18,b.y);b.vy=Math.max(b.vy,b.juggleHits===1?390:240);a.vy=Math.max(a.vy,180);b.stun=Math.max(b.stun,.24);}
    else{b.vy=Math.min(b.vy,-80);b.stun=Math.min(b.stun,.12);}
   }
-  if(!blocked&&!sequence&&(sweep||a.character===10&&move==='kick'&&a.y<8)){b.stun=.42;b.knockdown=.42;b.throwImmune=.9;}if(!sequence&&!armored)b.x=clamp(b.x+face*(blocked?(b.character===7?5:9):move==='kick'?(a.character===9?42:28):a.character===11?8:16),75,925);
-  a.power=clamp(a.power+(move==='special'?0:blocked?4:15),0,100);b.power=clamp(b.power+(parry?18:9),0,100);
+  if(!blocked&&!sequence&&(sweep||a.character===10&&move==='kick'&&a.y<8)){b.stun=.42;b.knockdown=.42;b.throwImmune=.9;}if(!sequence&&!armored)b.x=clamp(b.x+face*(push!==undefined?(blocked?Math.min(20,push*.22):push):blocked?(b.character===7?5:9):move==='kick'?(a.character===9?42:28):a.character===11?8:16),75,925);
+  const earned=sequence||move==='special'?0:blocked?1:move==='ability'||move==='wave'?3:Math.max(6,10-a.combo);
+  a.power=clamp(a.power+earned,0,100);b.power=clamp(b.power+(sequence?0:parry?8:blocked?1:2),0,100);
   if(!blocked){a.combo++;a.comboTime=1.2;}
   if(a.character===2&&move==='kick'&&!sequence&&a.y===0)a.x=clamp(a.x-a.face*22,75,925);
-  this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face,move,damage:before-b.hp,combo:a.combo,variant:a.move?.variant,low:!!a.move?.low,aerial:!!aerial,sequence,final,counter,punish,parry});
+  this.events.push({type:blocked?'block':'hit',id,target:1-id,x:b.x,y:b.y,face,move,damage:before-b.hp,combo:a.combo,variant:(move==='punch'||move==='kick')?a.move?.variant:undefined,low:(move==='punch'||move==='kick')&&!!a.move?.low,aerial:!!aerial,sequence,final,counter,punish,parry});
  }
  finishSequence(){
   const s=this.sequence;if(!s)return;const a=this.fighters[s.id],b=this.fighters[s.target];
@@ -99,18 +102,22 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:.28,hard:.38}[this.difficulty]||.12)};
+  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:(b.character===1?.4:.31),hard:.43}[this.difficulty]||.12)};
   ai.crouch=ai.block&&(a.move?.low||a.character===10)&&a.move?.name==='kick'&&a.y<8;
   if(b.character===14&&(b.move?.braceSetup||b.brace>0&&d<=180)){ai.left=false;ai.right=false;}
   if(b.character===13&&this.traps.some(t=>t.id===1)&&d<175){ai.left=toward>0;ai.right=toward<0;}
+  if(b.character===1&&!a.move&&d<130&&!b.move){ai.left=toward>0;ai.right=toward<0;}
+  const incoming=this.projectiles.some(p=>p.id===0&&!p.dead&&(b.x-p.x)*p.face>0&&Math.abs(b.x-p.x)<210);
+  if(incoming&&this.difficulty!=='easy'&&this.aiTime<.31)ai.block=true;
   if(b.character===6&&d<155){ai.left=toward>0;ai.right=toward<0;}
   if(b.move?.connected&&this.difficulty!=='easy'){const next=b.move.name==='punch'?'kick':'punch';if(next)this.attack(1,next);}
   if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');
   if(this.aiTime<=0){
-   this.aiTime=({easy:.85,medium:.48,hard:.29}[this.difficulty]||.48)+this.random()*.35;this.aiTime/=this.pace;
+   this.aiTime=({easy:.85,medium:.42,hard:.26}[this.difficulty]||.48)+this.random()*.28;this.aiTime/=this.pace;
    if(a.y>40&&this.random()<.5||b.character===3&&d<250&&this.random()<.45)ai.jump=true;
    if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<(b.character===9?.6:.25)))this.attack(1,'grab');
    else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
+   else if(b.abilityCooldown<=0&&d>=210&&d<=powerFor(b.character).range+40&&!incoming)this.attack(1,'ability');
    else if(b.character===8&&d>120&&d<230&&b.dashCooldown<=0)this.attack(1,'punch',{direction:toward});
    else if(b.character===15&&b.stanceCooldown<=0&&d<=280)this.attack(1,'kick');
    else if(b.character===15&&d<=KING_STANCES[b.stance].punch.range)this.attack(1,'punch');
@@ -134,7 +141,7 @@ export class Fight {
   const keys=[input,this.training?{block:this.dummy==='guard'||this.dummy==='lowguard',crouch:this.dummy==='lowguard',jump:this.dummy==='jump'&&this.fighters[1].y===0}:this.aiInput()];
   // Resolve guard for both sides before either strike, avoiding player-order
   // advantage when a block and contact land on the same simulation step.
-  for(let i=0;i<2;i++){const f=this.fighters[i];f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&f.character===5&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
+  for(let i=0;i<2;i++){const f=this.fighters[i];f.abilityCooldown=Math.max(0,f.abilityCooldown-dt);f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&f.character===5&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
   for(let i=0;i<2;i++){
    const f=this.fighters[i],other=this.fighters[1-i],key=keys[i];f.face=f.running?f.runDirection:other.x>=f.x?1:-1;
    f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.knockdown=Math.max(0,f.knockdown-dt);f.throwImmune=Math.max(0,f.throwImmune-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;
@@ -155,7 +162,8 @@ export class Fight {
     if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.t>=(move.wind??m.wind)&&!move.hit&&(move.name!=='punch'&&!move.airborne||move.t<=(move.wind??m.wind)+m.active)){
      move.hit=move.name!=='punch'&&!move.airborne;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:move.range??m.range);
-     if(move.stanceShift){f.stance=(f.stance+1)%KING_STANCES.length;this.events.push({type:'stance',id:i,stance:f.stance});
+     if(move.name==='ability'){if(!this.projectiles.some(p=>p.id===i&&!p.dead)){this.projectiles.push(powerProjectile(f));this.events.push({type:'powerShot',id:i,name:powerFor(f.character).name,color:powerFor(f.character).color});}
+     }else if(move.stanceShift){f.stance=(f.stance+1)%KING_STANCES.length;this.events.push({type:'stance',id:i,stance:f.stance});
      }else if(move.braceSetup){f.brace=1.8;this.events.push({type:'brace',id:i});
      }else if(!move.low&&f.character===13&&move.name==='kick'&&f.y<8){
       this.traps.push({id:i,x:clamp(f.x+f.face*130,75,925),age:0,armed:false,life:3.5});this.events.push({type:'trap',id:i});
@@ -187,11 +195,17 @@ export class Fight {
   }
  }
  stepProjectiles(dt){
-  for(const p of this.projectiles){const before=p.x;p.x+=p.face*650*dt;p.travel+=650*dt;const b=this.fighters[1-p.id];
-   if(b.knockdown<=0&&Math.abs(p.y-(b.y+150))<80&&b.x>=Math.min(before,p.x)-32&&b.x<=Math.max(before,p.x)+32){this.applyHit(p.id,9,{move:'wave',blocked:b.block,face:p.face});p.dead=true;}
-   if(p.travel>=440||p.x<25||p.x>975)p.dead=true;
+  // Advance all shots first, then resolve clashes before fighter contact. Swept
+  // intersections prevent fast bolts from passing through each other or a target.
+  for(const p of this.projectiles){p.before=p.x;const speed=p.speed??650;p.x+=p.face*speed*dt;p.travel+=speed*dt;p.age=(p.age??0)+dt;}
+  for(let i=0;i<this.projectiles.length;i++)for(let j=i+1;j<this.projectiles.length;j++){
+   const a=this.projectiles[i],b=this.projectiles[j];
+   if(!a.dead&&!b.dead&&a.id!==b.id&&Math.abs(a.y-b.y)<110&&(a.before-b.before)*(a.x-b.x)<=0){a.dead=b.dead=true;this.events.push({type:'waveClash',x:(a.x+b.x)/2,y:(a.y+b.y)/2});}
   }
-  if(this.projectiles.length===2){const [a,b]=this.projectiles;if(!a.dead&&!b.dead&&a.id!==b.id&&Math.abs(a.x-b.x)<28){a.dead=b.dead=true;this.events.push({type:'waveClash',x:(a.x+b.x)/2,y:150});}}
+  for(const p of this.projectiles){if(p.dead)continue;const b=this.fighters[1-p.id],remaining=(p.range??440)-(p.travel-Math.abs(p.x-p.before)),end=p.before+p.face*Math.min(Math.abs(p.x-p.before),Math.max(0,remaining));
+   if(b.knockdown<=0&&(p.low?b.y<55:Math.abs(p.y-(b.y+150))<80)&&b.x>=Math.min(p.before,end)-32&&b.x<=Math.max(p.before,end)+32){this.applyHit(p.id,p.damage??9,{move:p.ability?'ability':'wave',blocked:b.block,face:p.face,push:p.ability?p.push:undefined});p.dead=true;}
+   if(p.travel>=(p.range??440)||p.x<25||p.x>975)p.dead=true;
+  }
   this.projectiles=this.projectiles.filter(p=>!p.dead);
  }
  endRound(){

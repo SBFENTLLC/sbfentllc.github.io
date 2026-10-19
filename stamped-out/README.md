@@ -194,3 +194,16 @@ RUN / Shift bursts through an opponent with a one-second cooldown and no contact
 Story aftermath scenes flow directly into the next encounter and chapter; losses retain retry and the finale retains its completion screen. Wins still save and unlock rewards individually. Flex has a new staged power-up and six-impact finisher. Winner animations include a second signature gesture and confetti.
 
 The animated title screen uses the actual masked fighter sprites. Installed home screen icons use matching SBFENT crown artwork. Run `node --test *.test.mjs` for the deterministic model, mocked UI, worker-upgrade and audio/backdrop checks. These checks do not replace physical phone play testing.
+
+
+## v30 — your fighter, your power, your stamp
+
+All sixteen fighters are available in regular Play and Training. Story remains Flex’s four-chapter campaign; completion unlocks the bonus arenas. Every fighter has an original mini story in the selection menu, including motives and ties to the SBFENT world.
+
+Tap POWER (H) for a distinct ranged move. It starts ready and recharges in 4.2–6 seconds; it does not use the super meter. One shot per owner, no airborne casts, vulnerable wind-up, chip on guard, jump avoidance, bounded travel, and symmetric shot clashes. Bigger pushes create space. DJ retains his legacy ground-K sound wave. SUPER (U) still needs 100 meter and uses each fighter’s existing cinematic. Clean physical hits grant 10 down to 6 meter across a combo; ranged hits grant 3, blocked hits 1, normal damage taken 2. Cinematic sequences give neither side meter. Training keeps supers full for practice.
+
+Medium and hard CPU decisions are moderately quicker. Bootlegger guards earlier, backs away from point-blank pressure and uses Counterfeit Card at range. Other CPU fighters can use their own powers; non-easy rivals can guard approaching shots.
+
+Fighter mastery records clean power hits and wins per character. Win 1/3/5 matches for STAMPED/CONTENDER/CROWNED; land 5/15 powers for POWER PRO/POWER MASTER. Win streaks and best streaks persist. Training does not award mastery. These rewards are badges and never change combat stats. Backups now include mastery; older backups preserve existing mastery.
+
+The move guide distinguishes POWER cooldowns from SUPER meter. The arena gains subtle SBFENT street-fight dressing behind the action. Controls and camera stay fixed. Automated checks cover every power in both fighter slots, guard/jump/range/interruptions, slower meter gain, CPU defense, mini-story selection, all-fighter UI controls, and mastery/backup persistence. Browser and physical-phone feel still require play feedback.

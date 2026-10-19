@@ -1,0 +1,9 @@
+export const MASTERY_KEY='sbfent-mastery-v1';
+const clean=n=>Number.isSafeInteger(n)?Math.max(0,Math.min(1000000,n)):0;
+export class FighterMastery{
+ constructor(storage){this.storage=storage;this.entries=Array.from({length:16},()=>({wins:0,powerHits:0}));this.streak=0;this.bestStreak=0;this.saved=true;try{const d=JSON.parse(storage.getItem(MASTERY_KEY));this.entries=this.entries.map((_,i)=>({wins:clean(d?.fighters?.[i]?.wins),powerHits:clean(d?.fighters?.[i]?.powerHits)}));this.streak=clean(d?.streak);this.bestStreak=Math.max(this.streak,clean(d?.bestStreak));}catch{}this.begin(0,true);}
+ begin(character,training=false){this.character=character;this.training=training;this.finished=false;}
+ event(e){if(this.training||this.finished)return;if(e.type==='hit'&&e.id===0&&e.move==='ability'&&e.damage>0){this.entries[this.character].powerHits++;this.persist();}if(e.type==='matchover'){this.finished=true;if(e.winner===0){this.entries[this.character].wins++;this.streak++;this.bestStreak=Math.max(this.bestStreak,this.streak);}else if(e.winner===1)this.streak=0;this.persist();}}
+ summary(character=this.character){const e=this.entries[character]??this.entries[0],rank=e.wins>=5?'CROWNED':e.wins>=3?'CONTENDER':e.wins>=1?'STAMPED':'ROOKIE';const badge=e.powerHits>=15?' · POWER MASTER':e.powerHits>=5?' · POWER PRO':'';const goal=e.wins<1?'Win your first match':e.wins<3?`Win ${3-e.wins} more for CONTENDER`:e.wins<5?`Win ${5-e.wins} more for CROWNED`:e.powerHits<15?`Land ${15-e.powerHits} more powers for POWER MASTER`:'Mastered — try another fighter';return{rank,badge,wins:e.wins,powerHits:e.powerHits,goal,text:`${rank}${badge} · ${e.wins} wins · ${e.powerHits} powers landed · Streak ${this.streak} / Best ${this.bestStreak}. ${goal}.`};}
+ persist(){try{this.storage.setItem(MASTERY_KEY,JSON.stringify({version:1,fighters:this.entries,streak:this.streak,bestStreak:this.bestStreak}));this.saved=true;}catch{this.saved=false;}}
+}
