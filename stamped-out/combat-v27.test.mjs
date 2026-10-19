@@ -22,7 +22,7 @@ test('run crosses a rival, damages nobody by itself, and cannot repeat while hel
 });
 test('bass energy drives the backdrop and muted playback decays without new pulses',()=>{
  const beat=new ArenaBeat();beat.data=new Uint8Array(128);beat.analyser={getByteFrequencyData(a){a.fill(210);}};beat.tick(.05,true);assert(beat.pulse>0);assert(beat.level>0);for(let i=0;i<120;i++)beat.tick(1/60,false);assert.equal(beat.pulse,0);assert(beat.level<.001);
- let scale;const ctx=new Proxy({scale(x){scale=x;}},{get:(o,k)=>o[k]??(()=>{})});drawArenaBeat(ctx,null,{pulse:1,level:1},{reduced:true});assert.equal(scale,1);
+ let transforms=0;const ctx=new Proxy({scale(){transforms++;},translate(){transforms++;}},{get:(o,k)=>o[k]??(()=>{})});drawArenaBeat(ctx,{complete:true,naturalWidth:1672,naturalHeight:941},{pulse:1,level:1},{reduced:true});assert.equal(transforms,0);
 });
 test('chapter advance preserves rewards, requires a clear, and ends after the finale',()=>{
  const s=new StoryProgress({getItem(){return null;},setItem(){}});assert.equal(s.advanceChapter(),false);for(let c=0;c<4;c++){for(let i=0;i<3;i++)assert(s.win(i));assert(s.isUnlocked(12+c));assert.equal(s.advanceChapter(),c<3);if(c<3)assert.equal(s.next,0);}assert.equal(s.active,3);assert.equal(s.next,3);
