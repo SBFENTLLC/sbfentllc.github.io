@@ -1,3 +1,4 @@
+import {MIX_DROP} from './mix-drop.mjs';
 import {powerFor,powerProjectile} from './powers.mjs';
 import {strikeVariant,canGroundChain} from './combat-strings.mjs';
 import {outfitFor} from './outfits.mjs';
@@ -15,7 +16,7 @@ export class Fight {
   Object.assign(this,{difficulty,training,dummy,random,wins:[0,0],round:1,events:[]});this.resetRound();
  }
  resetRound(){this.fighters=[this.makeFighter(0,280),this.makeFighter(1,720)];this.sequence=null;this.projectiles=[];this.traps=[];this.lastFinisher=null;this.timer=75;this.phase='intro';this.phaseTime=1.6;this.aiTime=.6/this.pace;this.events.push({type:'round',round:this.round});}
- makeFighter(id,x){return{id,character:this.characters[id],outfit:this.outfits[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0,airAttacks:0,juggleHits:0,runTime:0,runCooldown:0,runHeld:false,runDirection:1,running:false,abilityCooldown:0,pressureHits:0,pressureTime:0,defenseTime:0,defenseLow:false};}
+ makeFighter(id,x){return{id,character:this.characters[id],outfit:this.outfits[id],x,y:0,vy:0,hp:100,power:this.training?100:0,face:id===0?1:-1,move:null,stun:0,cooldown:0,block:false,crouch:false,walking:false,combo:0,comboTime:0,knockdown:0,throwImmune:0,buffer:null,jumpHeld:false,chain:0,guardHeld:false,guardWindow:0,guardCooldown:0,counterReady:0,dashCooldown:0,lowGuard:false,brace:0,stance:0,stanceCooldown:0,airAttacks:0,juggleHits:0,runTime:0,runCooldown:0,runHeld:false,runDirection:1,running:false,abilityCooldown:0,pressureHits:0,pressureTime:0,defenseTime:0,defenseLow:false,mixCooldown:this.training?0:MIX_DROP.initial};}
  // One recent tap survives the tail of recovery; a held button never repeats.
  queueAttack(id,name,options={}){
   if(this.attack(id,name,options))return true;
@@ -36,6 +37,7 @@ export class Fight {
   if(!crouch&&!f.crouch&&f.character===14&&name==='kick'&&f.y<8&&f.brace>0)return false;
   if(!crouch&&!f.crouch&&f.character===13&&name==='kick'&&f.y<8&&this.traps.some(t=>t.id===id))return false;
   if(name==='grab'&&f.y>8)return false;
+  if(name==='mix'){if(f.y>8||f.mixCooldown>0)return false;f.mixCooldown=MIX_DROP.cooldown;f.runTime=0;f.running=false;f.crouch=false;this.events.push({type:'mixStart',id});}
   if(name==='ability'){if(f.y>8||f.abilityCooldown>0||this.projectiles.some(p=>p.id===id&&!p.dead))return false;f.abilityCooldown=powerFor(f.character).cooldown;f.runTime=0;f.running=false;}
   if(name==='special'&&f.power<100){this.events.push({type:'empty',id});return false;}
   if(name==='special'){f.power=0;this.events.push({type:'super',id});}
@@ -52,7 +54,7 @@ export class Fight {
  beginSequence(kind,id,direction=this.fighters[id].face){
   const actor=this.fighters[id],target=this.fighters[1-id],center=clamp((actor.x+target.x)/2,250,750);
   this.projectiles=[];this.traps=[];this.sequence={kind,id,character:actor.character,target:1-id,face:direction,elapsed:0,duration:kind==='super'?SUPER_SEQUENCES[actor.character].duration:THROW_SEQUENCE.duration,beat:0,center,origin:[{x:actor.x,y:actor.y},{x:target.x,y:target.y}],tech:kind==='throw'&&id===0&&!this.training&&this.random()<({easy:.08,medium:.25,hard:.45}[this.difficulty]||.25)};
-  for(const f of [actor,target]){f.move=null;f.buffer=null;f.counterReady=0;f.brace=0;f.guardWindow=0;f.block=false;f.crouch=false;f.walking=false;f.running=false;f.runTime=0;f.y=0;f.vy=0;}
+  for(const f of [actor,target]){if(f.move?.name==='mix'&&!f.move.hit)this.events.push({type:'mixCancel',id:f.id});f.move=null;f.buffer=null;f.counterReady=0;f.brace=0;f.guardWindow=0;f.block=false;f.crouch=false;f.walking=false;f.running=false;f.runTime=0;f.y=0;f.vy=0;}
   this.events.push({type:kind==='super'?'superConnected':'grabbed',id,target:1-id});
  }
  escapeThrow(){
@@ -71,7 +73,7 @@ export class Fight {
   const punish=!blocked&&!sequence&&(!!b.move&&b.move.hit||b.cooldown>0);
   const armored=!blocked&&!sequence&&((b.character===12&&b.move?.charge&&b.move.t<.62)||(b.character===14&&b.move?.load&&b.move.t<.45))&&!b.move.armorUsed&&damage<=12&&(move==='punch'||move==='kick'||move==='wave'||move==='ability');
   if(armored){b.move.armorUsed=true;this.events.push({type:'armor',id:1-id});}
-  if(!blocked&&!armored){b.move=null;b.buffer=null;b.brace=0;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
+  if(!blocked&&!armored){if(b.move?.name==='mix'&&!b.move.hit)this.events.push({type:'mixCancel',id:1-id});b.move=null;b.buffer=null;b.brace=0;b.counterReady=0;b.guardWindow=0;b.chain=0;b.combo=0;b.comboTime=0;}else{a.combo=0;a.comboTime=0;}
   b.stun=armored?0:parry?.02:blocked?.09:move==='kick'?.24:.18;
   if(aerial&&!blocked&&b.knockdown<=0){
    b.juggleHits++;
@@ -79,8 +81,8 @@ export class Fight {
    else{b.vy=Math.min(b.vy,-80);b.stun=Math.min(b.stun,.12);}
   }
   if(!blocked&&!sequence&&(sweep||a.character===10&&move==='kick'&&a.y<8)){b.stun=.42;b.knockdown=.42;b.throwImmune=.9;}if(!sequence&&!armored)b.x=clamp(b.x+face*(push!==undefined?(blocked?Math.min(20,push*.22):push):blocked?(b.character===7?5:9):move==='kick'?(a.character===9?42:28):a.character===11?8:16),75,925);
-  const earned=sequence||move==='special'?0:blocked?1:move==='ability'||move==='wave'?3:Math.max(6,10-a.combo);
-  a.power=clamp(a.power+earned,0,100);b.power=clamp(b.power+(sequence?0:parry?8:blocked?1:2),0,100);
+  const earned=sequence||move==='special'||move==='mix'?0:blocked?1:move==='ability'||move==='wave'?3:Math.max(6,10-a.combo);
+  a.power=clamp(a.power+earned,0,100);b.power=clamp(b.power+(sequence||move==='mix'?0:parry?8:blocked?1:2),0,100);
   if(!blocked){a.combo++;a.comboTime=1.2;
    // Repeated clean hits provoke a brief defensive read. It grants no armor,
    // invulnerability or extra health; the opponent must still finish hit stun.
@@ -117,6 +119,7 @@ export class Fight {
   if(incoming&&this.difficulty!=='easy'&&this.aiTime<.31)ai.block=true;
   if(b.character===6&&d<155){ai.left=toward>0;ai.right=toward<0;}
   if(b.defenseTime>0&&!b.move){
+   if(b.mixCooldown<=0&&d<=MIX_DROP.range&&b.stun<=0&&b.y<8&&this.difficulty!=='easy'){b.block=false;if(this.attack(1,'mix'))return {};}
    const evasive=[2,3,6,8,10].includes(b.character);
    if(evasive&&d<220){ai.block=false;ai.left=toward>0;ai.right=toward<0;ai.jump=[3,10].includes(b.character)&&b.stun<=0;}
    else{ai.block=true;ai.crouch=b.defenseLow;ai.left=ai.right=false;if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');}
@@ -151,9 +154,13 @@ export class Fight {
   this.lastFinisher=null;this.timer=Math.max(0,this.timer-dt);this.aiTime-=dt;
   if(this.training&&this.dummy==='jab'&&this.aiTime<=0){this.aiTime=1.15;if(Math.abs(this.fighters[0].x-this.fighters[1].x)<=moveFor(this.fighters[1].character,'punch').range)this.attack(1,'punch');}
   const keys=[input,this.training?{block:this.dummy==='guard'||this.dummy==='lowguard',crouch:this.dummy==='lowguard',jump:this.dummy==='jump'&&this.fighters[1].y===0}:this.aiInput()];
+  // A held guard can take over the last quarter of a normal strike's recovery.
+  // Startup, active frames, most recovery and all committed specials stay unsafe.
+  for(let i=0;i<2;i++){const f=this.fighters[i],m=f.move,base=m&&moveFor(f.character,m.name);if(keys[i].block&&m&&['punch','kick'].includes(m.name)&&!m.airborne&&!m.load&&!m.counter&&!m.charge&&!m.braceSetup&&!m.stanceShift&&f.stun<=0&&f.knockdown<=0&&f.y===0&&m.t>=(m.wind??base.wind)+base.active+(m.recovery??base.recovery)*.75){f.move=null;f.buffer=null;f.chain=0;}}
+
   // Resolve guard for both sides before either strike, avoiding player-order
   // advantage when a block and contact land on the same simulation step.
-  for(let i=0;i<2;i++){const f=this.fighters[i];f.defenseTime=Math.max(0,f.defenseTime-dt);f.pressureTime=Math.max(0,f.pressureTime-dt);if(f.pressureTime===0)f.pressureHits=0;f.abilityCooldown=Math.max(0,f.abilityCooldown-dt);f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&f.character===5&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
+  for(let i=0;i<2;i++){const f=this.fighters[i];f.mixCooldown=Math.max(0,f.mixCooldown-dt);f.defenseTime=Math.max(0,f.defenseTime-dt);f.pressureTime=Math.max(0,f.pressureTime-dt);if(f.pressureTime===0)f.pressureHits=0;f.abilityCooldown=Math.max(0,f.abilityCooldown-dt);f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&f.character===5&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
   for(let i=0;i<2;i++){
    const f=this.fighters[i],other=this.fighters[1-i],key=keys[i];f.face=f.running?f.runDirection:other.x>=f.x?1:-1;
    f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.knockdown=Math.max(0,f.knockdown-dt);f.throwImmune=Math.max(0,f.throwImmune-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;
@@ -174,7 +181,8 @@ export class Fight {
     if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.t>=(move.wind??m.wind)&&!move.hit&&(move.name!=='punch'&&!move.airborne||move.t<=(move.wind??m.wind)+m.active)){
      move.hit=move.name!=='punch'&&!move.airborne;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:move.range??m.range);
-     if(move.name==='ability'){if(!this.projectiles.some(p=>p.id===i&&!p.dead)){this.projectiles.push(powerProjectile(f));this.events.push({type:'powerShot',id:i,name:powerFor(f.character).name,color:powerFor(f.character).color});}
+     if(move.name==='mix'){this.dropMix(i);
+     }else if(move.name==='ability'){if(!this.projectiles.some(p=>p.id===i&&!p.dead)){this.projectiles.push(powerProjectile(f));this.events.push({type:'powerShot',id:i,name:powerFor(f.character).name,color:powerFor(f.character).color});}
      }else if(move.stanceShift){f.stance=(f.stance+1)%KING_STANCES.length;this.events.push({type:'stance',id:i,stance:f.stance});
      }else if(move.braceSetup){f.brace=1.8;this.events.push({type:'brace',id:i});
      }else if(!move.low&&f.character===13&&move.name==='kick'&&f.y<8){
@@ -197,6 +205,12 @@ export class Fight {
   const [a,b]=this.fighters;
   if(!a.running&&!b.running&&Math.abs(a.x-b.x)<86&&Math.abs(a.y-b.y)<80){const sign=a.x<b.x?1:-1,overlap=(86-Math.abs(a.x-b.x))/2;a.x=clamp(a.x-sign*overlap,75,925);b.x=clamp(b.x+sign*overlap,75,925);}
   this.stepProjectiles(dt);this.stepTraps(dt);this.endRound();
+ }
+ dropMix(id){
+  const a=this.fighters[id],b=this.fighters[1-id],distance=Math.abs(a.x-b.x);
+  this.events.push({type:'mixDrop',id,x:a.x});
+  this.projectiles=this.projectiles.filter(p=>p.id===id||Math.abs(p.x-a.x)>MIX_DROP.range);
+  if(distance<=MIX_DROP.range&&b.y<110&&b.knockdown<=0)this.applyHit(id,b.block?0:MIX_DROP.damage,{move:'mix',blocked:b.block,face:b.x>=a.x?1:-1,push:MIX_DROP.push});
  }
  stepTraps(dt){
   // Remove a triggered trap before applying damage; a mirror match may clear

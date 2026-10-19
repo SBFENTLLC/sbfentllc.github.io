@@ -7,7 +7,13 @@ export class CombatAudio {
  play(kind,heavy=false,id=0){const c=this.context;if(!c||c.state==='suspended')return;try{
   const now=c.currentTime,master=c.createGain();master.gain.value=.16;master.connect(c.destination);
   const tone=(type,start,end,length,level)=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(start,now);o.frequency.exponentialRampToValueAtTime(end,now+length);g.gain.setValueAtTime(level,now);g.gain.exponentialRampToValueAtTime(.001,now+length);o.connect(g);g.connect(master);o.start();o.stop(now+length+.02);};
-  if(kind==='wave'){tone('sine',180,55,.25,.6);tone('triangle',360,110,.2,.15);}
+  if(kind==='mix'){
+   tone('triangle',330,120,.18,.14);
+   const length=.65,b=c.createBuffer(1,Math.ceil(c.sampleRate*length),c.sampleRate),a=b.getChannelData(0);
+   for(let i=0;i<a.length;i++){const t=i/c.sampleRate;a[i]=(Math.random()*2-1)*Math.sin(t*36)**2*(1-t/length);}
+   const n=c.createBufferSource(),filter=c.createBiquadFilter(),g=c.createGain();n.buffer=b;filter.type='bandpass';filter.Q.value=2;filter.frequency.setValueAtTime(700,now);for(let i=1;i<=6;i++)filter.frequency.exponentialRampToValueAtTime(i%2?2400:450,now+i*.09);g.gain.value=.55;n.connect(filter);filter.connect(g);g.connect(master);n.start();n.stop(now+length);
+  }else if(kind==='drop'){tone('sine',150,32,.5,.9);tone('triangle',220,45,.22,.15);}
+  else if(kind==='wave'){tone('sine',180,55,.25,.6);tone('triangle',360,110,.2,.15);}
   else if(kind==='super'){tone('sine',95,360,.55,.55);tone('triangle',190,720,.5,.14);}
   else if(kind==='ko'){tone('sine',70,22,.65,.9);tone('triangle',140,35,.45,.3);}
   else if(kind==='fight'){tone('triangle',220,440,.14,.25);}
