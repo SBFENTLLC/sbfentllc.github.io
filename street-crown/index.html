@@ -120,14 +120,14 @@ function updateStandings(){if(!player)return;const rs=ranks();const me=rs.findIn
 function project(z,lane){const dz=z-player.progress;if(dz<10||dz>viewDist)return null;const p=1-dz/viewDist,q=p*p;const y=horizon+q*(H-horizon);const half=roadHalfAt(q)-7;const x=roadCenterAt(dz)+lane*half*.92;return{x,y,scale:.16+q*1.22,p,q,half}}
 function roadCenterAt(z){
  const p=player?player.progress:0;
- return W/2
-   +Math.sin((p+z)*.00132)*58
-   +Math.sin((p+z)*.00047)*34
-   +Math.sin((p+z)*.0028)*11;
+ const curve=w=>Math.sin(w*.00132)*72+Math.sin(w*.00047)*42+Math.sin(w*.0028)*14;
+ // Follow camera: the road under the player stays centered while the city course bends ahead.
+ return W/2+(curve(p+z)-curve(p));
 }
 function roadHalfAt(q){return 142+q*438}
 function drawRoad(){
- ctx.drawImage(bgImg,0,0,W,H);
+ const cityPan=(Math.sin(player.progress*.00132)*72+Math.sin(player.progress*.00047)*42)*.18;
+ ctx.save();ctx.translate(-cityPan,0);ctx.drawImage(bgImg,-42,0,W+84,H);ctx.restore();
  const sky=ctx.createLinearGradient(0,0,0,H*.58);
  sky.addColorStop(0,'rgba(7,18,31,.14)');
  sky.addColorStop(1,'rgba(5,7,9,.28)');
@@ -142,7 +142,7 @@ function drawRoad(){
    const z0=(1-t0)*viewDist,z1=(1-t1)*viewDist;
    const c0=roadCenterAt(z0),c1=roadCenterAt(z1);
    const h0=roadHalfAt(q0),h1=roadHalfAt(q1);
-   ctx.fillStyle=i%2?'#303338':'#2f3236';
+   ctx.fillStyle='#31343a';
    ctx.beginPath();ctx.moveTo(c0-h0,y0);ctx.lineTo(c0+h0,y0);ctx.lineTo(c1+h1,y1);ctx.lineTo(c1-h1,y1);ctx.closePath();ctx.fill();
  }
  // dark shoulders make the roadway read as a surface in the environment
@@ -182,24 +182,45 @@ function drawRoad(){
    }
  }
 
- // roadside objects create real forward motion without making the asphalt look like a treadmill
- for(let wz=Math.floor(player.progress/260)*260;wz<player.progress+viewDist;wz+=260){
-   const dz=wz-player.progress;if(dz<30||dz>viewDist)continue;
+ // World-anchored city scenery: these objects live at fixed course positions and pass the camera naturally.
+ for(let wz=Math.floor(player.progress/210)*210;wz<player.progress+viewDist;wz+=210){
+   const dz=wz-player.progress;if(dz<26||dz>viewDist)continue;
    const p=1-dz/viewDist,q=p*p,y=horizon+q*(H-horizon),hh=roadHalfAt(q),cx=roadCenterAt(dz);
-   const s=.18+q*1.12;
+   const sc=.16+q*1.18;
    for(const side of [-1,1]){
-     const px=cx+side*(hh+78*s);
+     const seed=Math.abs(Math.sin(wz*.017+side*2.31));
+     const setback=(74+seed*62)*sc,px=cx+side*(hh+setback);
      ctx.save();ctx.translate(px,y);
-     if(((wz/260)+(side>0?1:0))%3===0){
-       ctx.fillStyle='#18251d';ctx.beginPath();ctx.arc(0,-34*s,24*s,0,Math.PI*2);ctx.fill();
-       ctx.fillStyle='#6a4931';ctx.fillRect(-4*s,-28*s,8*s,32*s);
+     if(seed>.80){
+       // street tree
+       ctx.fillStyle='#65452e';ctx.fillRect(-4*sc,-44*sc,8*sc,46*sc);
+       ctx.fillStyle=seed>.91?'#38a968':'#247b4c';ctx.beginPath();ctx.arc(0,-58*sc,25*sc,0,Math.PI*2);ctx.fill();
+     }else if(seed>.66){
+       // lamp / banner
+       ctx.strokeStyle='#191c20';ctx.lineWidth=Math.max(1,4*sc);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-76*sc);ctx.stroke();
+       ctx.fillStyle='#f4ca51';ctx.beginPath();ctx.arc(0,-79*sc,7*sc,0,Math.PI*2);ctx.fill();
+       ctx.fillStyle='#0d1118';ctx.fillRect(side<0?-31*sc:4*sc,-66*sc,27*sc,20*sc);
+       ctx.fillStyle='#f4ca51';ctx.font=`900 ${Math.max(5,7*sc)}px system-ui`;ctx.textAlign='center';ctx.fillText('SBF',side<0?-17*sc:17*sc,-52*sc);
      }else{
-       ctx.fillStyle='rgba(16,18,22,.82)';ctx.fillRect(-18*s,-46*s,36*s,48*s);
-       ctx.fillStyle='rgba(244,201,79,.78)';ctx.fillRect(-11*s,-36*s,7*s,7*s);ctx.fillRect(4*s,-36*s,7*s,7*s);
-       ctx.fillRect(-11*s,-22*s,7*s,7*s);ctx.fillRect(4*s,-22*s,7*s,7*s);
+       // storefront/building mass, varied by fixed world position
+       const bw=(58+seed*58)*sc,bh=(70+seed*105)*sc,left=side<0?-bw:0;
+       ctx.fillStyle=seed>.48?'#864f89':seed>.32?'#35788c':'#b15f3d';ctx.fillRect(left,-bh,bw,bh);
+       ctx.fillStyle='rgba(255,226,141,.74)';
+       for(let yy=-bh+15*sc;yy<-16*sc;yy+=22*sc)for(let xx=12*sc;xx<bw-8*sc;xx+=22*sc)ctx.fillRect(left+xx,yy,8*sc,7*sc);
+       ctx.fillStyle='#11141a';ctx.fillRect(left,-14*sc,bw,14*sc);
+       if(seed<.24){ctx.fillStyle='#f0c64a';ctx.fillRect(left+bw*.12,-31*sc,bw*.76,13*sc);ctx.fillStyle='#101218';ctx.font=`900 ${Math.max(4,6*sc)}px system-ui`;ctx.textAlign='center';ctx.fillText('CROWN BLOCK',left+bw*.5,-21*sc);}
      }
      ctx.restore();
    }
+ }
+ // Fixed cross streets break up the blocks and make the route feel like it continues through a city.
+ for(let wz=Math.ceil(player.progress/1450)*1450;wz<player.progress+viewDist;wz+=1450){
+   const dz=wz-player.progress;if(dz<55||dz>viewDist)continue;
+   const p=1-dz/viewDist,q=p*p,y=horizon+q*(H-horizon),hh=roadHalfAt(q),cx=roadCenterAt(dz);
+   ctx.save();ctx.translate(cx,y);ctx.scale(1,Math.max(.12,.22+q*.35));
+   ctx.fillStyle='rgba(38,41,45,.92)';ctx.fillRect(-hh*1.33,-20,hh*2.66,40);
+   ctx.fillStyle='rgba(255,255,255,.58)';for(let k=-5;k<=5;k++)ctx.fillRect(k*34-9,-4,18,8);
+   ctx.restore();
  }
 }
 function drawCoin(o,p){const s=42*p.scale;ctx.save();ctx.translate(p.x,p.y-(o.air?30*p.scale:0));ctx.rotate(performance.now()/420);ctx.drawImage(coinImg,-s/2,-s/2,s,s);ctx.restore()}
