@@ -1,0 +1,34 @@
+/* One race layout, sized to the visual viewport by viewport.mjs. */
+#raceView{position:fixed;inset:auto;overflow:hidden;contain:layout paint;isolation:isolate}
+#raceView #raceCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+#raceView .race-controls{position:absolute;left:max(6px,env(safe-area-inset-left));right:max(6px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));display:flex;align-items:end;justify-content:space-between;gap:8px;pointer-events:none}
+#raceView .steering,#raceView .actions{position:relative;inset:auto;flex-shrink:0;min-width:0;padding:4px;border-width:1px;border-radius:18px;gap:2px;box-shadow:0 3px 0 #102833,0 4px 14px #10283388;pointer-events:auto}
+#raceView .steering{width:120px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:44px 48px}
+#raceView .actions{width:clamp(196px,30vw,232px);grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:46px 46px}
+#raceView .steering::before,#raceView .actions::before{display:none}
+#raceView .race-controls button,#raceView .race-controls .drift,#raceView .race-controls .nitro,#raceView .race-controls .pedal{grid-column:auto;width:100%;height:100%;min-height:44px;min-width:0;margin:0;padding:2px;border-width:1px;border-radius:13px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;font-size:19px;line-height:20px;touch-action:none}
+#raceView .race-controls button span{font-size:11px;line-height:12px;letter-spacing:0;margin:1px 0 0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#raceView .steering button b{font-size:24px;line-height:25px}
+#raceView .steering .tilt-toggle,#raceView .steering .tilt-center{font-size:11px;line-height:13px;grid-row:1;grid-column:auto;border-radius:12px}
+#raceView .steering:has(.tilt-center[hidden]) .tilt-toggle{grid-column:1/-1}
+#raceView .steering button[data-hold]{display:flex;grid-row:2}
+#raceView .actions .gas{grid-column:span 3;height:44px}#raceView .manual-gas .actions{grid-template-rows:46px 46px 44px}
+#raceView .rotate-hint{display:none}
+#raceView .race-hud{top:max(4px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));height:48px;gap:10px;padding:2px 6px;align-items:center;border-radius:12px;overflow:hidden}
+#raceView .race-title{min-width:0;flex:1;max-width:35%}#raceView .race-title b{font-size:14px!important;display:block}#raceView .race-title span{display:none}
+#raceView .position strong{font-size:38px;line-height:40px}#raceView .position sup{font-size:14px;margin-top:0}#raceView .position span{font-size:11px}#raceView .lap b{font-size:21px}#raceView .race-time{margin-left:auto;gap:6px}#raceView .race-time b{font-size:17px}#raceView #pauseButton{width:44px;height:44px;min-height:44px;padding:4px;font-size:20px}
+#raceView .race-standings{top:max(62px,calc(env(safe-area-inset-top) + 55px));left:max(16px,env(safe-area-inset-left));display:grid;grid-template-columns:repeat(2,39px);gap:6px 9px}
+#raceView .standing{width:39px;height:32px;border-radius:9px}#raceView .standing-rank{font-size:17px;line-height:20px;min-width:21px}#raceView .standing-you{font-size:11px}#raceView .standing-face img{top:-8%}
+#raceView .drive-status{bottom:max(118px,calc(env(safe-area-inset-bottom) + 110px));width:155px;left:50%;transform:translateX(-50%)}#raceView .drive-status>b{font-size:25px}#raceView .drive-status>span{font-size:11px;max-width:155px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#raceView #raceMessage{top:24%;font-size:15px;max-width:64%;pointer-events:none}#raceView .racer-reaction{bottom:166px;max-width:60%;padding:2px 8px 2px 2px}#raceView .racer-reaction img{width:36px;height:36px}#raceView .racer-reaction b{font-size:12px}#raceView .ghost-status{top:58px;max-width:50%;font-size:11px;text-align:center}
+#raceView[data-landscape="true"] .drive-status{bottom:max(10px,env(safe-area-inset-bottom));width:135px}
+#raceView[data-landscape="true"] .drive-status>span{display:none}
+#raceView[data-landscape="true"] .racer-reaction{bottom:112px}
+#raceView[data-short="true"] .race-standings{grid-template-columns:repeat(6,29px);left:50%;transform:translateX(-50%);top:54px;gap:5px}#raceView[data-short="true"] .standing{width:29px;height:26px}#raceView[data-short="true"] .standing-you{display:none}#raceView[data-short="true"] .standing-rank{font-size:17px;line-height:17px;min-width:18px;left:-5px}#raceView[data-short="true"] .ghost-status,#raceView[data-short="true"] .racer-reaction{display:none}#raceView[data-short="true"] #raceMessage{top:35%;font-size:13px}#raceView[data-short="true"] .race-title{display:none}
+#raceView[data-narrow="true"] .steering{width:104px}#raceView[data-narrow="true"] .race-title{display:none}#raceView[data-narrow="true"] .race-hud{gap:5px}#raceView[data-narrow="true"] .race-time b{font-size:17px}
+#raceView.celebrating .race-controls,#raceView.celebrating .race-hud,#raceView.celebrating .race-standings,#raceView.celebrating .drive-status,#raceView.celebrating .ghost-status,#raceView.celebrating .racer-reaction,#raceView.celebrating #raceMessage{display:none}#raceView .skip-celebration{position:absolute;z-index:5;right:max(14px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));min-height:44px;background:#182c41e8;border:2px solid #e2c477;border-radius:22px;color:#fff0bc;font-size:13px;font-weight:900;padding:10px 20px;touch-action:none}
+
+/* Keep the touch pads and driver information out of the road's center. */
+.driver-playbook{border:1px solid #bda96c70;border-radius:14px;background:#15302f;padding:12px;margin:14px 0}.driver-playbook summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:12px;font-weight:900;color:#f0d48b}.driver-playbook h3{font-size:18px;line-height:1.4}.driver-playbook p{font-size:14px;line-height:1.65;color:#d1e2d7}dialog{overscroll-behavior:contain;max-height:calc(100dvh - 24px);scrollbar-gutter:stable}button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f2d48c;outline-offset:3px}#raceView .race-controls button.held{filter:brightness(1.28);box-shadow:inset 0 0 0 2px #fff2bc;transform:translateY(1px)}
+#raceView[data-landscape="true"] .health-hud{top:100px;width:100px;padding:5px 8px}#raceView[data-short="true"] .health-hud{top:56px;width:100px}#raceView[data-short="true"] .actions{grid-template-rows:44px 44px}#raceView[data-short="true"] .manual-gas .actions{grid-template-rows:44px 44px 44px}#raceView[data-short="true"] .steering{grid-template-rows:44px 44px}#raceView.manual-driving[data-landscape="true"] .racer-reaction{bottom:160px}#raceView[data-narrow="true"] .actions{width:calc(100% - 112px)}
+@media(prefers-reduced-motion:reduce){.health-hud i,.race-controls button{transition:none!important}}

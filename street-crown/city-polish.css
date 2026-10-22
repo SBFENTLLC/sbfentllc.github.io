@@ -1,0 +1,12 @@
+/* Keep motion-free controls inexpensive to composite on phones. */
+#raceView .race-controls button{backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:inset 0 2px 0 #ffffff20,0 2px 0 #071d27}
+#raceView .race-controls button:focus-visible{outline:3px solid #fff1a6;outline-offset:2px}
+.sector-label{position:absolute;top:max(58px,calc(env(safe-area-inset-top) + 56px));left:50%;transform:translateX(-50%);max-width:35%;padding:4px 12px;border-radius:15px;background:#173f42d9;border:1px solid #d9c27a70;color:#f4dfa3;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#raceView[data-short="true"] .sector-label,#raceView.practice .sector-label,#raceView.celebrating .sector-label{display:none}
+#raceView[data-landscape="true"] .circuit-map{width:100px;top:58px}#raceView[data-landscape="true"] .circuit-map canvas{height:66px}#raceView[data-landscape="true"] .circuit-map span{font-size:10px;min-height:22px;line-height:11px;padding:3px}
+#raceView[data-short="true"] .circuit-map{width:82px}#raceView[data-short="true"] .circuit-map canvas{height:52px}#raceView[data-short="true"] .circuit-map span{display:none}
+#raceView[data-short="true"] .race-warning{font-size:15px;padding:5px 10px;top:23%}
+#raceView[data-short="true"] .race-goals{max-width:52%;font-size:11px}
+.pause-steering{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;padding:12px;background:#21443b60;border:1px solid #d6bd7260;border-radius:14px}.pause-steering button{font-size:12px;min-height:44px;padding:8px}.pause-steering p{grid-column:1/-1;margin:2px;font-size:13px;color:#bbd6cd;line-height:1.5}
+dialog{max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain}dialog button,dialog input,dialog select{touch-action:manipulation}
+@media(prefers-reduced-motion:reduce){.race-controls button{transition:none!important}}

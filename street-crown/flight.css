@@ -1,0 +1,14 @@
+/* Flight uses the free row above the steering arrows; the right pad stays put. */
+#raceView .steering .fly{grid-column:1/-1;grid-row:1;min-height:44px;flex-direction:row;gap:6px;background:linear-gradient(130deg,#4178aa,#45417d);border-color:#a2dcff;color:#edfaff;font-size:22px}
+#raceView .steering .fly span{font-size:12px;font-weight:900}
+#raceView .steering .fly.ready{border-color:#c6f4ff;box-shadow:inset 0 0 10px #a2e3ff44}
+#raceView .steering .fly:disabled{opacity:.68}
+#raceView .steering .tilt-toggle,#raceView .steering .tilt-center{grid-row:3}
+@media(max-height:280px){#raceView .steering{grid-template-rows:44px 44px}}
+
+/* Compact corner controls preserve the center driving corridor in landscape. */
+#raceView[data-landscape="true"] .actions{width:clamp(180px,25vw,212px)}
+#raceView[data-landscape="true"] .steering{width:112px}
+#raceView[data-short="true"] .actions{width:192px;grid-template-rows:44px 44px}
+#raceView[data-short="true"] .steering{grid-template-rows:44px 44px}
+#raceView .steering .fly span{font-size:11px}

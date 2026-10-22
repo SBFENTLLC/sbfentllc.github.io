@@ -1,0 +1,15 @@
+.circuit-map{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(62px,calc(env(safe-area-inset-top) + 56px));width:126px;border:1px solid #e6c77780;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px #05171d66;pointer-events:none;background:#10262de0}
+.circuit-map canvas{display:block;width:100%;height:88px}
+.circuit-map span{display:block;min-height:28px;padding:4px 6px;text-align:center;color:#ffe29a;font-size:11px;font-weight:800;line-height:13px}
+.race-warning{position:absolute;top:23%;left:50%;transform:translateX(-50%);max-width:65%;padding:12px 20px;border:2px solid #ffe39a;border-radius:18px;background:#243d40ef;color:#fff2b9;text-align:center;font-size:clamp(17px,3vw,28px);font-weight:900;pointer-events:none;box-shadow:0 5px 0 #132b30,0 0 24px #f5ca5433}
+#raceView .lap b.final-lap{color:#ffe083}
+#raceView.celebrating .circuit-map,#raceView.celebrating .race-warning{display:none}
+.story-crew{display:flex;align-items:center;gap:12px;margin:18px 0;padding:12px;border-radius:14px;background:#d1efb00b;border:1px solid #d1efb029}
+.story-crew img{width:66px;height:66px;object-fit:contain;border-radius:12px}
+.story-crew p{margin:0;font-size:14px;color:#e0eadc}
+.story-bonus{padding:10px 14px;background:#f0d1870b;border-radius:10px;color:#ead292!important;font-size:13px!important}
+@media (max-height:380px) and (orientation:landscape){.circuit-map{width:102px;top:max(58px,calc(env(safe-area-inset-top) + 50px))}.circuit-map canvas{height:65px}.circuit-map span{font-size:11px;line-height:12px;min-height:25px}.race-warning{top:29%;padding:8px 14px;max-width:60%}}
+@media (max-width:400px) and (orientation:portrait){.circuit-map{width:108px}.circuit-map canvas{height:82px}.race-warning{top:27%;max-width:74%;width:max-content;font-size:18px}}
+@media (prefers-reduced-motion:no-preference){.race-warning:not([hidden]){animation:warning-enter .25s ease-out}@keyframes warning-enter{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}}
+
+@media (max-height:280px){.circuit-map canvas{height:44px}.circuit-map span{min-height:23px;font-size:11px}.race-warning{padding:5px 12px;top:31%;font-size:17px}}

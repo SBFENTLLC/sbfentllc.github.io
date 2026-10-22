@@ -36,7 +36,7 @@ export class StoryProgress{
  arenaUnlocked(key){return availableArena(key,this.chapters);}
  select(chapter){if(!Number.isInteger(chapter)||!CHAPTERS[chapter]||chapter>0&&!this.chapters[chapter-1].cleared)return false;this.active=chapter;this.persist();return true;}
  win(index){if(index!==this.next||this.next>=3)return false;const c=this.chapters[this.active];c.next++;c.cleared=c.cleared||c.next===3;this.persist();return true;}
- advanceChapter(){if(!this.cleared||this.active>=CHAPTERS.length-1)return false;return this.select(this.active+1);}
+ advanceChapter(){if(!this.cleared||this.active>=CHAPTERS.length-1)return false;const moved=this.select(this.active+1);if(moved&&this.next>=3)this.replay();return moved;}
  replay(){if(!this.cleared)return false;this.chapters[this.active].next=0;this.persist();return true;}
  persist(){try{this.storage.setItem(STORY_KEY,JSON.stringify({version:4,active:this.active,chapters:this.chapters}));this.saved=true;}catch{this.saved=false;}}
 }

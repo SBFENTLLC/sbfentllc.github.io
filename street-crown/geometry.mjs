@@ -1,0 +1,3 @@
+// Opaque boxes only need the sides facing the camera. Mock renderers can omit eye.
+const faces=[[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],[4,5,6,7]];
+export function paintBox(s,a,color){let visible;if(s.eye){const center=a[0].map((v,i)=>(v+a[6][i])/2),eye=s.eye.map((v,i)=>v-center[i]),axes=[1,4,3].map(j=>a[j].map((v,i)=>v-a[0][i])),dots=axes.map(v=>v.reduce((n,x,i)=>n+x*eye[i],0)),half=axes.map(v=>v.reduce((n,x)=>n+x*x,0)/2);visible=[dots[2]<-half[2],dots[0]>half[0],dots[2]>half[2],dots[0]<-half[0],dots[1]>half[1]];}for(let i=0;i<faces.length;i++)if(!visible||visible[i])s.face(faces[i].map(j=>a[j]),color);}

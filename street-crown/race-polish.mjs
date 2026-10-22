@@ -1,0 +1,10 @@
+import {COURSE_OBSTACLES,obstacleLane} from './course.mjs';
+// Forecast lane at arrival, using the very same hazard motion as collision.
+export function obstacleAdvice(race){const p=race.player;if(race.phase!=='racing'||p.route||p.rescue>0||p.air>.25||p.speed<500)return null;let best=null;for(let i=0;i<COURSE_OBSTACLES.length;i++){const o=COURSE_OBSTACLES[i];if(o.track!==undefined&&o.track!==race.track)continue;let lap=Math.floor(Math.max(0,p.distance)/60000),d=lap*60000+o.z;if(d<=p.distance){lap++;d+=60000;}if(d>=race.laps*60000&&!race.practice)continue;if(race.destroyedObstacles?.includes(lap+':'+i))continue;const eta=(d-p.distance)/Math.max(500,p.speed);if(eta<.25||eta>2.1)continue;const lane=obstacleLane(o,race.time+eta),gap=Math.abs(p.x-lane);if(gap>o.width+.23)continue;if(!best||eta<best.eta)best={id:lap+':'+i,eta,lane,type:o.type,label:o.type==='traffic'?'BUS AHEAD':o.type==='freight'?'HAULER AHEAD':o.type==='mud'?'MUD AHEAD':o.type==='slime'?'SLIME AHEAD':o.type==='puddle'?'SLIPPERY PATCH':o.type==='sweeper'?'MOVING BARRIER':'OBSTACLE AHEAD',direction:lane>0?'← PASS LEFT':lane<0?'PASS RIGHT →':p.x<=0?'← PASS LEFT':'PASS RIGHT →'};}return best;}
+// Changes rendering resolution only; physics remains fixed at 120 Hz.
+export class RenderBudget{
+ constructor(){this.level=0;this.samples=[];this.cooldown=0;}
+ observe(ms,active=true){if(!active||!Number.isFinite(ms)||ms<=0||ms>150)return false;if(this.cooldown>0){this.cooldown--;return false;}this.samples.push(ms);if(this.samples.length<90)return false;const average=this.samples.reduce((a,b)=>a+b,0)/this.samples.length;this.samples=[];const before=this.level;if(average>24&&this.level<2)this.level++;else if(average<16.2&&this.level>0)this.level--;if(before!==this.level)this.cooldown=300;return before!==this.level;}
+ scale(dpr=1){return Math.min(dpr||1,[1.5,1.2,1][this.level]);}
+}
+export const opponentSkill=(id,difficulty)=>difficulty==='easy'?[1,.98,.95,.99,.94,.97][id]:difficulty==='heat'?[1,1.015,1.005,.99,1.01,.985][id]:[1,1.005,.985,1.01,.98,.995][id];
