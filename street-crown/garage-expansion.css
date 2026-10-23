@@ -8,3 +8,5 @@
 
 /* Final HUD placement follows the compact race layout. */
 #raceView[data-landscape=true] .health-hud{top:100px;width:100px;padding:5px 8px}#raceView[data-short=true] .health-hud{top:56px;width:100px}
+
+.vehicle-card-art{display:block;width:100%;height:auto;aspect-ratio:36/23;border-radius:12px;border:1px solid #a9dbc34d;background:#102830}.gear-card:has(.vehicle-card-art){padding:10px}.gear-card:has(.vehicle-card-art) h3,.gear-card:has(.vehicle-card-art) p{padding:0 5px}.gear-card:has(.vehicle-card-art) h3{color:#f5d88d}.gear-card .shop-icon{border-radius:16px;background:radial-gradient(circle,#467a75,#16323d);text-shadow:0 0 18px #b9eaff88;align-self:flex-start;padding:12px 20px;border:1px solid #83b8aa66}
