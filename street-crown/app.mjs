@@ -1,5 +1,5 @@
 import {driverGuide} from './driver-guide.mjs';
-import {SPECIAL_VEHICLES,BONUS_LOCATIONS,GARAGE_GEAR,SHOP_PAINTS,vehicleFor,gearFor,paintFor} from './garage-expansion.mjs?v=identity-v14';
+import {SPECIAL_VEHICLES,BONUS_LOCATIONS,GARAGE_GEAR,SHOP_PAINTS,vehicleFor,gearFor,paintFor} from './garage-expansion.mjs?v=identity-v15';
 import {zoneAt} from './city-polish.mjs';
 import {canFly,flightsLeft} from "./flight.mjs";
 import {replayFor} from "./replay.mjs";
@@ -18,8 +18,8 @@ import {RaceStandings} from "./standings.mjs";
 import {TiltSteering} from "./tilt.mjs";
 import {RaceScreen} from "./screen.mjs";
 import {vibeFor} from "./vibe.mjs";
-import {setPuppetArt} from "./puppet3d.mjs";
-import {RACERS, TRACKS, MISSIONS, RACER_COUNT} from "./roster.mjs";import {Race, LENGTH, clamp, curveAt} from "./race.mjs";import {GarageSave} from "./save.mjs";import {renderGarage, renderRace} from "./render.mjs?v=identity-v14";import {RaceAudio} from "./audio.mjs";import {UPGRADE_KEYS, UPGRADE_LABELS, upgradeCost, COSMETICS, cosmeticTier} from "./economy.mjs";
+import {setPuppetArt} from "./puppet3d.mjs?v=identity-v15";
+import {RACERS, TRACKS, MISSIONS, RACER_COUNT} from "./roster.mjs";import {Race, LENGTH, clamp, curveAt} from "./race.mjs";import {GarageSave} from "./save.mjs";import {renderGarage, renderRace} from "./render.mjs?v=identity-v15";import {RaceAudio} from "./audio.mjs";import {UPGRADE_KEYS, UPGRADE_LABELS, upgradeCost, COSMETICS, cosmeticTier} from "./economy.mjs";
 const PREVIEW_DRIVER16=portraitFor(16),PREVIEW_KART16=kartFor(16),PREVIEW_COIN="assets/flex-coin.webp";globalThis.__STREET_CROWN_DRIVER16__=PREVIEW_DRIVER16;
 const $=id=>document.getElementById(id),store=new GarageSave({getItem:k=>localStorage.getItem(k),setItem:(k,v)=>localStorage.setItem(k,v)}),audio=new RaceAudio(),portraits=RACERS.map(r=>{const i=new Image();i.src=portraitFor(r.id);return i;}),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const kartArt=RACERS.map(r=>{const i=new Image();i.src=kartFor(r.id);return i;});const blockArt=Array.from({length:4},(_,n)=>{const i=new Image();i.src=`assets/puppet-block-${n}.webp`;return i;});const roadArt=new Image();roadArt.src='assets/asphalt.webp';const landmarkArt=Array.from({length:4},(_,n)=>{const i=new Image();i.src=`assets/landmark-${n}.webp`;return i;});const portalArt=new Image();portalArt.src='assets/speaker-portal.webp';const coinArt=new Image();coinArt.src=PREVIEW_COIN;setPuppetArt(kartArt,blockArt,roadArt,landmarkArt,portalArt,coinArt);
