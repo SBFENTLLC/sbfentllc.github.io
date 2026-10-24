@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {walkingPath} from './detective-navigation.mjs';
+test('tap routes go around walls without cutting corners',()=>{const blocked=(x,z)=>x>-.9&&x<.9&&z>-3&&z<3,path=walkingPath({x:-4,z:0},{x:4,z:0},blocked,[-8,8,-8,8]);assert.ok(path.length>1);let a={x:-4,z:0};for(const b of path){for(let t=0;t<=1;t+=.01)assert.equal(blocked(a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t),false);a=b;}assert.deepEqual(a,{x:4,z:0});});
+test('unreachable or blocked taps do not start movement',()=>{assert.deepEqual(walkingPath({x:-4,z:0},{x:4,z:0},(x,z)=>Math.abs(x)<1,[-8,8,-8,8]),[]);assert.deepEqual(walkingPath({x:0,z:0},{x:20,z:0},()=>false,[-8,8,-8,8]),[]);});
