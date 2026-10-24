@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {CanvasWorld} from './detective-canvas.mjs';
+const noop=()=>{},ctx=new Proxy({createLinearGradient:()=>({addColorStop:noop})},{get:(o,k)=>o[k]??noop});
+test('Canvas world projects forward points and rejects points behind the camera',()=>{const w=new CanvasWorld(ctx);w.begin([0,4,8],[0,1,0],900,640);const p=w.project([0,1,0]);assert.ok(p.every(Number.isFinite));assert.equal(p[0],450);assert.equal(w.project([0,4,12]),null);});
+test('near-plane clipping keeps all drawing coordinates finite during camera turns',()=>{const w=new CanvasWorld(ctx);for(let a=0;a<6.3;a+=.2){w.begin([Math.sin(a)*7,5.8,Math.cos(a)*7],[0,1,0],900,640);w.queue({points:[[-31,0,31],[31,0,31],[31,0,-31],[-31,0,-31]],tex:{color:[.3,.4,.5]},uvs:[[0,0],[1,0],[1,1],[0,1]]});assert.ok(w.items.flatMap(i=>i.pts||[]).every(q=>[q.px,q.py,q.z].every(Number.isFinite)));w.paint();}});

@@ -1,5 +1,5 @@
 import {drawBonusWorld} from './bonus-world.mjs';
-import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs';
+import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs?v=consistency-v16';
 import {gearFor} from './garage-expansion.mjs';
 import {paintBox} from './geometry.mjs';
 import {drawCityPolish,drawDistrictSky} from './city-polish.mjs';

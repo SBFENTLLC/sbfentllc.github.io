@@ -20,3 +20,10 @@ export function drawKartUpgrades(c,x,y,w,h,vehicle='stock',racer=0,wrap=0,cosmet
  else if(vehicle==='hover'){for(const a of [.015,.86]){panel(a,.78,.125,.14,body);panel(a+.015,.90,.095,.025,'#8beeff');}}
  c.restore();
 }
+// Every static portrait (results, photo finish, podium and driver card) uses
+// the same saved loadout as the race rather than an unmodified thumbnail.
+export function drawKartPortrait(c,img,x,y,w,h,loadout={}){
+ if(!img||(img.naturalWidth||img.width)<=0)return false;
+ const {char=0,wrap=0,cosmetics=[],vehicleId='stock'}=loadout,iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
+ c.save();c.filter='none';c.drawImage(img,0,0,iw,ih*.65,x,y,w,h*.65);c.filter=kartBodyFilter(wrap,cosmetics);c.drawImage(img,0,ih*.65,iw,ih*.35,x,y+h*.65,w,h*.35);drawKartUpgrades(c,x,y,w,h,vehicleId,char,wrap,cosmetics);c.restore();return true;
+}

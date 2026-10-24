@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import fs from 'node:fs';
 import * as saves from './detective-save.mjs';
+import {CanvasWorld} from './detective-canvas.mjs';
 function harness({graphics=true,story=null}={}){
  const memory=new Map([['sbfent-story-v1','{"version":4,"active":2,"chapters":[]}']]);if(story)memory.set(saves.DETECTIVE_STORY_KEY,JSON.stringify(story));
  const events={},elements=new Map(),raf=new Map();let frameId=0,now=0,world,context;
@@ -13,9 +14,9 @@ function harness({graphics=true,story=null}={}){
  }
  const root=new E();world=root.querySelector('canvas[data-world]');root.querySelector('[data-game-mode]').value='regular';root.querySelector('[data-game-location]').value='0';
  const doc={activeElement:null,hidden:false,querySelector:s=>s==='#detective-flex-game'?root:root.querySelector(s),querySelectorAll:()=>[],createElement:()=>new E(),addEventListener:(n,f)=>(events[n]??=[]).push(f)};
- context={...saves,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
+ context={...saves,CanvasWorld,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
  context.window=context;
- let source=fs.readFileSync(new URL('./detective-flex-game.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/,'');
+ let source=fs.readFileSync(new URL('./detective-flex-game.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'');
  source=source.replace(/\}\)\(\);\s*$/,`window.inspectDetective=()=>({state,inside,player:{...player},score,remaining,targets:targets.length});})();`);
  vm.runInNewContext(source,context);
  return {root,world,context,memory,events,step(ms=100){now+=ms;const f=[...raf.values()];raf.clear();f.forEach(fn=>fn(now));},inspect:()=>context.inspectDetective?.()};
@@ -31,6 +32,7 @@ test('actual detective UI resumes inside the saved room and pauses safely across
 test('a timed case pauses without consuming the remaining clock in the background',async()=>{
  const h=harness();await Promise.resolve();h.root.querySelector('[data-game-start]').click();h.step(1000);assert.equal(h.inspect().remaining,59);h.root.querySelector('[data-game-pause]').click();h.step(9000);assert.equal(h.inspect().remaining,59);h.root.querySelector('[data-game-start]').click();h.step(1000);assert.equal(h.inspect().remaining,58);
 });
-test('backups remain available when WebGL is unavailable',()=>{
- const h=harness({graphics:false});assert.equal(h.root.querySelector('[data-game-start]').disabled,true);assert.match(h.root.querySelector('[data-game-title]').textContent,/UNAVAILABLE/);assert.equal(h.root.querySelector('[data-detective-backup]').events.click.length,1);assert.equal(h.root.querySelector('[data-detective-restore]').events.change.length,1);
+test('the animated game starts and keeps backups available without WebGL',()=>{
+ const h=harness({graphics:false});h.root.querySelector('[data-game-start]').click();assert.equal(h.inspect().state,'playing');assert.equal(h.root.querySelector('[data-detective-backup]').events.click.length,1);assert.equal(h.root.querySelector('[data-detective-restore]').events.change.length,1);
 });
+test('Canvas movement and doorway transitions work at every location without changing collision or save coordinates',async()=>{for(let location=0;location<4;location++){const h=harness({graphics:false});await Promise.resolve();h.root.querySelector('[data-game-location]').value=String(location);h.root.querySelector('[data-game-start]').click();h.context.document.activeElement=h.world;h.events.keydown.forEach(f=>f({key:'w',code:'KeyW',preventDefault(){}}));for(let n=0;n<99;n++)h.step(50);h.events.keyup.forEach(f=>f({key:'w'}));assert.ok(h.inspect().player.z<-12);h.root.querySelector('[data-game-action]').click();assert.equal(h.inspect().inside,true);assert.equal(h.inspect().player.z,6);h.events.resize.forEach(f=>f());assert.equal(h.inspect().state,'paused');}});
