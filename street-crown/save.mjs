@@ -19,8 +19,11 @@ function validate(raw){if(!raw||![1,2].includes(raw.version)||!Number.isInteger(
  d.vehicles=Array.from({length:RACER_COUNT},(_,i)=>{const v=vehicleFor(raw.vehicles?.[i]);return v&&d.earnedCoins>=v.coins?v.id:'stock';});
  d.gear=Array.from({length:RACER_COUNT},(_,i)=>d.ownedGear.includes(raw.gear?.[i])?raw.gear[i]:null);
  for(let i=0;i<6;i++)if(Number.isFinite(raw.records?.[i])&&raw.records[i]>0)d.records[i]=raw.records[i];
- if(raw.resume){if(!['quick','story','cup','showdown'].includes(raw.resume.mode))throw Error('Saved race mode is invalid.');Race.restore(raw.resume.race);d.resume=JSON.parse(JSON.stringify(raw.resume));}
+
  if(raw.cup&&Number.isInteger(raw.cup.stage)&&raw.cup.stage>=0&&raw.cup.stage<4&&Array.isArray(raw.cup.points)&&raw.cup.points.length>=16&&raw.cup.points.every(x=>Number.isInteger(x)&&x>=0&&x<1000))d.cup={stage:raw.cup.stage,points:Array.from({length:RACER_COUNT},(_,i)=>raw.cup.points[i]??0)};
+ // A bad checkpoint must not invalidate a valid garage, wallet or campaign.
+ if(raw.resume){try{const r=raw.resume;if(!['quick','story','cup','showdown'].includes(r.mode))throw Error('Invalid race mode');const restored=Race.restore(r.race),index=r.storyIndex??0;if(!Number.isInteger(index)||index<0||index>7)throw Error('Invalid chapter');if(['story','showdown'].includes(r.mode)&&(restored.track!==Math.floor(index/2)||index>d.storyStep))throw Error('Invalid story checkpoint');if(r.mode==='cup'&&(!d.cup||d.cup.stage!==restored.track))throw Error('Invalid cup checkpoint');d.resume={mode:r.mode,storyIndex:index,race:restored.snapshot()};}catch{d.resume=null;}}
+
  return d;
 }
 class GarageSave{
