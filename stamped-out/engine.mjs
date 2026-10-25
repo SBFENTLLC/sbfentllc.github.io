@@ -177,10 +177,13 @@ export class Fight {
    const wasAir=f.y>0;f.y=Math.max(0,f.y+f.vy*dt);if(f.y>0||f.vy>0)f.vy-=1800*dt;if(f.y===0&&f.vy<0)f.vy=0;if(wasAir&&f.y===0){f.airAttacks=0;f.juggleHits=0;if(f.move?.airborne){f.move=null;f.cooldown=Math.max(f.cooldown,.08);}if(f.character===3)f.cooldown=Math.max(f.cooldown,.16);f.chain=0;}
    if(f.move){
     f.move.t+=dt;const move=f.move,m=moveFor(f.character,move.name);
+    // Contact strikes stay live for their active window. Ground setups and
+    // committed charges still trigger once, preserving their distinct rules.
+    const contactStrike=move.name==='punch'||move.airborne||move.name==='kick'&&!move.charge&&!move.stanceShift&&!move.braceSetup&&!(f.y<8&&!move.low&&(f.character===6||f.character===13));
     if((move.dash&&move.t<=.16||move.rush&&move.t<=.13)&&f.y<8){const delta=Math.min((move.dash?650:200)*dt,(move.dash?104:26)-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
-    if(move.t>=(move.wind??m.wind)&&!move.hit&&(move.name!=='punch'&&!move.airborne||move.t<=(move.wind??m.wind)+m.active)){
-     move.hit=move.name!=='punch'&&!move.airborne;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:move.range??m.range);
+    if(move.t>=(move.wind??m.wind)&&!move.hit&&(!contactStrike||move.t<=(move.wind??m.wind)+m.active)){
+     move.hit=!contactStrike;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:move.range??m.range);
      if(move.name==='mix'){this.dropMix(i);
      }else if(move.name==='ability'){if(!this.projectiles.some(p=>p.id===i&&!p.dead)){this.projectiles.push(powerProjectile(f));this.events.push({type:'powerShot',id:i,name:powerFor(f.character).name,color:powerFor(f.character).color});}
      }else if(move.stanceShift){f.stance=(f.stance+1)%KING_STANCES.length;this.events.push({type:'stance',id:i,stance:f.stance});
@@ -197,7 +200,7 @@ export class Fight {
       if(other.knockdown<=0){move.hit=true;const blocked=other.block&&!((move.low||f.character===10&&move.name==='kick'&&f.y<8)&&!other.lowGuard);move.connected=!blocked;this.applyHit(i,move.load?22:move.counter?18:move.damage??m.damage,{move:move.name,blocked});}
      }
     }
-    if((move.name==='punch'||move.airborne)&&move.t>=(move.wind??m.wind)+m.active)move.hit=true;
+    if(contactStrike&&move.t>=(move.wind??m.wind)+m.active)move.hit=true;
     if(move.t>=(move.wind??m.wind)+m.active+(move.load?.70:move.counter?.48:move.dash?.36:move.recovery??m.recovery)){f.move=null;f.cooldown=.04;}
    }
    if(this.training)f.power=100;
