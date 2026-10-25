@@ -47,7 +47,7 @@ class Race{
  target(r,range=9000){return this.racers.filter(b=>(b.route||null)===(r.route||null)&&b.id!==r.id&&b.finishTime===null&&b.rescue<=0&&!(b.ghostTime>0)&&ahead(r,b)>0&&ahead(r,b)<range).sort((a,b)=>a.distance-b.distance)[0];}
  fire(id=0,item=false){const r=this.racers[id];if(!r||r.rescue>0||r.ghostTime>0||r.frozen>0||r.spin>0||r.finishTime!==null||this.phase!=='racing'||!item&&r.attackCd>0||item&&!r.item)return false;
   const d=RACERS[r.char];let type=item?r.item:d.attackType;if(item)r.item=null;else r.attackCd=d.attackWait*(id===0?upgradeStats(d,this.playerUpgrades).recharge:1);
-  const t=this.target(r);this.emit('attack',{id,name:item?type.toUpperCase():d.attack});
+  const t=this.target(r);this.emit('attack',{id,item,name:item?type.toUpperCase():d.attack});
   if(gearFor(type)){this.shots.push({owner:id,route:r.route||null,distance:r.distance+220,x:r.x,life:3,speed:type==='speaker-bomb'?2300:3100,type,target:type==='crown-disc'?t?.id:null,force:type==='speaker-bomb'?.95:type==='paint-pop'?.55:.65});return true;}
   if(type==='boost'){r.boost=2;r.fuel=Math.min(100,r.fuel+20);return true;}
   if(type==='juice'){r.boost=3;r.fuel=100;r.invuln=Math.max(r.invuln,.45);this.emit('juiceBoost',{id});return true;}
