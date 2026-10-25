@@ -1,3 +1,3 @@
-import {renderPuppetRace as renderRace, renderPuppetGarage as renderGarage} from "./puppet3d.mjs?v=controls-v18";
+import {renderPuppetRace as renderRace, renderPuppetGarage as renderGarage} from "./puppet3d.mjs?v=buttons-v19";
 
 export {renderRace,renderGarage};
