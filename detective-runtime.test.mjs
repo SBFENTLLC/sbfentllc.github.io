@@ -1,3 +1,4 @@
+import {roundedPrism,canopy,puppetPose} from './detective-shapes.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import fs from 'node:fs';
 import {walkingPath} from './detective-navigation.mjs';
 import * as saves from './detective-save.mjs';
@@ -15,7 +16,7 @@ function harness({graphics=true,story=null}={}){
  }
  const root=new E();world=root.querySelector('canvas[data-world]');root.querySelector('[data-game-mode]').value='regular';root.querySelector('[data-game-location]').value='0';
  const doc={activeElement:null,hidden:false,querySelector:s=>s==='#detective-flex-game'?root:root.querySelector(s),querySelectorAll:()=>[],createElement:()=>new E(),addEventListener:(n,f)=>(events[n]??=[]).push(f)};
- context={...saves,walkingPath,CanvasWorld,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
+ context={...saves,roundedPrism,canopy,puppetPose,walkingPath,CanvasWorld,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
  context.window=context;
  let source=fs.readFileSync(new URL('./detective-flex-game.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'');
  source=source.replace(/\}\)\(\);\s*$/,`window.inspectDetective=()=>({state,inside,player:{...player},score,remaining,targets:targets.length});})();`);
