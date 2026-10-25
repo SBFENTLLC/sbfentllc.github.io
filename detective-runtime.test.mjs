@@ -1,4 +1,4 @@
-import {roundedPrism,canopy,puppetPose} from './detective-shapes.mjs';
+import {roundedPrism,canopy,puppetPose,facingView} from './detective-shapes.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import fs from 'node:fs';
 import {walkingPath} from './detective-navigation.mjs';
 import * as saves from './detective-save.mjs';
@@ -16,10 +16,10 @@ function harness({graphics=true,story=null}={}){
  }
  const root=new E();world=root.querySelector('canvas[data-world]');root.querySelector('[data-game-mode]').value='regular';root.querySelector('[data-game-location]').value='0';
  const doc={activeElement:null,hidden:false,querySelector:s=>s==='#detective-flex-game'?root:root.querySelector(s),querySelectorAll:()=>[],createElement:()=>new E(),addEventListener:(n,f)=>(events[n]??=[]).push(f)};
- context={...saves,roundedPrism,canopy,puppetPose,walkingPath,CanvasWorld,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
+ context={...saves,roundedPrism,canopy,puppetPose,facingView,walkingPath,CanvasWorld,document:doc,localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)},console,Math,JSON,Float32Array,Uint8Array,Number,Set,Map,setTimeout,clearTimeout,queueMicrotask,performance:{now:()=>now},devicePixelRatio:1,Audio:class{pause(){}play(){return Promise.resolve();}},Image:class{set src(v){queueMicrotask(()=>this.onload?.());}},requestAnimationFrame:f=>{raf.set(++frameId,f);return frameId;},cancelAnimationFrame:id=>raf.delete(id),addEventListener:(n,f)=>(events[n]??=[]).push(f),location:{reload:noop}};
  context.window=context;
  let source=fs.readFileSync(new URL('./detective-flex-game.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'');
- source=source.replace(/\}\)\(\);\s*$/,`window.inspectDetective=()=>({state,inside,player:{...player},score,remaining,targets:targets.length,reaction:reaction?.type||null,bodyHeading});})();`);
+ source=source.replace(/\}\)\(\);\s*$/,`window.inspectDetective=()=>({state,inside,player:{...player},score,remaining,targets:targets.length,reaction:reaction?.type||null,bodyHeading,currentView});})();`);
  vm.runInNewContext(source,context);
  return {root,world,context,memory,events,step(ms=100){now+=ms;const f=[...raf.values()];raf.clear();f.forEach(fn=>fn(now));},inspect:()=>context.inspectDetective?.()};
 }
@@ -42,3 +42,5 @@ test('Canvas movement and doorway transitions work at every location without cha
 test('tap-to-walk reaches a ground destination and manual input takes over',()=>{const h=harness();h.root.querySelector('[data-game-start]').click();const c=new CanvasWorld({createLinearGradient:()=>({addColorStop(){}}),fillRect(){},beginPath(){},arc(){},fill(){}});c.begin([0,21,26],[0,0,10],844,390);const p=c.project([3,0,8]),x=p[0]/844*100,y=p[1]/390*100;h.world.emit('pointerdown',{pointerId:1,clientX:x,clientY:y});h.world.emit('pointerup',{pointerId:1,clientX:x,clientY:y});for(let n=0;n<30;n++)h.step(50);let q=h.inspect();assert.ok(Math.hypot(q.player.x-3,q.player.z-8)<.4);h.world.emit('pointerdown',{pointerId:2,clientX:50,clientY:20});h.world.emit('pointerup',{pointerId:2,clientX:50,clientY:20});h.context.document.activeElement=h.world;h.events.keydown.forEach(f=>f({key:'s',preventDefault(){}}));const z=q.player.z;h.step(50);assert.ok(h.inspect().player.z>z);});
 
 test('scan reaction expires and pause clears transient animation',()=>{const h=harness();h.root.querySelector('[data-game-start]').click();h.root.querySelector('[data-game-scan]').click();assert.equal(h.inspect().reaction,'scan');for(let n=0;n<20;n++)h.step(50);assert.equal(h.inspect().reaction,null);h.root.querySelector('[data-game-pause]').click();assert.equal(h.inspect().reaction,null);assert.equal(h.inspect().bodyHeading,0);});
+
+test('movement selects rear and profile artwork and retains facing while paused',()=>{const h=harness();h.root.querySelector('[data-game-start]').click();h.context.document.activeElement=h.world;const key=(type,k)=>h.events[type].forEach(f=>f({key:k,preventDefault(){}}));key('keydown','w');h.step(50);key('keyup','w');assert.equal(h.inspect().currentView,'back');key('keydown','d');h.step(50);key('keyup','d');assert.equal(h.inspect().currentView,'right');h.root.querySelector('[data-game-pause]').click();assert.equal(h.inspect().currentView,'right');h.root.querySelector('[data-game-start]').click();assert.equal(h.inspect().currentView,'right');});

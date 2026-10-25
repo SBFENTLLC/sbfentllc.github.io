@@ -15,3 +15,5 @@ export function puppetPose(distance,time,moving,reduced=false,options={}){
  lift:(moving?Math.abs(step)*.018:0)+(action==='catch'?pulse*.12:0),width:1-Math.abs(heading)*.08,knee:moving?.085:0,
  stretch:action==='catch'?1+pulse*.045:action==='door'?1-pulse*.035:1};
 }
+
+export function facingView(angle,cameraYaw,previous=null){const a=Math.atan2(Math.sin(angle-cameraYaw),Math.cos(angle-cameraYaw)),centers={back:0,right:Math.PI/2,front:Math.PI,left:-Math.PI/2};if(previous in centers){const d=a-centers[previous];if(Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))<Math.PI/4+.12)return previous;}return Math.cos(a)>Math.SQRT1_2?'back':Math.cos(a)<-Math.SQRT1_2?'front':Math.sin(a)>0?'right':'left';}
