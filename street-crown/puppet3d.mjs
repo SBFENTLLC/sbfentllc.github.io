@@ -1,5 +1,5 @@
 import {drawBonusWorld} from './bonus-world.mjs';
-import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs?v=consistency-v16';
+import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs?v=district-v17';
 import {gearFor} from './garage-expansion.mjs';
 import {paintBox} from './geometry.mjs';
 import {drawCityPolish,drawDistrictSky} from './city-polish.mjs';
@@ -40,6 +40,8 @@ function tunnel(s,d,track,time,reduced,viewer,beat=0){
 }
 function cityBlock(s,d,side,index,track,detail=true){
  const f=courseFrame(d,side*1.7,0,track),p=f.position,rot=f.heading;
+ if(track===4){box(s,p,650,220,580,'#dbce9c',rot);box(s,add(p,[0,220,0]),720,75,650,'#498f7c',rot);if(detail)s.text(add(p,[0,365,0]),index%2?'ISLAND MARKET':'EMERALD RESORT','#fff0b3',60);return;}
+ if(track===5){box(s,p,480,280+(index%3)*170,520,'#514873',rot);for(const y of [100,220])box(s,add(p,[0,y,0]),500,16,540,'#91e2e7',rot);if(detail)s.text(add(p,[0,700,0]),index%2?'CROWN OBSERVATORY':'ORBIT GARAGE','#c9d8ff',55);return;}
  const colors=DISTRICTS[track].buildings;const h=track===2?340+(index%4)*90:index%5===0?1450:420+(index%4)*120;
  box(s,p,600,h,660,colors[index%4],rot);box(s,add(p,[0,h,0]),630,35,690,'#303e4b',rot);
  const at=(x,y,z)=>p.map((v,k)=>v+f.right[k]*x+f.forward[k]*z+(k===1?y:0));

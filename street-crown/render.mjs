@@ -1,3 +1,3 @@
-import {renderPuppetRace as renderRace, renderPuppetGarage as renderGarage} from "./puppet3d.mjs?v=consistency-v16";
+import {renderPuppetRace as renderRace, renderPuppetGarage as renderGarage} from "./puppet3d.mjs?v=district-v17";
 
 export {renderRace,renderGarage};

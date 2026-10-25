@@ -74,6 +74,13 @@ export function drawDistrictAccent(s,p,heading,side,track,time=0){const t=local(
  }else if(track===2){
   // Shipping containers with ribs, doors and a short crane facing away from the road.
   for(const z of [-190,190]){cuboid(s,t,-road*160,0,z,360,220,310,z<0?'#936c4d':'#596f79');for(let x=-310;x<=-20;x+=48)cuboid(s,t,-road*Math.abs(x),10,z-157,14,198,9,'#b4a78c');}for(const z of [-430,430])cuboid(s,t,-road*390,0,z,55,800,55,'#e0af5c');cuboid(s,t,-road*390,760,0,75,80,930,'#cc974d');s.text(t(0,300,0),'FLEX FREIGHT','#ffe1a0',65);
+ }else if(track===4){
+  // Palm-lined beach cabana: all geometry remains beside the shoulder.
+  for(const z of [-300,300]){cylinder(s,t,-road*240,0,z,30,590,'#9d8058',8);for(let i=0;i<6;i++){const a=i/6*TAU,x=-road*240;s.face([t(x,590,z),t(x+Math.cos(a)*300,535,z+Math.sin(a)*300),t(x+Math.cos(a+.4)*210,575,z+Math.sin(a+.4)*210)],'#3b9472');}}
+  for(const z of [-180,180])cuboid(s,t,0,0,z,22,275,22,'#e6cd92');s.face([t(-250,275,-240),t(250,275,-240),t(180,390,240),t(-180,390,240)],'#f0d38b');cuboid(s,t,0,0,0,330,90,340,'#72bba2');s.text(t(road*110,200,0),'EMERALD BEACH','#fff1bb',62);
+ }else if(track===5){
+  // Orbital beacon with a luminous ring, outside the racing lane.
+  cylinder(s,t,0,0,0,200,75,'#605587',12);cylinder(s,t,0,75,0,55,570,'#586d91',10);for(let i=0;i<16;i++){const a=i/16*TAU,b=(i+1)/16*TAU;s.face([t(Math.cos(a)*310,480,Math.sin(a)*310),t(Math.cos(b)*310,480,Math.sin(b)*310),t(Math.cos(b)*310,520,Math.sin(b)*310),t(Math.cos(a)*310,520,Math.sin(a)*310)],i%2?'#a7eeed':'#a48be0');}s.text(t(0,750,0),'COSMIC CROWN','#b9f5f4',78);s.text(t(road*70,340,0),'ORBIT STATION','#ecd5ff',52);
  }else{
   // Skyline viewing terrace, gold railings and tilted solar panels.
   cuboid(s,t,-road*120,0,0,380,55,700,'#c1b8bd');for(const z of [-330,330]){cuboid(s,t,-road*290,55,z,24,175,24,'#dbbf7d');cuboid(s,t,-road*290,210,0,20,20,680,'#dfc88c');}for(const z of [-180,100])s.face([t(-road*20,70,z),t(-road*240,140,z),t(-road*240,140,z+190),t(-road*20,70,z+190)],'#345f7b');s.text(t(road*80,285,0),'CROWN SKYWAY','#ffe7b0',72);
