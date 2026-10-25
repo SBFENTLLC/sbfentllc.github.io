@@ -8,7 +8,7 @@ import {effectFor} from "./racer-fx.mjs";
 import {drawSignatureScene} from "./signatures.mjs";
 import {DISTRICTS} from "./districts.mjs";
 import {drawRoadSurroundings,branchOpening} from "./road-surface.mjs";
-import {drawCityBus,drawLaunchRamp,drawStreetHazard,drawRoadPool,drawItemCrate,drawStorefront,drawDistrictAccent,rampApproachHeight,RAMP_HEIGHT} from "./street-props.mjs";
+import {drawCityBus,drawLaunchRamp,drawStreetHazard,drawRoadPool,drawItemCrate,drawStorefront,drawDistrictAccent,rampApproachHeight,RAMP_HEIGHT} from "./street-props.mjs?v=district-v17";
 import {ACTIVE_ROUTES, routeShape} from "./routes.mjs";
 import {vibeFor} from "./vibe.mjs";
 import {courseFrame, racerFrame, courseCamera,courseDelta, LANDMARKS, ROAD_HALF, COURSE_OBSTACLES, obstacleLane} from "./course.mjs";
