@@ -13,6 +13,8 @@ export function puppetPose(distance,time,moving,reduced=false,options={}){
  const step=moving?Math.sin(distance*5.8):0,heading=Math.max(-1,Math.min(1,options.heading||0)),turn=Math.max(-1,Math.min(1,options.turn||0)),progress=Math.max(0,Math.min(1,options.progress||0)),pulse=Math.sin(progress*Math.PI),action=options.action||'';
  return {step,lean:(moving?step*.018:Math.sin(time*1.6)*.005)+heading*.055+turn*.04+(action==='scan'?-.035*pulse:0),breath:1+Math.sin(time*2.2)*.006,
  lift:(moving?Math.abs(step)*.018:0)+(action==='catch'?pulse*.12:0),width:1-Math.abs(heading)*.08,knee:moving?.085:0,
+ headTilt:(moving?-step*.018:Math.sin(time*.9)*.012)+(action==='scan'?Math.sin(progress*Math.PI*2)*.055:action==='catch'?Math.sin(progress*Math.PI*2)*.04:0)+turn*.025,
+ torsoTilt:moving?step*.016:action==='scan'?-.015*pulse:0,
  stretch:action==='catch'?1+pulse*.045:action==='door'?1-pulse*.035:1};
 }
 

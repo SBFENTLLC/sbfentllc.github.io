@@ -1,6 +1,6 @@
-import {roundedPrism,canopy,puppetPose,facingView} from './detective-shapes.mjs?v=places-20261025';
-import {walkingPath} from './detective-navigation.mjs?v=places-20261025';
-import {CanvasWorld} from './detective-canvas.mjs?v=places-20261025';
+import {roundedPrism,canopy,puppetPose,facingView} from './detective-shapes.mjs?v=expression-20261025';
+import {walkingPath} from './detective-navigation.mjs?v=expression-20261025';
+import {CanvasWorld} from './detective-canvas.mjs?v=expression-20261025';
 import {DETECTIVE_STORY_KEY,loadDetectiveStory,saveDetectiveStory,exportDetective,restoreDetective,searchClue} from './detective-save.mjs';
 (() => {
 'use strict';
