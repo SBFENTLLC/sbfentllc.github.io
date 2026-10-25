@@ -1,5 +1,5 @@
 import {drawBonusWorld} from './bonus-world.mjs';
-import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs?v=district-v17';
+import {kartBodyFilter,drawKartUpgrades} from './kart-identity.mjs?v=controls-v18';
 import {gearFor} from './garage-expansion.mjs';
 import {paintBox} from './geometry.mjs';
 import {drawCityPolish,drawDistrictSky} from './city-polish.mjs';
@@ -8,7 +8,7 @@ import {effectFor} from "./racer-fx.mjs";
 import {drawSignatureScene} from "./signatures.mjs";
 import {DISTRICTS} from "./districts.mjs";
 import {drawRoadSurroundings,branchOpening} from "./road-surface.mjs";
-import {drawCityBus,drawLaunchRamp,drawStreetHazard,drawRoadPool,drawItemCrate,drawStorefront,drawDistrictAccent,rampApproachHeight,RAMP_HEIGHT} from "./street-props.mjs?v=district-v17";
+import {drawCityBus,drawLaunchRamp,drawStreetHazard,drawRoadPool,drawItemCrate,drawStorefront,drawDistrictAccent,rampApproachHeight,RAMP_HEIGHT} from "./street-props.mjs?v=controls-v18";
 import {ACTIVE_ROUTES, routeShape} from "./routes.mjs";
 import {vibeFor} from "./vibe.mjs";
 import {courseFrame, racerFrame, courseCamera,courseDelta, LANDMARKS, ROAD_HALF, COURSE_OBSTACLES, obstacleLane} from "./course.mjs";

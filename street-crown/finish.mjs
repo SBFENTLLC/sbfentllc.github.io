@@ -1,4 +1,4 @@
-import {drawKartPortrait} from './kart-identity.mjs?v=district-v17';
+import {drawKartPortrait} from './kart-identity.mjs?v=controls-v18';
 import {replayView,photoView} from "./replay.mjs";
 import {effectFor} from "./racer-fx.mjs";
 import {RACERS} from "./roster.mjs";
