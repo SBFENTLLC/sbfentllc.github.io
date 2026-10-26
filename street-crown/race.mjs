@@ -62,14 +62,14 @@ class Race{
   if(type==='dash'||type==='ram'){r.boost=type==='dash'?2.2:1.7;r.ram=1.6;r.invuln=.4;return true;}
   this.shots.push({owner:id,route:r.route||null,distance:r.distance+220,x:r.x,life:3,speed:type==='heavy'?2100:2900,type,target:type==='homing'?t?.id:null,force:type==='heavy'?.95:.65});return true;
  }
- get rivalPace(){return ({easy:.84,normal:.97,heat:1.01}[this.difficulty])+Math.min(3,this.track)*(this.difficulty==='easy'?.01:.018);}
+ get rivalPace(){return ({easy:.84,normal:1.04,heat:1.095}[this.difficulty])+Math.min(3,this.track)*(this.difficulty==='easy'?.01:this.difficulty==='heat'?.032:.026);}
  ai(r,dt){const d=RACERS[r.char],curve=curveAt(r.distance,this.track),finalPush=r.distance>LENGTH*(this.laps-.8),offset=Math.sin(r.distance/5500+r.id)*(.32-Math.min(3,this.track)*.04);
   let goal=clamp(curve*.18+offset,-.68,.68);const coin=!finalPush&&this.coins.find(c=>c.alive&&(c.route||null)===(r.route||null)&&c.distance-r.distance>150&&c.distance-r.distance<2600);if(coin)goal=clamp(coin.x,-.78,.78);const branch=ACTIVE_ROUTES.find((q,i)=>r.id%3===i&&(q.start-r.distance%LENGTH+LENGTH)%LENGTH<1500);if(branch&&!r.route)goal=branch.side*.72;if(r.route)goal=offset*.4;const avoid=COURSE_OBSTACLES.find(o=>{if(o.track!==undefined&&o.track!==this.track)return false;const delta=(o.z-r.distance%LENGTH+LENGTH)%LENGTH;return delta>0&&delta<1900&&Math.abs(obstacleLane(o,this.time)-r.x)<o.width+.24;});if(avoid)goal=obstacleLane(avoid,this.time)>0?-.66:.66;const trap=this.traps.find(t=>t.owner!==r.id&&t.distance-r.distance>0&&t.distance-r.distance<1800&&Math.abs(t.x-r.x)<.4);if(trap)goal=trap.x>0?-.6:.6;
-  const steer=clamp((goal-r.x)*3+curve*.23/(.9*d.grip),-1,1),drift=Math.abs(curve)>.8&&r.speed>700;
+  const steer=clamp((goal-r.x)*3+curve*.23/(.9*d.grip),-1,1),drift=Math.abs(curve)>.8&&r.speed>700&&(this.difficulty==='easy'||r.drift<(this.difficulty==='heat'?1.9:1.4));
   if(!this.practice&&r.attackCd<=0&&(this.target(r,7000)||['trap','slick','pulse','quake','emp','dash','ram','juice'].includes(d.attackType)))this.fire(r.id);
   if(!this.practice&&r.defenseCd<=0&&(r.spin>0||this.shots.some(s=>s.owner!==r.id&&r.distance-s.distance>0&&r.distance-s.distance<2500)))this.useDefense(r.id);
-  if(!this.practice&&r.item){const target=this.target(r,6500),incoming=this.shots.some(s=>s.owner!==r.id&&r.distance-s.distance>0&&r.distance-s.distance<2500),timely=r.item==='rocket'?!!target:r.item==='shield'?incoming:r.item==='boost'?Math.abs(curve)<1:true;if(this.random()<dt*(timely?1.0:.12))this.fire(r.id,true);}
-  return {steer,drift,boost:!this.practice&&r.fuel>(finalPush?12:29)&&Math.abs(curve)<(this.difficulty==='easy'?.8:finalPush?1.15:1.02),brake:false,accelerate:true};
+  if(!this.practice&&r.item){const target=this.target(r,6500),incoming=this.shots.some(s=>s.owner!==r.id&&r.distance-s.distance>0&&r.distance-s.distance<2500),advanced=this.difficulty!=='easy',behind=this.racers.some(b=>b.id!==r.id&&(b.route||null)===(r.route||null)&&b.finishTime===null&&r.distance-b.distance>0&&r.distance-b.distance<2400),timely=advanced&&['rocket','ice-block','fireball'].includes(r.item)?!!target:advanced&&r.item==='oil'?behind:r.item==='rocket'?!!target:r.item==='shield'?incoming:r.item==='boost'?Math.abs(curve)<1:true;if(this.random()<dt*(timely?(advanced?(this.difficulty==='heat'?2.1:1.45):1):advanced?.035:.12))this.fire(r.id,true);}
+  return {steer,drift,boost:!this.practice&&r.fuel>(this.difficulty==='easy'?(finalPush?12:29):r.nitro?12:finalPush?24:42)&&Math.abs(curve)<(this.difficulty==='easy'?.8:finalPush?1.15:1.02),brake:false,accelerate:true};
  }
  step(dt,input={}){
   if(this.phase==='finished'||!Number.isFinite(dt)||dt<=0)return;dt=Math.min(dt,.05);
