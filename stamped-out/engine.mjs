@@ -110,8 +110,8 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:(b.character===1?.4:.31),hard:.43}[this.difficulty]||.12)};
-  ai.crouch=ai.block&&(a.move?.low||a.character===10)&&a.move?.name==='kick'&&a.y<8;
+  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&!a.move.hit&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:(b.character===1?.4:.31),hard:.43}[this.difficulty]||.12)};
+  ai.crouch=ai.block&&a.y<8&&(a.move?.low||a.character===10&&a.move?.name==='kick');
   if(b.character===14&&(b.move?.braceSetup||b.brace>0&&d<=180)){ai.left=false;ai.right=false;}
   if(b.character===13&&this.traps.some(t=>t.id===1)&&d<175){ai.left=toward>0;ai.right=toward<0;}
   if(b.character===1&&!a.move&&d<130&&!b.move){ai.left=toward>0;ai.right=toward<0;}
@@ -127,10 +127,16 @@ export class Fight {
   }
   if(b.move?.connected&&this.difficulty!=='easy'){const next=b.move.name==='punch'?'kick':'punch';if(next)this.attack(1,next);}
   if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');
+  // A chosen guard must resolve before a fresh attack can commit this step.
+  // Otherwise attack() sees last frame's block=false and defeats that guard.
+  if(ai.block)return ai;
+  // Releasing a guard must allow this step's retaliation, not consume a turn.
+  if(this.difficulty!=='easy')b.block=false;
   if(this.aiTime<=0){
    this.aiTime=({easy:.85,medium:.42,hard:.26}[this.difficulty]||.48)+this.random()*.28;this.aiTime/=this.pace;
    if(a.y>40&&this.random()<.5||b.character===3&&d<250&&this.random()<.45)ai.jump=true;
-   if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<(b.character===9?.6:.25)))this.attack(1,'grab');
+   if(this.difficulty!=='easy'&&a.move?.hit&&d<=moveFor(b.character,'punch').range)this.attack(1,'punch');
+   else if(d<=moveFor(b.character,'grab').range&&a.y<8&&(a.block||this.random()<(b.character===9?.6:.25)))this.attack(1,'grab');
    else if(b.power>=100&&d<=moveFor(b.character,'special').range)this.attack(1,'special');
    else if(b.abilityCooldown<=0&&d>=210&&d<=powerFor(b.character).range+40&&!incoming)this.attack(1,'ability');
    else if(b.character===8&&d>120&&d<230&&b.dashCooldown<=0)this.attack(1,'punch',{direction:toward});
