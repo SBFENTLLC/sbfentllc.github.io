@@ -13,18 +13,19 @@ export const TRACKS=[
  {id:'pod-dat',title:'POD DAT',file:'pod-dat.m4a'},
  {id:'sky-is-tha-limit',title:'SKY IS THA LIMIT',file:'sky-is-tha-limit.m4a'},
  {id:'rain-down',title:'RAIN DOWN',file:'rain-down.m4a'},
- {id:'throw-it',title:'THROW IT',file:'throw-it.m4a'}
+ {id:'throw-it',title:'THROW IT',file:'throw-it.m4a'},
+ {id:'slick-reverse',title:'SLICK REVERSE',file:'slick-reverse.mp3'}
 ];
 // Every arena has a distinct ordered mix. A per-arena cursor survives menus,
 // rematches and reloads; the ended event advances the same mix during long fights.
 export const ARENA_MIXES={
- rooftop:['hustle','four-flat','sky-is-tha-limit','focus'],
+ rooftop:['hustle','four-flat','sky-is-tha-limit','focus','slick-reverse'],
  studio:['modest','pod-dat','one-night-stand','exquiste'],
  vault:['money-machine','bandz-on-your-kneez','four-flat','modest'],
  workshop:['throw-it','andalay','hustle','pod-dat'],
  blockparty:['big-ole-bitties','andalay','throw-it','bandz-on-your-kneez'],
- underground:['exquiste','focus','pod-dat','rain-down'],
- motoryard:['four-flat','hustle','sky-is-tha-limit','throw-it'],
+ underground:['exquiste','focus','pod-dat','rain-down','slick-reverse'],
+ motoryard:['four-flat','hustle','sky-is-tha-limit','throw-it','slick-reverse'],
  penthouse:['sky-is-tha-limit','rain-down','money-machine','one-night-stand']
 };
 // A single lazy audio element prevents overlapping songs and avoids loading

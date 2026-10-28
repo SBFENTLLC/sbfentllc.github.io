@@ -45,9 +45,9 @@ test('movement is quicker in both directions while heavy fighters retain their i
 });
 const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v)};};
 const audio=()=>({listeners:{},addEventListener(e,f){this.listeners[e]=f;},pause(){},play(){return Promise.resolve();}});
-test('every arena has a distinct mix, all fourteen songs appear, and each mix rotates across revisits',async()=>{
+test('every arena has a distinct mix, all fifteen songs appear, and each mix rotates across revisits',async()=>{
  assert.equal(new Set(Object.values(ARENA_MIXES).map(v=>v.join())).size,8);
- const ids=new Set(Object.values(ARENA_MIXES).flat());assert.equal(ids.size,14);assert(TRACKS.every(t=>ids.has(t.id)));
+ const ids=new Set(Object.values(ARENA_MIXES).flat());assert.equal(ids.size,15);assert(TRACKS.every(t=>ids.has(t.id)));
  const storage=memory(),m=new Soundtrack(audio(),()=>{},storage);
  for(const [arena,mix] of Object.entries(ARENA_MIXES)){const heard=[];for(let n=0;n<mix.length;n++){await m.beginMatch('fight',n,arena);heard.push(m.current.id);assert.equal(m.audio.loop,false);}assert.deepEqual(heard,mix);}
  const next=new Soundtrack(audio(),()=>{},storage);await next.beginMatch('fight',0,'rooftop');assert.equal(next.current.id,ARENA_MIXES.rooftop[0]);
