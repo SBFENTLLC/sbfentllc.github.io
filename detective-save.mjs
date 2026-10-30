@@ -16,13 +16,15 @@ export function loadDetectiveStory(storage){
 }
 export function saveDetectiveStory(storage,value){const v=validDetectiveStory(value);if(!v)throw Error('Invalid detective progress.');storage.setItem(DETECTIVE_STORY_KEY,JSON.stringify(v));return v;}
 export function searchClue(targets,inside){const here=targets.filter(t=>t.inside===inside).length,other=targets.length-here;return here?here+' lizard'+(here===1?'':'s')+' left '+(inside?'inside':'outside')+'. Scan to reveal them.':other?'Area clear! '+(inside?'Go outside':'Enter the building')+' for '+other+' more.':'All found! Case section complete.';}
-const KEYS=[DETECTIVE_STORY_KEY,'sbfent-flex-bucks','sbfent-detective-flex-best'];
-export function exportDetective(storage){return JSON.stringify({game:'sbfent-detective-flex',version:1,story:loadDetectiveStory(storage),bucks:Number(storage.getItem(KEYS[1]))||0,best:Number(storage.getItem(KEYS[2]))||0},null,2);}
+const FILES_KEY='sbfent-detective-files-v1';
+const cleanFiles=v=>Array.isArray(v)?[...new Set(v.filter(n=>Number.isInteger(n)&&n>=0&&n<10))]:[];
+const KEYS=[DETECTIVE_STORY_KEY,'sbfent-flex-bucks','sbfent-detective-flex-best',FILES_KEY];
+export function exportDetective(storage){let files=[];try{files=cleanFiles(JSON.parse(storage.getItem(FILES_KEY)||'[]'));}catch{}return JSON.stringify({game:'sbfent-detective-flex',version:1,files,story:loadDetectiveStory(storage),bucks:Number(storage.getItem(KEYS[1]))||0,best:Number(storage.getItem(KEYS[2]))||0},null,2);}
 export function restoreDetective(storage,text){
  if(typeof text!=='string'||text.length>20000)throw Error('Choose a Detective Flex backup under 20 KB.');
  const v=JSON.parse(text),story=v.story===null?null:validDetectiveStory(v.story);
  if(v.game!=='sbfent-detective-flex'||v.version!==1||v.story!==null&&!story||![v.bucks,v.best].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000000))throw Error('This is not a valid Detective Flex backup.');
- const before=KEYS.map(k=>storage.getItem(k)),after=[story?JSON.stringify(story):null,String(v.bucks),String(v.best)];
+ const before=KEYS.map(k=>storage.getItem(k)),after=[story?JSON.stringify(story):null,String(v.bucks),String(v.best),v.files===undefined?before[3]:JSON.stringify(cleanFiles(v.files))];
  try{KEYS.forEach((k,i)=>after[i]===null?storage.removeItem(k):storage.setItem(k,after[i]));}
  catch(error){KEYS.forEach((k,i)=>{try{before[i]===null?storage.removeItem(k):storage.setItem(k,before[i]);}catch{}});throw error;}
 }
