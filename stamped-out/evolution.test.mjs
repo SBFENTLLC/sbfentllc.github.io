@@ -77,7 +77,7 @@ test('touch lock suppresses game gestures, allows menu scrolling, and tolerates 
  playing=false;lock.sync();listeners.touchmove({cancelable:true,preventDefault(){prevented++;}});assert.equal(prevented,1);assert(!classes.has('fighting'));
 });
 test('all unique celebrations render for either winner; Flex uses the supplied bill artwork',()=>{
- assert.equal(VICTORIES.length,16);assert.equal(new Set(VICTORIES.map(v=>v.prop)).size,16);let billsDrawn=0,sprites=0;
+ assert.equal(VICTORIES.length,18);assert.equal(new Set(VICTORIES.map(v=>v.prop)).size,16);let billsDrawn=0,sprites=0;
  const gradient={addColorStop(){}};const image={complete:true,naturalWidth:1536};
  const ctx=new Proxy({drawImage(img,...args){assert.equal(img,image);assert.equal(args[2],1450);billsDrawn++;},createRadialGradient:()=>gradient},{get:(o,k)=>o[k]??(()=>{})});
  const fx={reduced:false,rawSprite(ctx,f){sprites++;for(const k of ['x','y','rotation'])assert(Number.isFinite(f[k]));}};

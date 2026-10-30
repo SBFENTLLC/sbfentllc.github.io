@@ -16,7 +16,9 @@ export const VICTORIES=[
  {title:'THE BLOCK SHAKES',action:'Big Pressure flexes as shockwaves roll out.',prop:'quake'},
  {title:'SIGNAL RESTORED',action:'Lady Static tunes a lightning halo.',prop:'signal'},
  {title:'SIGNED. SEALED. DELIVERED.',action:'Iron Haul seals a freight crate and stamps it delivered.',prop:'crate'},
- {title:'SELF-CROWNED',action:'The False King lowers a crown onto his own head.',prop:'crown'}
+ {title:'SELF-CROWNED',action:'The False King lowers a crown onto his own head.',prop:'crown'},
+ {title:'CASE CLOSED',action:'Detective Flex checks the evidence and stamps the case closed.',prop:'ledger'},
+ {title:'STILL GOT JUICE',action:'Lil Juice celebrates with a blue-flame victory step.',prop:'neon'}
 ];
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export function victoryPose(character,time,reduced=false){
@@ -36,6 +38,8 @@ export function victoryPose(character,time,reduced=false){
  if(character===13){p.pose=t<2?4:7;p.y=8+Math.sin(t*2)*8;}
  if(character===14){p.pose=7;p.y=Math.sin(Math.min(t,1)*Math.PI)*12;}
  if(character===15)p.pose=t<2.4?4:7;
+ if(character===16){p.pose=t%2<1.2?4:7;p.rotation=Math.sin(t*3)*.035;}
+ if(character===17){p.pose=t%1<.5?1:7;p.x+=Math.sin(t*5)*35;p.y=Math.abs(Math.sin(t*6))*25;}
  // A second gesture follows the signature action instead of holding one frame.
  if(t>2.6){const q=(t-2.6)%2;p.x+=Math.sin(q*Math.PI)*12;p.y+=Math.max(0,Math.sin(q*Math.PI*2))*14;
   if(![0,6,7,13].includes(character)){p.pose=q<.45?4:q<1?2:7;p.rotation+=Math.sin(q*Math.PI)*.07;}

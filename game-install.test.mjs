@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+for(const [folder,target] of [['street-crown',26],['stamped-out',37]]){
+ const dir=new URL('./'+folder+'/',import.meta.url);
+ const source=fs.readFileSync(new URL('boot-recovered.mjs',dir),'utf8').replace(/import\('\.\/(?:game\.js|app\.mjs)\?release=[^']+'\)/,"(globalThis.loaded=true,Promise.resolve())");
+ async function boot(old,offline){const order=[],status={textContent:''},button={hidden:true,addEventListener(){}};let href='https://sbfent.com/'+folder+'/game.css';const link={get href(){return href;},set href(v){href=v;order.push('style');queueMicrotask(()=>this.onload());}};
+ const prior={postMessage(data,[port]){port.deliver({version:old});}},active={state:'activated',postMessage(data,[port]){port.deliver({version:target});}};
+ const serviceWorker={controller:prior,async register(){order.push('register');if(offline)throw Error('offline');return{active,async update(){order.push('update');serviceWorker.controller=active;}};}};
+ const context={navigator:{serviceWorker},document:{querySelectorAll:()=>[link],getElementById:id=>/launchStatus|releaseStatus/.test(id)?status:button},location:{href:'https://sbfent.com/'+folder+'/'},URL,setTimeout,clearTimeout,Promise,MessageChannel:class{constructor(){this.port1={close(){}};this.port2={deliver:data=>queueMicrotask(()=>this.port1.onmessage({data}))};}}};vm.runInNewContext(source,context);for(let n=0;n<15;n++)await new Promise(setImmediate);return{context,order,status,button};}
+ test(folder+': previous Home Screen worker upgrades before game code loads',async()=>{const r=await boot(target-1,false);assert(r.context.loaded);assert.deepEqual(r.order,['register','update','style']);});
+ test(folder+': current cached game opens offline; stale offline update shows a retry without loading old code',async()=>{const ready=await boot(target,true);assert(ready.context.loaded);const stale=await boot(target-1,true);assert(!stale.context.loaded);assert.match(stale.status.textContent,/update could not finish/i);assert.equal(stale.button.hidden,false);});
+ test(folder+': offline bundle contains the release entry and every packaged resource',()=>{const sw=fs.readFileSync(new URL('sw.js',dir),'utf8'),core=JSON.parse(sw.match(/const CORE=(\[[\s\S]*?\]);/)[1]);assert(core.includes('boot-recovered.mjs'));for(const path of core)if(path!=='./')assert(fs.existsSync(new URL(path.split('?')[0],dir)),path);});
+}

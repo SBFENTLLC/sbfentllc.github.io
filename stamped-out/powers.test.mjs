@@ -3,7 +3,7 @@ import {Fight} from './engine.mjs';import {POWERS,powerFor,drawPowerShot} from '
 const step=(g,t,keys={})=>{for(let n=0;n<Math.ceil(t*120);n++)g.step(1/120,keys);};
 function ready(char,id=0,dummy='stand'){const g=new Fight({training:true,characters:id?[0,char]:[char,0],dummy});g.phase='fight';g.fighters[0].x=340;g.fighters[1].x=660;g.events=[];return g;}
 test('all sixteen powers work in either slot at zero super meter, hit once, and push away',()=>{
- assert.equal(POWERS.length,16);assert.equal(new Set(POWERS.map(p=>p.name)).size,16);assert.equal(new Set(POWERS.map(p=>p.shape)).size,16);
+ assert.equal(POWERS.length,18);assert.equal(new Set(POWERS.map(p=>p.name)).size,18);assert.equal(new Set(POWERS.map(p=>p.shape)).size,18);
  for(let char=0;char<16;char++)for(let id=0;id<2;id++){const g=ready(char,id);g.training=false;g.aiInput=()=>({});const a=g.fighters[id],b=g.fighters[1-id];a.power=0;const distance=Math.abs(a.x-b.x);assert(g.attack(id,'ability'),char+'/'+id);assert.equal(a.power,0);assert(a.abilityCooldown>0);step(g,1.6);const hits=g.drainEvents().filter(e=>e.type==='hit'&&e.id===id);assert.equal(hits.length,1,char+'/'+id);assert.equal(hits[0].move,'ability');assert.equal(b.hp,100-powerFor(char).damage);assert(Math.abs(a.x-b.x)>distance);assert.equal(g.projectiles.length,0);assert.equal(g.sequence,null);assert.equal(g.attack(id,'ability'),false);}
 });
 test('every power can be guarded or jumped, and expires outside its range',()=>{

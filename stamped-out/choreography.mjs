@@ -129,6 +129,22 @@ export function sequenceFighters(fighters,sequence){
   else if(t<3.05){const p=smooth((t-2.65)/.4);a.pose=7;a.face=d;a.y=0;b.x=lerp(c+d*80,c+d*175,p);b.y=125*(1-p);b.rotation=-2.3*p*d;}
   else{a.pose=7;a.face=d;a.x=c-d*80;b.x=c+d*175;b.y=0;b.rotation=-2.3*d;}
  }
+ if(character===16){
+  if(t<.38){const p=smooth(t/.38);a.pose=4;a.x=lerp(s.origin[0].x,c-d*85,p);b.x=c+d*75;}
+  else if(t<1.1){const p=(t-.38)/.72;a.pose=2;a.x=c-d*(85+Math.sin(p*Math.PI)*25);b.x=c+d*70;b.rotation=Math.sin(p*Math.PI*3)*.1*d;}
+  else if(t<1.8){const p=smooth((t-1.1)/.7);a.pose=2;a.x=c-d*65;b.x=c+d*85;b.y=p*135;b.rotation=-p*.35*d;}
+  else if(t<2.5){const p=(t-1.8)/.7;a.pose=6;a.x=c-d*65;a.y=Math.sin(p*Math.PI)*110;b.x=c+d*90;b.y=135+Math.sin(p*Math.PI)*50;}
+  else if(t<2.7){const p=smooth((t-2.5)/.2);a.pose=7;a.y=0;b.x=lerp(c+d*90,c+d*180,p);b.y=135*(1-p);b.rotation=-2.3*p*d;}
+  else{a.pose=7;a.x=c-d*75;b.x=c+d*180;b.y=0;b.rotation=-2.3*d;}
+ }
+ if(character===17){
+  if(t<.9){const p=smooth(t/.9);a.pose=Math.floor(t*11)%2?2:1;a.x=lerp(c-d*175,c-d*80,p);b.x=c+d*65;b.rotation=Math.sin(t*20)*.09*d;}
+  else if(t<1.52){const p=(t-.9)/.62;a.pose=3;a.y=Math.sin(p*Math.PI/2)*90;a.x=c-d*70;b.y=p*110;b.x=c+d*80;b.rotation=-p*.3*d;}
+  else if(t<2.25){const p=(t-1.52)/.73;a.pose=6;a.y=90+Math.sin(p*Math.PI)*70;a.x=c-d*65+Math.sin(p*Math.PI)*35;b.y=110;b.rotation=-.3*d;}
+  else if(t<2.65){const p=smooth((t-2.25)/.4);a.pose=3;a.y=90*(1-p);a.x=lerp(c-d*65,c+d*10,p);b.y=110*(1-p);b.x=lerp(c+d*80,c+d*180,p);b.rotation=-2.3*p*d;}
+  else{a.pose=7;a.x=c-d*65;b.x=c+d*180;b.y=0;b.rotation=-2.3*d;}
+ }
+
  return out;
 }
 

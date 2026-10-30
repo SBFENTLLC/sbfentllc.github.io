@@ -6,7 +6,7 @@ export function setupSelection(fx,onChange=()=>{},isUnlocked=()=>false,storage={
  function update(){
   for(const f of FIGHTERS){const locked=false;$('pick'+f.index).disabled=locked;$('pick'+f.index).setAttribute('aria-label',locked?f.name+' — unlock in story mode':f.name);} 
   $('playerBoss').disabled=$('opponentBoss').disabled=false;$('playerStatic').disabled=$('opponentStatic').disabled=false;$('playerHaul').disabled=$('opponentHaul').disabled=false;$('playerKing').disabled=$('opponentKing').disabled=false;
-  for(const [slot,character] of [['player',player],['opponent',opponent]]){const supported=hasAlternate(character);$(slot+'Alternate').disabled=!supported;$(slot+'Alternate').textContent=supported?outfitName(character):'Alternate outfit · coming later';$(slot+'Outfit').value=String(outfitFor(character,looks[slot][character]));}
+  for(const [slot,character] of [['player',player],['opponent',opponent]]){const supported=hasAlternate(character);$(slot+'Alternate').disabled=!supported;$(slot+'Alternate').textContent=supported?outfitName(character):character===16?'Signature detective outfit':character===17?'Signature blue-flame outfit':'Alternate outfit · coming later';$(slot+'Outfit').value=String(outfitFor(character,looks[slot][character]));}
   $('playerCharacter').value=String(player);$('opponentCharacter').value=String(opponent);
   for(const f of FIGHTERS)$('pick'+f.index).setAttribute('aria-pressed',String(player===f.index));
   const f=FIGHTERS[player];$('fighterDetail').textContent=`${f.name} · ${f.style}. ${f.strength}. Weakness: ${f.weakness}. Combo: ${f.combo}. POWER: ${powerFor(player).name} · ${powerFor(player).cooldown}s recharge. SUPER: ${f.special} · full meter.`;

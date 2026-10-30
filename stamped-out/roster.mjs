@@ -18,7 +18,9 @@ export const ROSTER=[
  {name:'Big Pressure',style:'Heavyweight clinch brawling',strength:'Armored charges and close-range crushing force',weakness:'Slow movement and highly telegraphed charges',special:'Pressure Break',superStyle:'Ground-splitting double slam',boss:true},
  {name:'Lady Static',style:'Electric trap boxing',strength:'Deceptive timing and space control',weakness:'Light close-range damage and vulnerable setup time',special:'Static Storm',superStyle:'Electric trap detonation',boss:true},
  {name:'Iron Haul',style:'Armored stance fighting',strength:'Can absorb a light hit during selected heavy attacks',weakness:'Throws and recovery punishes beat armor',special:'Full Load',superStyle:'Freight-charge shoulder smash',boss:true},
- {name:'The False King',style:'Stolen-technique stance switching',strength:'Versatile moves from several disciplines',weakness:'Visible stance changes and costly missed specials',special:'False Coronation',superStyle:'Counterfeit crown storm',boss:true}
+ {name:'The False King',style:'Stolen-technique stance switching',strength:'Versatile moves from several disciplines',weakness:'Visible stance changes and costly missed specials',special:'False Coronation',superStyle:'Counterfeit crown storm',boss:true},
+ {name:'Detective Flex',style:'Investigative counter-boxing',strength:'Timed guards create fast counter confirms and a precise punch-to-kick chain',weakness:'Short reach and punishable missed counters; grabs beat his guard',special:'Case Closed',superStyle:'Evidence check, rising counter and closing palm slam',playable:true},
+ {name:'Lil Juice',style:'Blue-flame footwork',strength:'Fast movement and a directional boost kick to close space',weakness:'Light damage and short punches; blocked boost kicks leave recovery',special:'Blue Flame Rush',superStyle:'Boost-step punches, rising kick and blue-flame dropkick',playable:true}
 ];
 export const KING_STANCES=[
  {name:'RUSH',color:'#c7ff63',speed:255,punch:{wind:.10,active:.10,recovery:.25,range:155,damage:10}},
@@ -41,7 +43,9 @@ export const PROTOTYPE=[
  {speed:165,jump:510,moves:{punch:{wind:.26,active:.10,recovery:.40,range:175,damage:18},kick:{wind:.62,active:.12,recovery:.72,range:175,damage:19},special:{wind:.35,active:.18,recovery:1.05,range:230,damage:38},grab:{wind:.24,active:.10,recovery:.70,range:120,damage:24}}},
  {speed:235,jump:675,moves:{punch:{wind:.12,active:.10,recovery:.27,range:153,damage:8},kick:{wind:.28,active:.10,recovery:.55,range:170,damage:8},special:{wind:.26,active:.18,recovery:.90,range:310,damage:32},grab:{wind:.16,active:.08,recovery:.53,range:108,damage:14}}},
  {speed:180,jump:545,moves:{punch:{wind:.24,active:.10,recovery:.38,range:160,damage:14},kick:{wind:.25,active:.10,recovery:.25,range:155,damage:12},special:{wind:.30,active:.18,recovery:1.0,range:235,damage:35},grab:{wind:.20,active:.10,recovery:.60,range:116,damage:21}}},
- {speed:255,jump:640,moves:{punch:{wind:.10,active:.10,recovery:.25,range:155,damage:10},kick:{wind:.35,active:.10,recovery:.30,range:175,damage:11},special:{wind:.30,active:.18,recovery:1.05,range:290,damage:36},grab:{wind:.17,active:.10,recovery:.56,range:112,damage:18}}}
+ {speed:255,jump:640,moves:{punch:{wind:.10,active:.10,recovery:.25,range:155,damage:10},kick:{wind:.35,active:.10,recovery:.30,range:175,damage:11},special:{wind:.30,active:.18,recovery:1.05,range:290,damage:36},grab:{wind:.17,active:.10,recovery:.56,range:112,damage:18}}},
+ {speed:235,jump:655,moves:{punch:{wind:.115,active:.10,recovery:.25,range:151,damage:11},kick:{wind:.225,active:.12,recovery:.38,range:166,damage:11},special:{wind:.25,active:.18,recovery:.86,range:265,damage:30},grab:{wind:.16,active:.09,recovery:.54,range:108,damage:17}}},
+ {speed:290,jump:700,moves:{punch:{wind:.10,active:.10,recovery:.24,range:142,damage:8},kick:{wind:.19,active:.12,recovery:.38,range:162,damage:9},special:{wind:.22,active:.18,recovery:.86,range:280,damage:27},grab:{wind:.14,active:.08,recovery:.49,range:103,damage:12}}}
 ];
 export const moveFor=(id,name)=>name==='mix'?MIX_DROP:name==='ability'?powerFor(id):PROTOTYPE[id]?.moves[name];
 
@@ -61,7 +65,9 @@ export const SUPER_SEQUENCES=[
  {duration:3.6,beats:[{at:.45,damage:6},{at:1.15,damage:8},{at:1.95,damage:10},{at:3.05,damage:14}]},
  {duration:3.5,beats:[{at:.40,damage:5},{at:1.12,damage:7},{at:1.95,damage:7},{at:3.00,damage:13}]},
  {duration:3.45,beats:[{at:.42,damage:6},{at:1.05,damage:7},{at:1.82,damage:8},{at:2.95,damage:14}]},
- {duration:3.6,beats:[{at:.40,damage:7},{at:1.08,damage:7},{at:1.90,damage:8},{at:3.05,damage:14}]}
+ {duration:3.6,beats:[{at:.40,damage:7},{at:1.08,damage:7},{at:1.90,damage:8},{at:3.05,damage:14}]},
+ {duration:3.3,beats:[{at:.38,damage:5},{at:.95,damage:6},{at:1.6,damage:7},{at:2.7,damage:12}]},
+ {duration:3.25,beats:[{at:.32,damage:4},{at:.9,damage:5},{at:1.52,damage:6},{at:2.65,damage:12}]}
 ];
 export const THROW_SEQUENCE={duration:1.05,escapeWindow:.3,impactAt:.82};
 
@@ -82,6 +88,8 @@ export const FIGHTERS=[
  {key:'pressure',color:'#ffd46b',quote:'FEEL THE WHOLE BLOCK SHAKE.',victory:'PRESSURE MAKES THE RULES.',combo:'CHARGE · GRAB',tip:'Ground K winds up an armored shoulder charge. Absorbs one light hit; grabs, heavy attacks and recovery punishes beat it.',cancels:{},maxCancels:0},
  {key:'static',color:'#70f5ff',quote:'YOUR SIGNAL ENDS HERE.',victory:'OFF THE AIR.',combo:'K · ELECTRIC TRAP',tip:'Ground K plants one trap. It arms after 0.65 seconds. Jump or block it; hitting its owner breaks it. Air K stays a close kick.',cancels:{},maxCancels:0},
  {key:'haul',color:'#e4d39d',quote:'NOTHING GETS PAST THIS LOAD.',victory:'DELIVERY COMPLETE.',combo:'K · BRACE → P',tip:'Ground K braces. P within 1.8 seconds spends it on a 22-damage heavy straight with one light-hit armor during startup. Throws and heavy hits break it; movement cancels brace.',cancels:{},maxCancels:0},
- {key:'king',color:'#ffd271',quote:'EVERY CROWN LOOKS GOOD ON ME.',victory:'THE CROWN STAYS HERE.',combo:'K · SWITCH STANCE',tip:'Ground K cycles RUSH → REACH → POWER. The stance name shows above you. RUSH punches quickly, REACH hits farther, POWER hits hard but recovers slowly. Switching is vulnerable; air K is a normal kick.',cancels:{},maxCancels:0}
+ {key:'king',color:'#ffd271',quote:'EVERY CROWN LOOKS GOOD ON ME.',victory:'THE CROWN STAYS HERE.',combo:'K · SWITCH STANCE',tip:'Ground K cycles RUSH → REACH → POWER. The stance name shows above you. RUSH punches quickly, REACH hits farther, POWER hits hard but recovers slowly. Switching is vulnerable; air K is a normal kick.',cancels:{},maxCancels:0},
+ {key:'detective',color:'#e7cf8b',quote:'EVERY STAMP LEAVES A CLUE.',victory:'CASE CLOSED. REAL STAMP CONFIRMED.',combo:'TIMED BLOCK → P → K',tip:'Tap BLOCK just before contact, then P for a fast 16-damage counter. Confirm P → K. Missed counters recover slowly; grabs beat guard.',cancels:{punch:['kick']},maxCancels:1},
+ {key:'juice',color:'#48c7ff',quote:'SMALL SIZE. BIG JUICE.',victory:'STILL GOT PLENTY IN THE TANK.',combo:'P → K · DIRECTION + K',tip:'Hold left or right and tap K for a blue-flame boost kick. Confirm P → K. Light hits and short reach; block a boost kick and punish the recovery.',cancels:{punch:['kick']},maxCancels:1}
 ].map((f,i)=>({...ROSTER[i],...f,index:i,stats:PROTOTYPE[i]}));
 export const fighterFor=f=>FIGHTERS[f?.character??f?.id??0]||FIGHTERS[0];

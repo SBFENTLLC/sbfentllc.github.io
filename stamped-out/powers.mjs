@@ -17,7 +17,9 @@ const entries=[
  ['Pressure Quake','quake','#ffd46b',450,400,12,110,6,.44],
  ['Static Jolt','electric','#70f5ff',740,470,9,80,5,.3],
  ['Freight Blast','freight','#e4d39d',480,430,12,110,5.8,.42],
- ['Crown Break','royal','#d9a3ff',700,480,10,95,5.2,.34]
+ ['Crown Break','royal','#d9a3ff',700,480,10,95,5.2,.34],
+ ['Evidence Flash','evidence','#e7cf8b',760,445,9,85,5,.28],
+ ['Blue Flame Shot','bluefire','#48c7ff',920,420,8,75,4.6,.24]
 ];
 export const POWERS=entries.map(([name,shape,color,speed,range,damage,push,cooldown,wind],character)=>Object.freeze({name,shape,color,speed,range,damage,push,cooldown,wind,active:.1,recovery:.32,character,low:shape==='ground'||shape==='quake'}));
 export const powerFor=character=>POWERS[character]??POWERS[0];
@@ -36,11 +38,11 @@ export function drawPowerShot(ctx,p,reduced=false){
   case 'orb':ctx.beginPath();ctx.arc(0,0,32,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff8c1';ctx.beginPath();ctx.arc(-6,-5,17,-2,1);ctx.stroke();break;
   case 'shard':path([[-38,-13],[39,0],[-38,17],[-9,0],[-38,-13]]);ctx.stroke();break;
   case 'wave':for(let i=0;i<3;i++){ctx.globalAlpha=1-i*.2;ctx.beginPath();ctx.ellipse(-i*12,0,18+i*5,48+i*6,0,-1.22,1.22);ctx.stroke();}break;
-  case 'hex':ctx.rotate(time*2);path(Array.from({length:7},(_,i)=>[Math.cos(i*Math.PI/3)*35,Math.sin(i*Math.PI/3)*35]));ctx.stroke();ctx.fillRect(-13,-13,26,26);break;
+  case 'evidence':case 'hex':ctx.rotate(time*2);path(Array.from({length:7},(_,i)=>[Math.cos(i*Math.PI/3)*35,Math.sin(i*Math.PI/3)*35]));ctx.stroke();ctx.fillRect(-13,-13,26,26);break;
   case 'bolt':case 'electric':path([[-42,-19],[-10,-6],[-20,-23],[40,0],[5,4],[19,22],[-42,-19]]);ctx.stroke();if(data.shape==='electric'){ctx.lineWidth=2;path([[-25,35],[-5,12],[5,25],[32,-28]]);ctx.stroke();}break;
   case 'ground':case 'quake':ctx.lineWidth=data.shape==='quake'?6:4;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(-i*17,14,36+i*6,40+i*4,0,-1.6,1.6);ctx.stroke();}path([[-34,42],[-12,25],[2,42],[20,20],[40,42]]);ctx.stroke();break;
   case 'disc':ctx.rotate(time*7);ctx.beginPath();ctx.ellipse(0,0,42,19,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(0,0,32,11,0,0,Math.PI*2);ctx.stroke();ctx.fillRect(-6,-6,12,12);break;
-  case 'flame':path([[-53,-24],[-14,-12],[-25,-30],[31,-9],[42,0],[31,13],[-27,32],[-13,12],[-53,23],[-30,0],[-53,-24]]);ctx.stroke();ctx.fillStyle='#ffe3a0';ctx.beginPath();ctx.ellipse(17,0,20,10,0,0,Math.PI*2);ctx.fill();break;
+  case 'bluefire':case 'flame':path([[-53,-24],[-14,-12],[-25,-30],[31,-9],[42,0],[31,13],[-27,32],[-13,12],[-53,23],[-30,0],[-53,-24]]);ctx.stroke();ctx.fillStyle='#ffe3a0';ctx.beginPath();ctx.ellipse(17,0,20,10,0,0,Math.PI*2);ctx.fill();break;
   case 'freight':path([[-36,-22],[24,-22],[40,0],[24,22],[-36,22],[-22,0],[-36,-22]]);ctx.stroke();ctx.strokeStyle='#fff';for(let x=-14;x<=14;x+=14){ctx.beginPath();ctx.moveTo(x,-13);ctx.lineTo(x+10,13);ctx.stroke();}break;
  }
  ctx.restore();

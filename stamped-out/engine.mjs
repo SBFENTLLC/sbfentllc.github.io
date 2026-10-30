@@ -32,7 +32,7 @@ export class Fight {
   if(aerial&&f.airAttacks>=airLimit)return false;
   const airCancel=aerial&&f.move?.airborne&&f.move.connected&&f.move.t>=f.move.wind+.025;
   const cancel=airCancel||!!f.move&&f.move.connected&&f.move.t>=(f.move.wind??moveFor(f.character,f.move.name).wind)+moveFor(f.character,f.move.name).active*.35&&(canGroundChain(f,name)||(f.chain<(FIGHTERS[f.character].maxCancels??2)&&FIGHTERS[f.character].cancels[f.move.name]?.includes(name)));
-  const counter=f.character===5&&name==='punch'&&f.counterReady>0,load=f.character===14&&name==='punch'&&f.brace>0&&f.y<8;
+  const counter=[5,16].includes(f.character)&&name==='punch'&&f.counterReady>0,load=f.character===14&&name==='punch'&&f.brace>0&&f.y<8;
   if(f.move&&!cancel||f.stun>0||f.cooldown>0||f.knockdown>0||(f.block&&name!=='grab'&&!counter&&!load))return false;
   if(!crouch&&!f.crouch&&f.character===14&&name==='kick'&&f.y<8&&f.brace>0)return false;
   if(!crouch&&!f.crouch&&f.character===13&&name==='kick'&&f.y<8&&this.traps.some(t=>t.id===id))return false;
@@ -46,7 +46,7 @@ export class Fight {
   f.chain=cancel?f.chain+1:0;f.buffer=null;if(!cancel){f.combo=0;f.comboTime=0;}
   if(counter){f.counterReady=0;f.block=false;}
   f.brace=0;if(load)f.block=false;
-  const dash=f.character===8&&name==='punch'&&f.y<8&&f.dashCooldown<=0&&(direction===-1||direction===1),rush=f.character===11&&name==='punch'&&f.y<8;if(dash)f.dashCooldown=.95;
+  const dash=(f.character===8&&name==='punch'||f.character===17&&name==='kick')&&f.y<8&&f.dashCooldown<=0&&(direction===-1||direction===1),rush=f.character===11&&name==='punch'&&f.y<8;if(dash)f.dashCooldown=.95;
   const stancePunch=f.character===15&&name==='punch'?KING_STANCES[f.stance].punch:null,stanceShift=!crouch&&!f.crouch&&f.character===15&&name==='kick'&&f.y<8;if(stanceShift)f.stanceCooldown=3.8;
   const variant=strikeVariant(name,f.chain,{crouch:!aerial&&(crouch||f.crouch),running:running||f.running});
   f.move={...stancePunch,...variant,damage:variant?Math.max(3,Math.round((stancePunch?.damage??m.damage)*variant.damageFactor)):stancePunch?.damage,range:variant?(stancePunch?.range??m.range)+variant.rangeBonus:stancePunch?.range,name,t:0,airborne:aerial,recovery:aerial?Math.min(.22,m.recovery*.62):stancePunch?.recovery,stanceShift,stance:f.stance,counter,dash,rush,load,braceSetup:!crouch&&!f.crouch&&f.character===14&&name==='kick'&&f.y<8,charge:!crouch&&!f.crouch&&f.character===12&&name==='kick'&&f.y<8,armorUsed:false,travel:0,direction:dash?direction:f.face,wind:aerial?Math.min(.16,m.wind*.72):load?.45:counter?.065:dash?.14:stancePunch?.wind??m.wind*(cancel?.55:1),hit:false,connected:false,throwDirection:direction===-1?-1:direction===1?1:f.face};return true;
@@ -63,9 +63,9 @@ export class Fight {
   a.cooldown=.35;b.cooldown=.12;b.throwImmune=.9;this.sequence=null;this.events.push({type:'throwEscape',id:s.target});
  }
  applyHit(id,damage,{move='punch',blocked=false,sequence=false,final=false,face=this.fighters[id].face,push}={}){
-  const a=this.fighters[id],b=this.fighters[1-id],parry=blocked&&!sequence&&b.character===5&&b.guardWindow>0&&(move==='punch'||move==='kick'),actual=parry?0:blocked?Math.ceil(damage*(b.character===7?.06:.12)):damage;
+  const a=this.fighters[id],b=this.fighters[1-id],parry=blocked&&!sequence&&[5,16].includes(b.character)&&b.guardWindow>0&&(move==='punch'||move==='kick'),actual=parry?0:blocked?Math.ceil(damage*(b.character===7?.06:.12)):damage;
   if(!blocked)this.traps=this.traps.filter(t=>t.id!==1-id);
-  if(parry){b.counterReady=.5;b.guardWindow=0;}
+  if(parry){b.counterReady=b.character===16?.4:.5;b.guardWindow=0;}
   const aerial=!sequence&&(move==='punch'||move==='kick')&&a.move?.airborne,scaled=actual===0?0:Math.max(1,Math.round(actual*this.damageScale*(aerial?.8:1)));
   const sweep=move==='kick'&&!!a.move?.sweep;
   const before=b.hp;b.hp=clamp(b.hp-scaled,sequence&&!final?1:0,100);
@@ -110,7 +110,7 @@ export class Fight {
  }
  aiInput(){
   const a=this.fighters[0],b=this.fighters[1],d=Math.abs(a.x-b.x),toward=a.x<b.x?-1:1;
-  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&!a.move.hit&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:(b.character===1?.4:.31),hard:.43}[this.difficulty]||.12)};
+  const desired=this.difficulty==='easy'?116:[105,155,155,130,100,115,260,132,130,112,160,105,145,185,130,140,125,125][b.character],ai={left:d>desired&&toward<0,right:d>desired&&toward>0,block:!!a.move&&!a.move.hit&&d<190&&this.difficulty!=='easy'&&this.aiTime<({medium:(b.character===1?.4:.31),hard:.43}[this.difficulty]||.12)};
   ai.crouch=ai.block&&a.y<8&&(a.move?.low||a.character===10&&a.move?.name==='kick');
   if(b.character===14&&(b.move?.braceSetup||b.brace>0&&d<=180)){ai.left=false;ai.right=false;}
   if(b.character===13&&this.traps.some(t=>t.id===1)&&d<175){ai.left=toward>0;ai.right=toward<0;}
@@ -122,11 +122,11 @@ export class Fight {
    if(b.mixCooldown<=0&&d<=MIX_DROP.range&&b.stun<=0&&b.y<8&&this.difficulty!=='easy'){b.block=false;if(this.attack(1,'mix'))return {};}
    const evasive=[2,3,6,8,10].includes(b.character);
    if(evasive&&d<220){ai.block=false;ai.left=toward>0;ai.right=toward<0;ai.jump=[3,10].includes(b.character)&&b.stun<=0;}
-   else{ai.block=true;ai.crouch=b.defenseLow;ai.left=ai.right=false;if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');}
+   else{ai.block=true;ai.crouch=b.defenseLow;ai.left=ai.right=false;if([5,16].includes(b.character)&&b.counterReady>0&&d<=140)this.attack(1,'punch');}
    return ai;
   }
   if(b.move?.connected&&this.difficulty!=='easy'){const next=b.move.name==='punch'?'kick':'punch';if(next)this.attack(1,next);}
-  if(b.character===5&&b.counterReady>0&&d<=140)this.attack(1,'punch');
+  if([5,16].includes(b.character)&&b.counterReady>0&&d<=140)this.attack(1,'punch');
   // A chosen guard must resolve before a fresh attack can commit this step.
   // Otherwise attack() sees last frame's block=false and defeats that guard.
   if(ai.block)return ai;
@@ -166,7 +166,7 @@ export class Fight {
 
   // Resolve guard for both sides before either strike, avoiding player-order
   // advantage when a block and contact land on the same simulation step.
-  for(let i=0;i<2;i++){const f=this.fighters[i];f.mixCooldown=Math.max(0,f.mixCooldown-dt);f.defenseTime=Math.max(0,f.defenseTime-dt);f.pressureTime=Math.max(0,f.pressureTime-dt);if(f.pressureTime===0)f.pressureHits=0;f.abilityCooldown=Math.max(0,f.abilityCooldown-dt);f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&f.character===5&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
+  for(let i=0;i<2;i++){const f=this.fighters[i];f.mixCooldown=Math.max(0,f.mixCooldown-dt);f.defenseTime=Math.max(0,f.defenseTime-dt);f.pressureTime=Math.max(0,f.pressureTime-dt);if(f.pressureTime===0)f.pressureHits=0;f.abilityCooldown=Math.max(0,f.abilityCooldown-dt);f.stanceCooldown=Math.max(0,f.stanceCooldown-dt);f.brace=Math.max(0,f.brace-dt);f.dashCooldown=Math.max(0,f.dashCooldown-dt);f.guardWindow=Math.max(0,f.guardWindow-dt);f.guardCooldown=Math.max(0,f.guardCooldown-dt);f.counterReady=Math.max(0,f.counterReady-dt);if(keys[i].block&&!f.guardHeld&&[5,16].includes(f.character)&&f.guardCooldown<=0&&f.stun<=dt&&f.knockdown<=dt&&f.y===0&&!f.move){f.guardWindow=f.character===16?.11:.14;f.guardCooldown=.45;}f.guardHeld=!!keys[i].block;f.block=!!keys[i].block&&!f.move&&f.stun<=dt&&f.knockdown<=dt&&f.y===0;f.lowGuard=f.block&&!!keys[i].crouch;}
   for(let i=0;i<2;i++){
    const f=this.fighters[i],other=this.fighters[1-i],key=keys[i];f.face=f.running?f.runDirection:other.x>=f.x?1:-1;
    f.stun=Math.max(0,f.stun-dt);f.cooldown=Math.max(0,f.cooldown-dt);f.knockdown=Math.max(0,f.knockdown-dt);f.throwImmune=Math.max(0,f.throwImmune-dt);f.comboTime-=dt;if(f.comboTime<=0)f.combo=0;
@@ -186,7 +186,7 @@ export class Fight {
     // Contact strikes stay live for their active window. Ground setups and
     // committed charges still trigger once, preserving their distinct rules.
     const contactStrike=move.name==='punch'||move.airborne||move.name==='kick'&&!move.charge&&!move.stanceShift&&!move.braceSetup&&!(f.y<8&&!move.low&&(f.character===6||f.character===13));
-    if((move.dash&&move.t<=.16||move.rush&&move.t<=.13)&&f.y<8){const delta=Math.min((move.dash?650:200)*dt,(move.dash?104:26)-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
+    if((move.dash&&move.t<=.16||move.rush&&move.t<=.13)&&f.y<8){const delta=Math.min((move.dash?(f.character===17?540:650):200)*dt,(move.dash?(f.character===17?86:104):26)-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.charge&&move.t>=.34&&move.t<=.62){const delta=Math.min(430*dt,120-move.travel);let next=f.x+move.direction*delta;if((other.x-f.x)*move.direction>0)next=move.direction>0?Math.min(next,other.x-86):Math.max(next,other.x+86);f.x=clamp(next,75,925);move.travel+=delta;}
     if(move.t>=(move.wind??m.wind)&&!move.hit&&(!contactStrike||move.t<=(move.wind??m.wind)+m.active)){
      move.hit=!contactStrike;const distance=(other.x-f.x)*f.face,vertical=Math.abs(f.y-other.y),inRange=distance>=0&&distance<=(move.load?180:move.counter?170:move.range??m.range);
@@ -203,7 +203,7 @@ export class Fight {
       this.events.push({type:'grabMiss',id:i});
      }else if(inRange&&vertical<(move.sweep?45:f.character===10&&move.name==='kick'&&f.y<8?45:move.airborne?125:100)){
       if(move.name==='special'&&!other.block&&other.knockdown<=0){this.beginSequence('super',i);return;}
-      if(other.knockdown<=0){move.hit=true;const blocked=other.block&&!((move.low||f.character===10&&move.name==='kick'&&f.y<8)&&!other.lowGuard);move.connected=!blocked;this.applyHit(i,move.load?22:move.counter?18:move.damage??m.damage,{move:move.name,blocked});}
+      if(other.knockdown<=0){move.hit=true;const blocked=other.block&&!((move.low||f.character===10&&move.name==='kick'&&f.y<8)&&!other.lowGuard);move.connected=!blocked;this.applyHit(i,move.load?22:move.counter?(f.character===16?16:18):move.damage??m.damage,{move:move.name,blocked});}
      }
     }
     if(contactStrike&&move.t>=(move.wind??m.wind)+m.active)move.hit=true;

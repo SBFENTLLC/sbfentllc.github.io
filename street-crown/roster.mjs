@@ -15,7 +15,8 @@ const rows=[
 ['Lady Static','Trap technician','Quick turns · electric control',['#553c79','#72e8ff'],['#243d5b','#c397ff'],1505,1.12,1.2,.88,'Static Jam','emp','Signal Reset','cleanse'],
 ['Iron Haul','Armored racer','Stable weight · heavy projectiles',['#40494d','#f3aa5d'],['#655c44','#e6d29b'],1610,.76,.86,1.5,'Freight Scrap','heavy','Iron Plate','fortify'],
 ['The False King','Versatile rival','High speed · demanding steering',['#50366d','#e0c46c'],['#c4b68e','#382b4d'],1620,1,.98,1.08,'Royal Counterfeit','royal','Borrowed Crown','reflect'],
-['Little Juice','Speed / trick racer','Small truck · big pressure · blue-fire boost',['#071528','#168cff'],['#090b10','#48c7ff'],1600,1.34,1.16,.76,'JUICE BOOST','juice','Blue Flame Slip','dodge']
+['Little Juice','Speed / trick racer','Small truck · big pressure · blue-fire boost',['#071528','#168cff'],['#090b10','#48c7ff'],1600,1.34,1.16,.76,'JUICE BOOST','juice','Blue Flame Slip','dodge'],
+['Detective Flex','Pursuit driver','SBFENT Pursuit · steady grip · quick exits',['#111820','#f3e7cf'],['#111820','#f3e7cf'],1530,1.15,1.14,.98,'Hot Pursuit','dash','Case Cover','shield']
 ];
 const REACTIONS=[
  ['Aw man!','Crown pressure!','Clean air!','Not today!','Let’s move!','Stamped!'],
@@ -34,7 +35,8 @@ const REACTIONS=[
  ['Signal jam!','Static live!','Airwave!','Signal lost!','Full charge!','Channel clear!'],
  ['Freight hit!','Clear the lane!','Heavy lift!','Passing freight?','Full haul!','Delivered!'],
  ['My crown!','Crown is mine!','Royal air!','Lucky pass!','Borrowed speed!','Bow down!'],
- ['Aw man!','I’m too fast!','Let’s go!','You can’t catch me!','JUICE BOOST!','Blue fire!']
+ ['Aw man!','I’m too fast!','Let’s go!','You can’t catch me!','JUICE BOOST!','Blue fire!'],
+ ['Case opened!','Hot pursuit!','Evidence airborne!','Suspect passing!','Pursuit boost!','Case closed!']
 ];
 const RACERS=rows.map((r,id)=>({id,name:r[0],style:r[1],bio:r[2],colors:[r[3],r[4]],top:r[5],accel:r[6],grip:r[7],armor:r[8],attack:r[9],attackType:r[10],defense:r[11],defenseType:r[12],attackWait:id===16?10:11+(id%4),defenseWait:id===16?9:9+(id%3),nitroPower:id===16?1.14:1,reactions:{crash:[REACTIONS[id][0],'Come on!'],pass:[REACTIONS[id][1]],jump:[REACTIONS[id][2]],passed:[REACTIONS[id][3]],nitro:[REACTIONS[id][4]],win:[REACTIONS[id][5]],lose:['Run it back!','Next race.'],stuck:['I’m stuck!',REACTIONS[id][0]],hit:['Watch out!',REACTIONS[id][0]]}}));
 const RACER_COUNT=RACERS.length;

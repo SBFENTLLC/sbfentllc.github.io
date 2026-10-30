@@ -8,7 +8,17 @@ const KEY='sbfent-street-crown-v1';
 const equipped=()=>Object.fromEntries(Array.from({length:RACER_COUNT},(_,i)=>[i,[]]));
 function fresh(){return {version:2,character:0,wraps:Array(RACER_COUNT).fill(0),storyStep:0,storyRacers:[0],records:{},races:0,wins:0,coins:0,earnedCoins:0,vehicles:Array(RACER_COUNT).fill('stock'),ownedGear:[],gear:Array(RACER_COUNT).fill(null),upgrades:Array.from({length:RACER_COUNT},()=>normalizeUpgrade()),ownedCosmetics:[],equipped:equipped(),mastery:Array(RACER_COUNT).fill(0),medals:{},rivalries:Array.from({length:RACER_COUNT},()=>({wins:0,losses:0,passes:0})),musicVolume:.38,fxVolume:.82,voiceVolume:.9,volume:.38,auto:true,tiltSensitivity:1,tiltInvert:false,difficulty:'normal',resume:null,cup:null};}
 const n=(v,a,b,f=0)=>Math.max(a,Math.min(b,Number.isFinite(Number(v))?Number(v):f));
-function validate(raw){if(!raw||![1,2].includes(raw.version)||!Number.isInteger(raw.storyStep)||raw.storyStep<0||raw.storyStep>8||!Number.isInteger(raw.character)||raw.character<0||raw.character>=RACER_COUNT||!Array.isArray(raw.wraps)||raw.wraps.length<16||raw.wraps.some(v=>v!==0&&v!==1))throw Error('This is not a Street Crown backup.');
+function validate(raw){
+ // The hosted prototype used Detective=16/Juice=17. Website saves use Juice=16/Detective=17.
+ // Version-two garages already have the website IDs and must never be remapped.
+ if(raw?.version===1&&Array.isArray(raw.wraps)&&raw.wraps.length>=17){
+  raw=JSON.parse(JSON.stringify(raw));const swap=id=>id===16?17:id===17?16:id;
+  raw.character=swap(raw.character);const wraps=raw.wraps;raw.wraps=Array.from({length:RACER_COUNT},(_,i)=>wraps[swap(i)]??0);
+  if(Array.isArray(raw.storyRacers))raw.storyRacers=raw.storyRacers.map(swap);
+  if(raw.cup?.points){const points=raw.cup.points;raw.cup.points=Array.from({length:RACER_COUNT},(_,i)=>points[swap(i)]??0);}
+  for(const r of raw.resume?.race?.racers||[])r.char=swap(r.char);
+ }
+if(!raw||![1,2].includes(raw.version)||!Number.isInteger(raw.storyStep)||raw.storyStep<0||raw.storyStep>8||!Number.isInteger(raw.character)||raw.character<0||raw.character>=RACER_COUNT||!Array.isArray(raw.wraps)||raw.wraps.length<16||raw.wraps.some(v=>v!==0&&v!==1))throw Error('This is not a Street Crown backup.');
  const d=fresh(),oldVolume=n(raw.musicVolume??raw.volume,.0,1,.38);Object.assign(d,{character:raw.character,wraps:Array.from({length:RACER_COUNT},(_,i)=>raw.wraps[i]??0),storyStep:raw.storyStep,storyRacers:Array.isArray(raw.storyRacers)?[...new Set(raw.storyRacers.filter(i=>Number.isInteger(i)&&i>=0&&i<RACER_COUNT))]:[0],races:Math.max(0,Math.min(1e6,raw.races|0)),wins:Math.max(0,Math.min(1e6,raw.wins|0)),coins:Math.max(0,Math.min(1e9,raw.coins|0)),musicVolume:oldVolume,fxVolume:n(raw.fxVolume,0,1,.82),voiceVolume:n(raw.voiceVolume,0,1,.9),volume:oldVolume,auto:raw.auto!==false,tiltSensitivity:n(raw.tiltSensitivity,.5,2,1),tiltInvert:raw.tiltInvert===true,difficulty:['easy','normal','heat'].includes(raw.difficulty)?raw.difficulty:'normal'});
  d.upgrades=Array.from({length:RACER_COUNT},(_,i)=>normalizeUpgrade(raw.upgrades?.[i]));d.mastery=Array.from({length:RACER_COUNT},(_,i)=>Math.max(0,Math.min(999999,raw.mastery?.[i]|0)));
  for(let t=0;t<6;t++)for(const id of ['coins','air','drift','explore','signature']){const k=t+':'+id;if(raw.medals?.[k]!==undefined)d.medals[k]=Math.max(0,Math.min(3,raw.medals[k]|0));}d.rivalries=Array.from({length:RACER_COUNT},(_,i)=>Object.fromEntries(['wins','losses','passes'].map(k=>[k,Math.max(0,Math.min(1e6,raw.rivalries?.[i]?.[k]|0))])));
