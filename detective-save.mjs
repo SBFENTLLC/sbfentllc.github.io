@@ -1,4 +1,4 @@
-import {INVESTIGATION_KEY,cleanInvestigation} from './detective-investigation.mjs?v=deductions-v8';
+import {INVESTIGATION_KEY,cleanInvestigation} from './detective-investigation.mjs?v=movement-v9';
 import {OUTDOOR,INDOOR} from './detective-cases.mjs';
 export const DETECTIVE_STORY_KEY='sbfent-detective-story-v2';
 export const LEGACY_STORY_KEY='sbfent-story-v1';

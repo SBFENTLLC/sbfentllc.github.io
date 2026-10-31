@@ -6,7 +6,7 @@ export function districtDetails({location,inside,box,plane,surface,signTexture,m
   // Open service lanes connect the original lot to the extended district.
   for(const x of [-20,20]){for(let z=8;z<59;z+=6)surface(x,z,.12,2.2,d.gold);box(x,0,26,.12,2.6,.12,d.chrome,false);plane(x,1.5,26.1,4.8,.7,signTexture('SBFENT / SERVICE AISLE'));for(const z of [33,55])box(x,0,z,2.4,1.8,2.4,location===2?m.black:(textures.warehouse?.crate||c.wood),true);}
 
-  if(location===0){for(const x of [-7,7]){box(x,.06,-3,2.1,.15,3.2,d.concrete,false);box(x,1.3,-2.4,.7,.55,.15,d.glass,false);plane(x,1.55,-2.28,.65,.3,panel('SBFENT'));for(const side of [-1,1]){box(x+side*.63,.55,-3,.09,1.5,.1,m.black,false);box(x+side*.52,1.75,-2.9,.2,.4,.12,d.chrome,false);}}plane(0,8.5,-16.1,11,.6,panel('BIG OLE RIG / SBFENT DINER'));lights.push([-7,2,-3,'#ffae5c'],[7,2,-3,'#67cde1']);}
+  if(location===0){plane(0,8.5,-16.1,11,.6,panel('BIG OLE RIG / SBFENT DINER'));}
   if(location===1){for(const x of [-9,9]){box(x,0,18,2.4,3.3,.25,m.black,false);plane(x,.8,18.17,2.1,1.8,panel('SBFENT SOUND'));box(x,3.35,18,2.5,.12,.35,d.gold,false);}for(const x of [-18,18])lights.push([x,2,8,'#48e7b1']);plane(0,8.5,-16.1,11,.7,panel('SBFENT STUDIO / AFTER-HOURS SESSION'));}
   if(location===2){for(const x of [-10,10]){box(x,0,17,.18,3,.18,d.chrome,false);box(x,3,17,2.8,.15,.7,d.gold,false);lights.push([x,2.8,17,'#e56db9']);}for(const x of [-6,6])surface(x,25,1.5,12,m.purple);plane(0,8.5,-16.1,11,.7,panel('STAMPED LOUNGE / VIP'));}
  }else{
