@@ -1,10 +1,11 @@
-import {INVESTIGATION_KEY,cleanInvestigation} from './detective-investigation.mjs';
+import {INVESTIGATION_KEY,cleanInvestigation} from './detective-investigation.mjs?v=deductions-v8';
 import {OUTDOOR,INDOOR} from './detective-cases.mjs';
 export const DETECTIVE_STORY_KEY='sbfent-detective-story-v2';
 export const LEGACY_STORY_KEY='sbfent-story-v1';
 export function validDetectiveStory(v){
  if(!v||v.version!==1||!Number.isInteger(v.location)||v.location<0||v.location>3||!Number.isInteger(v.level)||v.level<1||v.level>10||!Array.isArray(v.collected)||v.collected.length>10||new Set(v.collected).size!==v.collected.length||!v.collected.every(n=>Number.isInteger(n)&&n>=0&&n<10))return null;
  const out={version:1,location:v.location,level:v.level,collected:[...v.collected],complete:v.complete===true,inside:v.inside===true};
+ if(typeof v.deduced==='boolean')out.deduced=v.deduced;
  if(typeof v.investigated==='boolean')out.investigated=v.investigated;
  const p=v.player,b=out.inside?INDOOR:OUTDOOR,bound=b.maxX;
  if(p&&Number.isFinite(p.x)&&Math.abs(p.x)<=bound&&Number.isFinite(p.z)&&p.z>=b.minZ&&p.z<=b.maxZ&&Number.isFinite(p.yaw))out.player={x:p.x,z:p.z,yaw:p.yaw%(Math.PI*2)};

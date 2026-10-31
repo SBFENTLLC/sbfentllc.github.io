@@ -1,7 +1,8 @@
-import {CASES,caseBeat} from './detective-cases.mjs';
+import {deductionCase} from './detective-deductions.mjs?v=deductions-v8';
+import {CASES,caseBeat} from './detective-cases.mjs?v=deductions-v8';
 export const INVESTIGATION_KEY='sbfent-detective-investigation-v1';
-export const freshInvestigation=()=>({version:1,objects:[],witnesses:[]});
-export function cleanInvestigation(v){if(!v||v.version!==1)return freshInvestigation();return {version:1,objects:[...new Set((Array.isArray(v.objects)?v.objects:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<12))],witnesses:[...new Set((Array.isArray(v.witnesses)?v.witnesses:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<400))]};}
+export const freshInvestigation=()=>({version:1,objects:[],witnesses:[],contradictions:[],deductions:[]});
+export function cleanInvestigation(v){if(!v||v.version!==1)return freshInvestigation();return {version:1,objects:[...new Set((Array.isArray(v.objects)?v.objects:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<12))],witnesses:[...new Set((Array.isArray(v.witnesses)?v.witnesses:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<400))],contradictions:[...new Set((Array.isArray(v.contradictions)?v.contradictions:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<4))],deductions:[...new Set((Array.isArray(v.deductions)?v.deductions:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<4))]};}
 const PROPS=[
  [{name:'Delivery crate',detail:'The broken seal and crown paint match the missing shipment.',kind:'crate'},{name:'Freight dispatch case',detail:'A duplicate route sheet connects the south freight lane to SBFENT Studio.',kind:'case'},{name:'Diner receipt',detail:'The receipt places the courier at the diner before the shipment left.',kind:'paper'}],
  [{name:'Studio access reader',detail:'The after-hours access log records a second visit to the archive.',kind:'case'},{name:'Session drive case',detail:'The annex recording preserves the background bass from Stamped Lounge.',kind:'case'},{name:'Archive folder',detail:'The copied security still identifies the lounge courier.',kind:'paper'}],
@@ -15,9 +16,10 @@ export function evidenceNodes(location,level=1,{warehouse=false,blocked=()=>fals
 export function inspectEvidence(record,node){const out=cleanInvestigation(record),fresh=!out.objects.includes(node.id);if(fresh)out.objects.push(node.id);return {record:out,fresh};}
 export function recordWitness(record,location,level,id){const out=cleanInvestigation(record),key=location*100+(level-1)*10+id;if(!out.witnesses.includes(key))out.witnesses.push(key);return out;}
 export function witnessDialogue(location,level,question='saw'){
+ if(question==='alibi'){const d=deductionCase(location);return {title:'DOES THAT STORY ADD UP?',text:'A witness claims: “'+d.claim+'” Compare that statement with the '+d.evidenceName.toLowerCase()+'.'};}
  const c=CASES[location],[clue,line]=caseBeat(location,level);
  return question==='route'?{title:'WHICH WAY DID THEY GO?',text:['Follow the freight dispatch trail into the diner, then the studio.','The archive recording points to the Stamped Lounge service entrance.','The lounge pickup went to FBH Yard. Check the workshop and warehouse.','The trail runs through the storage racks, conveyor bay, and rear loading dock.'][location]}:{title:'WHAT DID YOU SEE?',text:line+' Check the '+clue.toLowerCase()+' before you close this lead.'};
 }
-export function evidenceSummary(v){const r=cleanInvestigation(v);return `${r.objects.length}/12 objects inspected · ${r.witnesses.length} witness statements`;}
+export function evidenceSummary(v){const r=cleanInvestigation(v);return `${r.objects.length}/12 objects inspected · ${r.witnesses.length} witness statements · ${r.deductions.length}/4 deductions`;}
 
-export function investigationLog(v){const r=cleanInvestigation(v);return {objects:r.objects.map(id=>({name:PROPS[Math.floor(id/3)][id%3].name,text:PROPS[Math.floor(id/3)][id%3].detail})),witnesses:r.witnesses.slice(-4).reverse().map(key=>{const location=Math.floor(key/100),level=Math.floor(key%100/10)+1;return {name:CASES[location].place+' / LEAD '+level,text:caseBeat(location,level)[1]};})};}
+export function investigationLog(v){const r=cleanInvestigation(v);return {objects:[...r.contradictions.map(location=>({name:CASES[location].place+' / DISPUTED STATEMENT',text:deductionCase(location).claim})),...r.deductions.map(location=>({name:CASES[location].place+' / DEDUCTION VERIFIED',text:deductionCase(location).reveal})),...r.objects.map(id=>({name:PROPS[Math.floor(id/3)][id%3].name,text:PROPS[Math.floor(id/3)][id%3].detail}))],witnesses:r.witnesses.slice(-4).reverse().map(key=>{const location=Math.floor(key/100),level=Math.floor(key%100/10)+1;return {name:CASES[location].place+' / LEAD '+level,text:caseBeat(location,level)[1]};})};}
