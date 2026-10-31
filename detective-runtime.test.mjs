@@ -80,7 +80,7 @@ test('app view opens, resizes, pauses and exits around the same running case',()
  h.events.resize.forEach(f=>f());h.step(50);assert.equal(h.inspect().state,'playing');assert.ok(h.inspect().remaining<time);
  h.root.querySelector('[data-app-pause]').click();assert.equal(h.inspect().state,'paused');
  h.root.querySelector('[data-app-pause]').click();assert.equal(h.inspect().state,'playing');
- h.root.querySelector('[data-app-exit]').click();assert.equal(h.inspect().appViewOpen,false);assert.equal(h.inspect().state,'playing');
+ h.root.querySelector('[data-app-exit]').click();assert.equal(h.inspect().appViewOpen,false);assert.equal(h.inspect().state,'paused');
 });
 
 test('tap-to-run visibly latches sprinting and travels faster with the same joystick',()=>{
