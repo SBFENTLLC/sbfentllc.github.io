@@ -9,13 +9,13 @@ outro:[['LIL JUICE','Okay, I see you! Goldie runs the next court. Bring that sam
 {id:'golden-hour',title:'GOLDEN HOUR',place:'THE STAMP CENTER / INVITE RUN',gym:'blue',rival:'GOLDIE',color:'#e8ba50',skin:'#bc875b',hair:'#d5a440',style:'shooter',target:11,difficulty:0,
 intro:[['GOLDIE','Juice said you can move. Let’s see if your jumper travels.'],['COACH STAMP','Goldie lives beyond the arc. Close the gap, contest the release, then find your own green.']],
 outro:[['GOLDIE','That release is clean. Quiet Money’s people were watching.'],['FLEX','The next invite isn’t a favor. It’s a test.']]},
-{id:'quiet-money',title:'NO FREE BUCKETS',place:'EMERALD ARENA / CLOSED RUN',gym:'emerald',rival:'QUIET MONEY',color:'#e6ece6',skin:'#8d6148',hair:'#202129',style:'defender',target:15,difficulty:1,
-intro:[['QUIET MONEY','Hype is loud. My defense isn’t. First to fifteen.'],['COACH STAMP','Protect the ball. Change direction before you get crowded. Spend those upgrade points between runs.']],
+{id:'quiet-money',title:'NO FREE BUCKETS',place:'EMERALD ARENA / CLOSED RUN',gym:'emerald',rival:'QUIET MONEY',color:'#e6ece6',skin:'#8d6148',hair:'#202129',style:'defender',crew:true,target:15,difficulty:1,
+intro:[['QUIET MONEY','Hype is loud. My defense isn’t. First to fifteen.'],['COACH STAMP','This is crew ball now. Use PASS to move it, cut to the rim and call an ALLEY-OOP. Protect the ball and spend your upgrade points.']],
 outro:[['QUIET MONEY','You kept your composure. That’s worth more than the highlights.'],['FLEX','DJ Blackout wants you under the lights. This one’s going to be loud.']]},
-{id:'blackout',title:'AFTER HOURS',place:'FLEX PARK / NIGHT SESSION',gym:'street',rival:'DJ BLACKOUT',color:'#7952ae',skin:'#895b42',hair:'#141b29',style:'pressure',target:15,difficulty:1,
+{id:'blackout',title:'AFTER HOURS',place:'FLEX PARK / NIGHT SESSION',gym:'street',rival:'DJ BLACKOUT',color:'#7952ae',skin:'#895b42',hair:'#141b29',style:'pressure',crew:true,target:15,difficulty:1,
 intro:[['DJ BLACKOUT','Music up. Lights on. Don’t let the crowd rush your game.'],['COACH STAMP','Get three buckets in a row to go ON FIRE. Keep your rhythm when the pressure comes.']],
 outro:[['DJ BLACKOUT','That wasn’t luck. You got a whole crowd saying your name now.'],['FLEX','You’ve got one more run. The Crown doesn’t make room. Take your spot.']]},
-{id:'the-crown',title:'STAMPED LEGACY',place:'THE STAMP CENTER / CROWN FINAL',gym:'blue',rival:'THE CROWN',color:'#d5a73e',skin:'#9d704e',hair:'#191d26',style:'allround',target:21,difficulty:2,
+{id:'the-crown',title:'STAMPED LEGACY',place:'THE STAMP CENTER / CROWN FINAL',gym:'blue',rival:'THE CROWN',color:'#d5a73e',skin:'#9d704e',hair:'#191d26',style:'allround',crew:true,target:21,difficulty:2,
 intro:[['THE CROWN','Everybody’s got a story. Mine ends with this court still being mine.'],['FLEX','Your name. Your build. Your moment. First to twenty-one. Leave your stamp.']],
 outro:[['THE CROWN','You earned it. This court knows your name now.'],['FLEX','From the first open run to the final bucket. That’s a stamped legacy. Keep building.']]}
 ];
@@ -43,7 +43,7 @@ $('mpSave').onclick=()=>{readForm();$('mpSaveStatus').textContent='My Player sav
 for(const key of ['shooting','handles','defense'])$('upgrade-'+key).onclick=()=>{if(save.points<1||save.upgrades[key]>=5)return;save.points--;save.upgrades[key]++;persist();render();window.HoopsCareer.onPreview?.(config())};
 window.HoopsCareer={player,config,refresh:render,onPreview:null,
 begin(onReady,onCancel){readForm();const c=config();window.HoopsCareer.onPreview?.(c);scene('CHAPTER '+c.chapter+' / '+c.title,c.intro,onReady,onCancel)},
-finish(won,stats){const c=config();const rep=Math.max(0,(stats.greens||0)*10+(stats.dunks||0)*25+(stats.crosses||0)*5+(stats.steals||0)*15+(stats.showtime||0)*40);const xp=(won?100:35)+Math.min(150,rep);save.xp+=xp;save.rep+=rep;save.points+=won?2:1;if(won){save.wins++;save.chapter=Math.min(CHAPTERS.length,save.chapter+1)}else save.losses++;persist();render();return {won,chapter:c.chapter,title:c.title,champion:won&&save.chapter>=5,summary:'+'+xp+' XP · +'+rep+' STYLE REP · +'+(won?2:1)+' UPGRADE POINTS',lines:won?c.outro:[['COACH STAMP','A loss is film to learn from. You earned an upgrade point. Spend it, find your rhythm and run this chapter back.']]};},
+finish(won,stats){const c=config();const rep=Math.max(0,(stats.greens||0)*10+(stats.dunks||0)*25+(stats.crosses||0)*5+(stats.steals||0)*15+(stats.showtime||0)*40+(stats.assists||0)*20+(stats.lobs||0)*35+(stats.combos||0)*10+(stats.specials||0)*25);const xp=(won?100:35)+Math.min(150,rep);save.xp+=xp;save.rep+=rep;save.points+=won?2:1;if(won){save.wins++;save.chapter=Math.min(CHAPTERS.length,save.chapter+1)}else save.losses++;persist();render();return {won,chapter:c.chapter,title:c.title,champion:won&&save.chapter>=5,summary:'+'+xp+' XP · +'+rep+' STYLE REP · +'+(won?2:1)+' UPGRADE POINTS',lines:won?c.outro:[['COACH STAMP','A loss is film to learn from. You earned an upgrade point. Spend it, find your rhythm and run this chapter back.']]};},
 afterMatch(result,onDone){scene((result.won?'CHAPTER STAMPED':'BACK TO WORK')+' / '+result.title,result.lines,onDone,onDone)},
 state(){return JSON.parse(JSON.stringify(save))}
 };
