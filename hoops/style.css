@@ -246,26 +246,78 @@ header {
   text-shadow: 0 2px #261729;
 }
 
-/* Keep play feedback in the scoreboard area, away from the player and ball. */
-#hype:not([hidden]) {
-  top: 162px;
-  max-width: min(56vw,360px);
-  padding: 4px 10px;
-  border-radius: 6px;
+#broadcast {
+  position: absolute;
+  top: max(72px,calc(env(safe-area-inset-top) + 62px));
+  left: 50%;
   transform: translateX(-50%);
-  font-size: clamp(9px,1.25vw,14px);
-  line-height: 1.2;
-  letter-spacing: .055em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  pointer-events: none;
 }
-#app:has(#hype:not([hidden])) #toast { visibility: hidden; }
-@media (max-height: 550px) {
-  #hype:not([hidden]) { top: 110px; }
+#broadcast #hud, #courtFeedback #toast, #courtFeedback #hype {
+  position: static;
+  transform: none;
+}
+#courtFeedback { display: grid; justify-items: center; }
+#courtFeedback #toast, #courtFeedback #hype {
+  width: max-content;
+  max-width: min(65vw,390px);
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 7px;
+  text-align: center;
+  font-size: clamp(9px,1.25vw,13px);
+  line-height: 1.25;
+  letter-spacing: .06em;
+  overflow-wrap: anywhere;
+}
+#courtFeedback #toast {
+  color: #e1ecf6;
+  background: #0e1c2cf5;
+  border: 1px solid #a0bfbc40;
+  text-shadow: none;
+}
+#shotReadout {
+  max-width: min(42vw,430px);
+  font-size: 10px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
 }
 @media (orientation: landscape) and (max-height: 550px) {
-  #hype:not([hidden]) { top: calc(var(--safe-top) + 51px); }
+  #shotReadout { max-width: 32vw; font-size: 9px; }
+}
+#hud #clock.clockLow, #hud #clutch { color: #ffd195; }
+#hud #clutch { font-weight: 900; }
+.quickStarts {
+  display: grid;
+  grid-column: 1/-1;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+.quickStarts button {
+  padding: 9px;
+  border-color: #acde7f8a;
+  color: #efffcf;
+  background: linear-gradient(135deg,#254337,#172b3b);
+  font-size: 11px;
+  letter-spacing: .05em;
+}
+.quickStarts button:hover { border-color: #d9ff75; }
+.quickStarts small {
+  display: block;
+  margin-top: 4px;
+  color: #b6c9c8;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+#app:has(#storyScene:not([hidden])) #broadcast { visibility: hidden; }
+@media (max-height: 550px) { #broadcast { top: 58px; } }
+@media (orientation: landscape) and (max-height: 550px) {
+  #broadcast { top: var(--safe-top); }
 }
 @media (any-pointer: coarse) {
   .panel select, .panel input:not([type=range]) { font-size: 16px; }

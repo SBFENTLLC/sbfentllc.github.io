@@ -7,6 +7,15 @@ const crewIndices = [[0,2,3],[1,4,5]];
 const fullIndices = [[0,2,3,6,7],[1,4,5,8,9]];
 let squadMatch = null;
 let stunTarget = 1;
+let courtDirty = true;
+let advancingFrame = false;
+let drillStep = -1;
+const drillTips = [
+  '1/3 · HOLD SHOOT, RELEASE ON GREEN',
+  '2/3 · CHAIN TWO DIFFERENT CROSSOVERS',
+  '3/3 · DRIVE IN AND TAP DUNK',
+  'DRILLS COMPLETE · KEEP SHOOTING'
+];
 const touchCourt = () => window.matchMedia?.('(any-pointer: coarse)').matches;
 const trickDuration = .5;
 let character=roster[0],difficulty=1,players=[{x:-1.2,z:9,y:0},{x:0,z:6.9,y:0},{x:-3.5,z:5.3,y:0},{x:3.8,z:7,y:0},{x:-3.2,z:4,y:0},{x:3.5,z:5.8,y:0}],keys={};
@@ -58,6 +67,8 @@ function careerHud() {
   else readout = (mode === 'practice' || gap > 2.4 ? 'OPEN' : gap > 1.3 ? 'CONTESTED' : 'TIGHT DEFENSE') +
     ' · ' + (shotPoints(range,false)+' POINT RANGE');
 
+  if (drillStep >= 0) readout = drillStep===2&&range<(character.dunkRange||2.25) ?
+    '3/3 · IN RANGE · TAP DUNK' : drillTips[drillStep];
   setHud('shotReadout','textContent',readout);
   setHudStyle('heatFill','width',Math.min(3,heat) / 3 * 100 + '%');
   setHud('heatLabel','textContent',heat >= 3 ? 'ON FIRE · SHOT BOOST' : 'HEAT ' + heat + '/3');
@@ -72,6 +83,7 @@ const shotTarget=.72, shotWindow=.075;
 const view={z:23.5,y:7.8,sin:.355,cos:Math.sqrt(1-.355*.355)};
 
 function configureCamera() {
+  courtDirty = true;
   const full = fullCourtActive();
   view.z = full ? 41 : 23.5;
   view.y = full ? 15 : 7.8;
@@ -119,13 +131,31 @@ function line(points,color,width=2){ctx.beginPath();points.forEach((v,i)=>{const
 function ring(x,z,r,color,width=2,y=0){const pts=[];for(let a=0;a<=Math.PI*2+.05;a+=.09)pts.push([x+Math.cos(a)*r,z+Math.sin(a)*r,y]);line(pts,color,width)}
 function box(x,z,w,d,h,color){polygon([[x-w/2,z-d/2,0],[x+w/2,z-d/2,0],[x+w/2,z-d/2,h],[x-w/2,z-d/2,h]],color);polygon([[x+w/2,z-d/2,0],[x+w/2,z+d/2,0],[x+w/2,z+d/2,h],[x+w/2,z-d/2,h]],'#203344');polygon([[x-w/2,z-d/2,h],[x+w/2,z-d/2,h],[x+w/2,z+d/2,h],[x-w/2,z+d/2,h]],'#53707c')}
 function textWorld(text,x,z,y,size,color){const p=project(x,z,y);ctx.fillStyle=color;ctx.font='900 '+size+'px Arial';ctx.textAlign='center';ctx.fillText(text,...p)}
-function say(text){$('toast').textContent=text;toastTimer=2.6}
+function say(text){
+  setHud('toast','textContent',text);
+  toastTimer=2.6;
+  setHud('toast','hidden',hypeLife>0);
+}
+function advanceDrill(step, text) {
+  if (drillStep!==step) return;
+  drillStep++;
+  if (text) say(text);
+}
 function beep(f,d=.12,type='sine'){if(!sound||!soundEnabled)return;const o=sound.createOscillator(),g=sound.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.055,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+d);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+d)}
-function resetPossession(who){owner=who;clock=24;aiStealCD=5;charge=-1;shot=null;aiWait=0;stun=0;players[who].x=-1.1;players[who].z=9.3;players[1-who].x=.15;players[1-who].z=7.1;players.forEach(p=>{Object.assign(p,{y:0,fall:0,trickT:0,vx:0,vz:0,heading:0,gait:0,dribble:0,dribbleHand:1,trickMotion:null,catchBall:null,contestTime:0,reachTime:0,fallSide:1,guarding:false});});looseBall=null;resetCrew(who);}
+function resetPossession(who){courtDirty=true;owner=who;clock=24;aiStealCD=5;charge=-1;shot=null;aiWait=0;stun=0;players[who].x=-1.1;players[who].z=9.3;players[1-who].x=.15;players[1-who].z=7.1;players.forEach(p=>{Object.assign(p,{y:0,fall:0,trickT:0,vx:0,vz:0,heading:0,gait:0,dribble:0,dribbleHand:1,trickMotion:null,catchBall:null,contestTime:0,reachTime:0,fallSide:1,guarding:false});});looseBall=null;resetCrew(who);}
 function hud() {
+  if (advancingFrame) return;
   setHud('you','textContent',String(score[0]).padStart(2,'0'));
   setHud('cpu','textContent',String(score[1]).padStart(2,'0'));
-  setHud('clock','textContent',mode==='practice'?'PRACTICE · NO CLOCK':(owner===0?'YOUR BALL · ':'RIVAL BALL · ')+Math.ceil(clock));
+  const remaining=Math.ceil(clock);
+  setHud('clock','textContent',mode==='practice'?'PRACTICE · NO CLOCK':(owner===0?'YOUR BALL · ':'RIVAL BALL · ')+remaining);
+  setHud('clock','className',mode!=='practice'&&remaining<=5?'clockLow':'');
+  const lead=targetScore()-score[0], trail=targetScore()-score[1], range=shotPoints(7,false);
+  const homePoint=lead>0&&lead<=range, awayPoint=trail>0&&trail<=range;
+  const clutch=mode==='practice'||!playing ? '' :
+    homePoint&&awayPoint?'GAME POINT · BOTH SIDES':homePoint?'GAME POINT · YOU':awayPoint?'GAME POINT · RIVAL':'';
+  setHud('clutch','textContent',clutch);
+  setHud('clutch','hidden',!clutch);
   careerHud();
 }
 function targetScore() {
@@ -171,7 +201,7 @@ function openCup() {
   });
 }
 
-function start(skipStory=false) {
+function start(skipStory=false, guided=false) {
   const selected = $('mode').value || 'match';
   if (selected==='cup' && skipStory!==true) {
     openCup();
@@ -193,6 +223,7 @@ function start(skipStory=false) {
     return;
   }
   mode=selected;
+  drillStep=guided&&mode==='practice'?0:-1;
   if (fullCourtActive()&&players.length===6) {
     players.push(...Array.from({length:4},()=>({x:0,z:9,y:0})));
   } else if (!fullCourtActive()) {
@@ -223,7 +254,7 @@ function start(skipStory=false) {
   $('hud').style.setProperty?.('--home-accent',squadMatch?.home.color||'#d9ff75');
   $('hud').style.setProperty?.('--away-accent',squadMatch?.away.color||'#d9ff75');
   const matchLabels = {
-    practice:'SHOOTAROUND · FREE PLAY',
+    practice:guided?'GUIDED PRACTICE · 3 DRILLS':'SHOOTAROUND · FREE PLAY',
     career:'CHAPTER '+(careerMatch?.chapter||1)+'/5 · '+(crewActive()?'3V3 · ':'')+'FIRST TO '+targetScore(),
     cup:'CROWN CUP · '+(squadMatch?.roundName||'').toUpperCase()+' · '+targetScore(),
     full:'5V5 FULL COURT · FIRST TO 21',
@@ -237,11 +268,25 @@ function start(skipStory=false) {
     sound=sound||new (window.AudioContext||window.webkitAudioContext)();
     sound.resume();
   } catch {}
-  say('YOUR BALL. MAKE YOUR MARK.');
+  say(drillStep===0?'PRACTICE DRILLS · START WITH SHOT TIMING':'YOUR BALL. MAKE YOUR MARK.');
   hud();
 }
-function pause(){if(!playing||finished)return;paused=!paused;if(paused)window.HoopsMusic?.pause();else window.HoopsMusic?.resume();resetInputs();$('menu').hidden=!paused;if(paused){shop();$('menuTitle').innerHTML='TAKE A<br><em>BREATHER.</em>';$('menuText').textContent='Your game is paused. The court is waiting.';$('setup').hidden=true;$('play').textContent='BACK TO THE COURT →';$('restart').hidden=false;$('lobby').hidden=false;$('trainingEnd').hidden=mode!=='practice';}}
-$('play').onclick=()=>{if(paused){pause();return}start()};$('restart').onclick=start;
+function pause(){if(!playing||finished)return;paused=!paused;courtDirty=true;if(paused)window.HoopsMusic?.pause();else window.HoopsMusic?.resume();resetInputs();$('menu').hidden=!paused;if(paused){shop();$('menuTitle').innerHTML='TAKE A<br><em>BREATHER.</em>';$('menuText').textContent='Your game is paused. The court is waiting.';$('setup').hidden=true;$('play').textContent='BACK TO THE COURT →';$('restart').hidden=false;$('lobby').hidden=false;$('trainingEnd').hidden=mode!=='practice';}}
+$('play').onclick=()=>{if(paused){pause();return}start()};
+$('restart').onclick=()=>start(false,drillStep>=0);
+$('quickRun').onclick=()=>{
+  $('mode').value='match';
+  $('mode').onchange();
+  $('courtStyle').value='street';
+  $('player').value='0';
+  $('difficulty').value='1';
+  start();
+};
+$('practiceDrills').onclick=()=>{
+  $('mode').value='practice';
+  $('mode').onchange();
+  start(false,true);
+};
 function end(){if(finished||mode==='practice')return;finished=true;playing=false;window.HoopsMusic?.pause();const won=score[0]>=targetScore();const reward=won?100+difficulty*25:25;career.coins+=reward;career.streak=won?career.streak+1:0;career.best=Math.max(career.best,career.streak);saveCareer();shop();if(won){wins++;try{localStorage.setItem('sbfent-hoops-wins',wins)}catch{}}$('menuTitle').innerHTML=won?'COURT<br><em>STAMPED.</em>':'RUN IT<br><em>BACK.</em>';$('menuText').textContent=(won?'You owned the court. ':'The rival took this one. ')+score[0]+' – '+score[1]+'. +'+reward+' Flex Coins. '+career.streak+' win streak. '+made+'/'+attempts+' shooting ('+(attempts?Math.round(made/attempts*100):0)+'%), '+greenCount+' green releases, '+steals+' steals, '+assists+' assists, '+lobFinishes+' lob finishes, best combo ×'+bestCombo+'.';$('record').textContent=wins+' COURT WINS / SAVED ON THIS DEVICE';$('setup').hidden=false;$('play').textContent='RUN IT BACK →';$('restart').hidden=true;$('lobby').hidden=true;$('trainingEnd').hidden=true;$('menu').hidden=false;if(mode==='career'){$('legacyPanel').open=true;const result=window.HoopsCareer.finish(won,{greens:greenCount,dunks:styleDunks,showtime:styleShowtime,crosses:styleCrosses,steals,assists,lobs:lobFinishes,combos:bestCombo,specials:specialUses});$('mode').onchange();$('menuTitle').innerHTML=result.champion?'LEGACY<br><em>STAMPED.</em>':won?'CHAPTER<br><em>STAMPED.</em>':'RUN IT<br><em>BACK.</em>';$('menuText').textContent+=' '+result.summary;$('play').textContent=won?(result.champion?'RUN THE FINAL AGAIN →':'NEXT CHAPTER →'):'RETRY CHAPTER →';$('menu').hidden=true;window.HoopsCareer.afterMatch(result,()=>{$('menu').hidden=false;});}else if(mode==='cup')cupResult(won);}
 function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
 const pauseButton = $('pause');
@@ -633,13 +678,14 @@ function arcadeHud() {
   setHud('shoot','innerHTML',passFlight?.self?'TAP TO<br>FINISH':crewActive()&&owner===0&&ballHolder!==0?'CALL<br>BALL':'HOLD<br>SHOOT');
   setHud('hype','textContent',hypeCaption);
   setHud('hype','hidden',hypeLife<=0);
+  setHud('toast','hidden',toastTimer<=0||hypeLife>0);
 }
 function beginShot(){if(passFlight?.self){requestLob();return;}if(!playing||paused||delay>0||shot||passFlight||owner!==0||charge>=0)return;if(crewActive()&&ballHolder!==0){requestPass();return;}charge=0;}
 function releaseShot(){if(charge<0)return;const q=charge,startBall=heldBall(players[0]);charge=-1;if(!playing||paused||owner!==0||shot||passFlight||delay>0)return;launch(0,q,0,{startBall,gather:gatherPose(q),jumper:true});}
 function launch(who,q,actor=who,options={}){const human=actor===0;if(human)attempts++;const p=players[actor],enemy=closestEnemy(actor),near=distance(p,players[enemy]),dist=rimDistance(p,who),dunk=!!options.special||!!options.lob||!!options.dunk||!options.jumper&&dist<(squadActor(actor)?.dunkRange||(human?character.dunkRange:0)||2.25),green=Math.abs(q-shotTarget)<shotWindow;
 let chance=human?(green?.97:.76-Math.abs(q-.72)*1.3)+character.touch:(who===0?.69:.56+difficulty*.12)+(squadActor(actor)?.touch||0);if(human&&(Math.hypot(moveX,moveZ)>.1||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight))chance-=.08;chance-=Math.max(0,2.4-near)*.15;chance-=Math.max(0,dist-6)*.025;if(human&&heat>=3)chance+=.07;if(dunk)chance=options.special?1:(options.lob?.94:.93)-Math.max(0,1.65-near)*.17+(squadActor(actor)?.finishTouch??.04);chance=Math.max(.04,Math.min(1,chance));
 shot={who,actor,x:p.x,z:p.z,startY:p.y,startBall:options.startBall||heldBall(p),rimHeading:Math.atan2(-p.x,p.z-attackingZ(1.6,who)),gather:options.gather||0,dunkHand:p.dribbleHand||1,q,t:0,duration:dunk?(options.special?1.1:options.lob?.85:who===0&&heat>=3?.85:.65):1.12,showtime:who===0&&dunk&&(heat>=3||options.special),special:!!options.special,finish:options.finish,lob:!!options.lob,assist:who===0&&actor!==0&&lastPass?.from===0&&lastPass.to===actor&&time-lastPass.time<4,combo:human?comboCount:0,make:Math.random()<chance,dunk,points:options.special?3:shotPoints(dist,dunk),green,blocked:false};p.vx=0;p.vz=0;p.trickMotion=null;p.trickT=0;p.catchBall=null;charge=-1;
-if(human&&green&&!dunk){greenCount++;gainStamp(12);if(greenCount===3&&mode!=='practice'){career.coins+=30;runCoins+=30;saveCareer()}flash=.8;burst(p.x,p.z,'#d9ff75')}if(human)say(options.special?(character.special||'Stamp Breaker').toUpperCase()+'!':options.lob?'RISE UP!':dunk?'TO THE RIM!':green?'GREEN RELEASE!':q<.645?'EARLY RELEASE':'LATE RELEASE');beep(green?740:360);}
+if(human&&green&&!dunk){greenCount++;gainStamp(12);if(greenCount===3&&mode!=='practice'){career.coins+=30;runCoins+=30;saveCareer()}flash=.8;burst(p.x,p.z,'#d9ff75')}if(human)say(options.special?(character.special||'Stamp Breaker').toUpperCase()+'!':options.lob?'RISE UP!':dunk?'TO THE RIM!':green?'GREEN RELEASE!':q<.645?'EARLY RELEASE':'LATE RELEASE');if(human&&green&&!dunk)advanceDrill(0,'GREEN RELEASE! NEXT: CHAIN TWO MOVES.');beep(green?740:360);}
 function cross() {
   if (!playing||paused||owner!==0||ballHolder!==0||shot||passFlight||delay>0||crossCD>0||charge>=0) return;
   const cost=character.crossCost??22;
@@ -677,6 +723,7 @@ function cross() {
   }
   beep(180,.1);
   say(trick+' · STYLE ×'+comboCount);
+  if (comboCount>=2) advanceDrill(1,'COMBO COMPLETE! NEXT: TAKE IT TO THE RIM.');
 }
 function sendPass(to,lob=false,self=false){const from=ballHolder,p=players[from],r=players[to];passFlight={from,to,x:p.x,z:p.z,startBall:heldBall(p),receive:actorPoint(r,.44,-.18,lob?1.65:1.10),tx:self?0:r.x,tz:self?2.1:r.z,t:0,duration:self?.85:lob?.65:Math.min(.6,.25+distance(p,r)*.025),lob,self,finishQueued:!self};charge=-1;crewHoldTime=0;}
 function requestPass(){if(!playing||paused||owner!==0||shot||passFlight||delay>0||!crewActive())return;let to=0;if(ballHolder===0){to=teamActors(0).slice(1).sort((a,b)=>distance(players[b],players[closestEnemy(b)])-distance(players[a],players[closestEnemy(a)]))[0]}sendPass(to);say(to===0?'COMING BACK. GET OPEN.':'PASS TO '+actorName(to));}
@@ -885,7 +932,7 @@ function updateShot(dt) {
   const s = shot;
   looseBall = shotBall(s);
   shot = null;
-if(s.make&&!s.blocked){score[s.who]+=s.points;if(s.who===0){if(s.actor===0){made++;if(s.dunk)styleDunks++;if(s.lob)lobFinishes++;if(s.showtime){styleShowtime++;flash=1;}}if(s.assist){assists++;gainStamp(20);}heat++;bestHeat=Math.max(bestHeat,heat);gainStamp(s.actor===0?18:8);const bonus=(s.green?5:2)+Math.max(0,s.combo-1)*3;career.coins+=bonus;runCoins+=bonus;saveCareer();if(s.special)hype((character.special||'Stamp Breaker').toUpperCase()+'! +3',window.HoopsPuppets?.look(character.name)?.trim||character.color);else if(s.lob)hype(s.assist?'ALLEY-OOP ASSIST!':'OFF THE GLASS!');else if(s.showtime)hype('SHOWTIME FINISH!');else if(s.combo>=2)hype('STYLE ×'+s.combo+' → BUCKET!');else if(s.dunk)hype('STAMPED DUNK!');}
+if(s.make&&!s.blocked){score[s.who]+=s.points;if(s.who===0){if(s.actor===0){made++;if(s.dunk){styleDunks++;advanceDrill(2);}if(s.lob)lobFinishes++;if(s.showtime){styleShowtime++;flash=1;}}if(s.assist){assists++;gainStamp(20);}heat++;bestHeat=Math.max(bestHeat,heat);gainStamp(s.actor===0?18:8);const bonus=(s.green?5:2)+Math.max(0,s.combo-1)*3;career.coins+=bonus;runCoins+=bonus;saveCareer();if(s.special)hype((character.special||'Stamp Breaker').toUpperCase()+'! +3',window.HoopsPuppets?.look(character.name)?.trim||character.color);else if(s.lob)hype(s.assist?'ALLEY-OOP ASSIST!':'OFF THE GLASS!');else if(s.showtime)hype('SHOWTIME FINISH!');else if(s.combo>=2)hype('STYLE ×'+s.combo+' → BUCKET!');else if(s.dunk)hype('STAMPED DUNK!');}
 burst(0,attackingZ(1.6,s.who),s.who===0?'#d9ff75':'#f7d4b9');say((s.special?'SPECIAL FINISH!':s.lob?'ALLEY-OOP!':s.dunk?(s.showtime?'SHOWTIME FINISH!':'STAMPED DUNK!'):s.points===shotPoints(7,false)?'FROM DEEP!':'BUCKET!')+' +'+s.points);beep(880,.22);owner=1-s.who;ballHolder=owner;if(mode!=='practice'&&score[s.who]>=targetScore()){hud();end();return;}}
 else{if(s.who===0){heat=0;stampCharge=Math.max(0,stampCharge-10);}const all=[...teamActors(0),...teamActors(1)],nearest=all.sort((a,b)=>rimDistance(players[a],s.who)-rimDistance(players[b],s.who))[0];owner=teamOf(nearest);ballHolder=owner;if(fullCourtActive()){
   ballHolder=nearest;
@@ -897,7 +944,7 @@ else{if(s.who===0){heat=0;stampCharge=Math.max(0,stampCharge-10);}const all=[...
   hud();
   return;
 }say(s.blocked?'BLOCKED! '+(owner===0?'YOUR':'RIVAL')+' BALL.':'OFF THE RIM. '+(owner===0?'YOUR':'RIVAL')+' REBOUND.');beep(110,.13);}if(mode==='practice'){owner=0;ballHolder=0;}delay=.62;hud();}
-function update(dt){if(!paused){time+=dt;hypeLife=Math.max(0,hypeLife-dt);flash=Math.max(0,flash-dt*2);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.y+=p.vy*dt;p.vy-=dt*6}particles=particles.filter(p=>p.life>0)}if(!playing||paused)return;crossCD=Math.max(0,crossCD-dt);defCD=Math.max(0,defCD-dt);stun=Math.max(0,stun-dt);comboClock=Math.max(0,comboClock-dt);if(comboClock<=0)comboCount=0;if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)$('toast').textContent=owner===0?'CREATE SPACE. BUILD YOUR STYLE.':'STAY CLOSE. PROTECT THE RIM.'}players.forEach(p=>{p.y=Math.max(0,p.y-dt*2);p.fall=Math.max(0,(p.fall||0)-dt);if (p.trickT > 0) {
+function update(dt){if(!paused){time+=dt;hypeLife=Math.max(0,hypeLife-dt);flash=Math.max(0,flash-dt*2);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.y+=p.vy*dt;p.vy-=dt*6}particles=particles.filter(p=>p.life>0)}if(!playing||paused)return;crossCD=Math.max(0,crossCD-dt);defCD=Math.max(0,defCD-dt);stun=Math.max(0,stun-dt);comboClock=Math.max(0,comboClock-dt);if(comboClock<=0)comboCount=0;toastTimer=Math.max(0,toastTimer-dt);players.forEach(p=>{p.y=Math.max(0,p.y-dt*2);p.fall=Math.max(0,(p.fall||0)-dt);if (p.trickT > 0) {
     p.trickT=Math.max(0,p.trickT-dt);
     if (!p.trickT) p.dribble=0;
   }
@@ -1796,25 +1843,31 @@ function render() {
 }
 
 function frame(timestamp) {
-  if (document.hidden || playing&&!paused&&W<H&&touchCourt()) {
-    last = 0;
-    requestAnimationFrame(frame);
+  requestAnimationFrame(frame);
+  const active=playing&&!paused;
+  if (document.hidden || active&&W<H&&touchCourt() || !active&&!courtDirty) {
+    last=0;
     return;
   }
-  let remaining = last ? Math.min((timestamp - last) / 1000, .10) : 0;
-  last = timestamp;
-  while (remaining > .00001) {
-    const step = Math.min(remaining, 1 / 45);
-    update(step);
-    remaining -= step;
+  let remaining=active&&last?Math.min((timestamp-last)/1000,.10):0;
+  last=active?timestamp:0;
+  advancingFrame=true;
+  try {
+    while (remaining>.00001) {
+      const step=Math.min(remaining,1/45);
+      update(step);
+      remaining-=step;
+    }
+  } finally {
+    advancingFrame=false;
   }
-  arcadeHud();
+  hud();
   render();
-  requestAnimationFrame(frame);
+  courtDirty=false;
 }
 requestAnimationFrame(frame);
 
-$('courtStyle').onchange=()=>{gym=$('courtStyle').value;};$('trainingEnd').onclick=()=>{playing=false;paused=false;finished=false;window.HoopsMusic?.pause();$('menuTitle').innerHTML='BUILD YOUR<br><em>GAME.</em>';$('menuText').textContent='Training complete. '+made+'/'+attempts+' field goals, '+greenCount+' green releases. +'+runCoins+' earned coins.';$('setup').hidden=false;$('play').textContent='HIT THE COURT →';$('restart').hidden=true;$('trainingEnd').hidden=true;shop()};
+$('courtStyle').onchange=()=>{gym=$('courtStyle').value;courtDirty=true;};$('trainingEnd').onclick=()=>{courtDirty=true;playing=false;paused=false;finished=false;window.HoopsMusic?.pause();$('menuTitle').innerHTML='BUILD YOUR<br><em>GAME.</em>';$('menuText').textContent=(drillStep===3?'All three drills cleared. ':'Training complete. ')+made+'/'+attempts+' field goals, '+greenCount+' green releases. +'+runCoins+' earned coins.';$('setup').hidden=false;$('play').textContent='HIT THE COURT →';$('restart').hidden=true;$('trainingEnd').hidden=true;shop()};
 
 $('soundButton').onclick=()=>{soundEnabled=!soundEnabled;$('soundButton').textContent=soundEnabled?'SFX ON':'SFX OFF';$('soundButton').setAttribute('aria-pressed',String(soundEnabled))};
 
