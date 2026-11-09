@@ -247,3 +247,22 @@ header {
 
 .puppetPortrait:has(> .signaturePortrait) { overflow: hidden; border-radius: 11px; }
 .signaturePortrait[data-look="goldie"] { transform: scale(1.48); transform-origin: 42% 38%; }
+
+.castPortrait {
+  display: block;
+  width: 100%;
+  aspect-ratio: 100 / 118;
+  border: 1px solid #e7b76b7a;
+  border-radius: 11px;
+  background: radial-gradient(ellipse at 52% 33%,#5d3b58,#202035 69%);
+}
+.castPortrait[hidden], .puppetPortrait svg[hidden] { display: none; }
+
+#hype {
+  --hype-accent: #f2c16e;
+  color: #fff1d1;
+  background: linear-gradient(115deg,#352349,#18192c 55%,#452a3a);
+  border: 2px solid var(--hype-accent);
+  box-shadow: 0 0 17px color-mix(in srgb,var(--hype-accent) 43%,transparent),0 4px 0 #130f24;
+  text-shadow: 0 2px #261729;
+}

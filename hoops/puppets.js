@@ -19,6 +19,58 @@
       top:'#29232b', shorts:'#2b242c', trim:'#e1b84f', ink:'#ffe296', tag:'SBFENT', hoops:true, metal:1,
       skin:'#b46a38', hair:'#e6b95c', hairStyle:'long-curls'}
   };
+  // Returning outfits keep the hair, headwear and palette of the existing SBFENT cast.
+  const returningLooks = {
+    'LITTLE JUICE':{top:'#142a48',trim:'#41b9f2',ink:'#c6f0ff',skin:'#9b542f',hair:'#171926',hairStyle:'locs',tips:'#47b9ef',sleeves:true,metal:1},
+    'DETECTIVE FLEX':{top:'#242933',trim:'#d9b979',ink:'#f5e8ca',skin:'#a96744',hair:'#2a2224',hairStyle:'fade',hat:'cap',hatColor:'#242832',tag:'CASE',shades:true,sleeves:true,metal:0},
+    'CLARA':{top:'#9a3044',trim:'#f8b681',ink:'#fff0cf',skin:'#ae6744',hair:'#8f302d',hairStyle:'long-curls',hoops:true,metal:0},
+    'FOXY':{top:'#a7512d',trim:'#f6bd6c',ink:'#fff0c0',skin:'#aa6743',hair:'#a34343',hairStyle:'long-curls',hoops:true,metal:0},
+    'ONYX':{top:'#312944',trim:'#ad92d7',ink:'#f1defd',skin:'#7c4a34',hair:'#201b24',hairStyle:'long-curls',hoops:true,metal:0},
+    'NEON NOVA':{top:'#304036',trim:'#c5f45f',ink:'#e8ffaf',skin:'#7e4a36',hair:'#20202a',hairStyle:'locs',tips:'#c4ee61',metal:1,hoops:true},
+    'BIG STAMP':{top:'#523660',trim:'#d2ac6f',ink:'#ffdea2',skin:'#73442f',hair:'#211b22',hairStyle:'high',beard:true,metal:0,sleeves:true},
+    'VIOLET V':{top:'#57327c',trim:'#d48ce7',ink:'#ffe0ff',skin:'#a7644c',hair:'#783d9b',hairStyle:'braids',buns:true,hoops:true,metal:1},
+    'REDLINE':{top:'#8b2d35',trim:'#ff8e65',ink:'#ffe2bc',skin:'#94583b',hair:'#251e24',hairStyle:'locs',tips:'#db4845',beard:true,metal:0},
+    'BIG PRESSURE':{top:'#62426d',trim:'#edc36f',ink:'#ffe8ac',skin:'#774933',hair:'#201b22',hairStyle:'bald',beard:true,metal:0,sleeves:true},
+    'LADY STATIC':{top:'#523671',trim:'#65d7ef',ink:'#def7ff',skin:'#80503b',hair:'#5bbfd6',hairStyle:'swept',hoops:true,metal:1},
+    'IRON HAUL':{top:'#3d3854',trim:'#bbd769',ink:'#e3efbb',skin:'#6e483a',hair:'#666173',hairStyle:'locs',beard:true,metal:1,sleeves:true},
+    'THE FALSE KING':{top:'#3f2354',trim:'#e2b956',ink:'#fff0a6',skin:'#764737',hair:'#533066',hairStyle:'locs',hat:'crown',hatColor:'#d7a849',tag:'KING',shades:true,beard:true,metal:0,sleeves:true}
+  };
+  // Ready-pose alpha bounds are shared from the Stamped Out sprite data.
+  const castArt = {
+    'FOXY':['foxy-clara',20,6,268,318], 'CLARA':['foxy-clara',18,619,287,339],
+    'ONYX':['goldie-onyx',22,635,293,312],
+    'NEON NOVA':['nova-stamp',24,12,281,306], 'BIG STAMP':['nova-stamp',25,630,289,309],
+    'VIOLET V':['violet-red',16,8,255,309], 'REDLINE':['violet-red',15,619,272,322],
+    'BIG PRESSURE':['big-pressure',30,44,406,395], 'LADY STATIC':['lady-static',11,29,362,468],
+    'IRON HAUL':['iron-haul',25,25,403,425], 'THE FALSE KING':['false-king',27,12,391,437],
+    'DETECTIVE FLEX':['detective-flex',22,9,361,444], 'LITTLE JUICE':['lil-juice',34,11,347,450]
+  };
+  const atlases=new Map();
+  function decorateCard(container, profile) {
+    const frame=castArt[profile.name];
+    const surface=container.querySelector?.('canvas');
+    if(!frame||!surface||typeof Image!=='function') return;
+    const [sheet,x,y,w,h]=frame;
+    if(!atlases.has(sheet)) {
+      atlases.set(sheet,new Promise(resolve=>{
+        const image=new Image();
+        image.onload=()=>resolve(image);
+        image.onerror=()=>resolve(null);
+        image.src='https://sbfent.com/stamped-out/assets/'+sheet+'.webp';
+      }));
+    }
+    atlases.get(sheet).then(image=>{
+      if(!image||!surface.isConnected) return;
+      const painter=surface.getContext('2d');
+      if(!painter) return;
+      const crop=h*.72;
+      const scale=Math.min(164/w,168/crop);
+      painter.drawImage(image,x,y,w,crop,(164-w*scale)/2,8,w*scale,crop*scale);
+      surface.hidden=false;
+      container.querySelector('svg')?.setAttribute('hidden','');
+    });
+  }
+
   const metals = [
     {shadow:'#704821',body:'#e4b655',shine:'#fff1af'},
     {shadow:'#55546e',body:'#d6dcec',shine:'#fff9ef'},
@@ -26,7 +78,8 @@
   ];
 
   function look(name) {
-    return signatureLooks[name==='FLEX'?'FLEX A LOT':name];
+    const key=name==='FLEX'?'FLEX A LOT':name==='LIL JUICE'?'LITTLE JUICE':name;
+    return signatureLooks[key]||returningLooks[key];
   }
 
   function jewelry(profile, signature) {
@@ -36,9 +89,9 @@
 
   function card(profile) {
     const signature=look(profile.name);
-    return signature ?
+    return signature?.art ?
       `<img class="signaturePortrait" data-look="${signature.art}" src="art/${signature.art}.webp" style="object-position:${signature.crop}" alt="" loading="lazy" decoding="async">` :
-      portrait(profile);
+      portrait(profile)+(castArt[profile.name]?'<canvas class="castPortrait" width="164" height="193" aria-hidden="true" hidden></canvas>':'');
   }
 
   let portraitCount=0;
@@ -134,5 +187,5 @@
     </svg>`;
   }
 
-  window.HoopsPuppets = {portrait,card,look,jewelry};
+  window.HoopsPuppets = {portrait,card,look,jewelry,decorateCard};
 })();

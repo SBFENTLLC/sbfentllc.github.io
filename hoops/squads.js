@@ -344,6 +344,7 @@
       info.append(name,special,stats);
       card.append(portrait,info);
       cards.append(card);
+      window.HoopsPuppets?.decorateCard(portrait,player);
     }
   }
 
