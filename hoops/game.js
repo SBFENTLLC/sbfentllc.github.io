@@ -584,10 +584,10 @@ function arcadeHud() {
 function beginShot(){if(passFlight?.self){requestLob();return;}if(!playing||paused||delay>0||shot||passFlight||owner!==0||charge>=0)return;if(crewActive()&&ballHolder!==0){requestPass();return;}charge=0;}
 function releaseShot(){if(charge<0)return;const q=charge,startBall=heldBall(players[0]);charge=-1;if(!playing||paused||owner!==0||shot||passFlight||delay>0)return;launch(0,q,0,{startBall,gather:gatherPose(q),jumper:true});}
 function launch(who,q,actor=who,options={}){const human=actor===0;if(human)attempts++;const p=players[actor],enemy=closestEnemy(actor),near=distance(p,players[enemy]),dist=rimDistance(p,who),dunk=!!options.special||!!options.lob||!!options.dunk||!options.jumper&&dist<(squadActor(actor)?.dunkRange||(human?character.dunkRange:0)||2.25),green=Math.abs(q-shotTarget)<shotWindow;
-let chance=human?(green?.97:.76-Math.abs(q-.72)*1.3)+character.touch:(who===0?.69:.56+difficulty*.12)+(squadActor(actor)?.touch||0);if(human&&(Math.hypot(moveX,moveZ)>.1||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight))chance-=.08;chance-=Math.max(0,2.4-near)*.15;chance-=Math.max(0,dist-6)*.025;if(human&&heat>=3)chance+=.07;if(dunk)chance=options.special?1:options.lob?.94-Math.max(0,1.7-near)*.12:.96;chance=Math.max(.04,Math.min(1,chance));
+let chance=human?(green?.97:.76-Math.abs(q-.72)*1.3)+character.touch:(who===0?.69:.56+difficulty*.12)+(squadActor(actor)?.touch||0);if(human&&(Math.hypot(moveX,moveZ)>.1||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight))chance-=.08;chance-=Math.max(0,2.4-near)*.15;chance-=Math.max(0,dist-6)*.025;if(human&&heat>=3)chance+=.07;if(dunk)chance=options.special?1:(options.lob?.94-Math.max(0,1.7-near)*.12:.92)+(squadActor(actor)?.finishTouch??.04);chance=Math.max(.04,Math.min(1,chance));
 shot={who,actor,x:p.x,z:p.z,startY:p.y,startBall:options.startBall||heldBall(p),rimHeading:Math.atan2(-p.x,p.z-attackingZ(1.6,who)),gather:options.gather||0,q,t:0,duration:dunk?(options.special?1.1:options.lob?.85:who===0&&heat>=3?.85:.65):1.12,showtime:who===0&&dunk&&(heat>=3||options.special),special:!!options.special,finish:options.finish,lob:!!options.lob,assist:who===0&&actor!==0&&lastPass?.from===0&&lastPass.to===actor&&time-lastPass.time<4,combo:human?comboCount:0,make:Math.random()<chance,dunk,points:options.special?3:shotPoints(dist,dunk),green,blocked:false};p.vx=0;p.vz=0;p.trickMotion=null;p.catchBall=null;charge=-1;
 if(human&&green&&!dunk){greenCount++;gainStamp(12);if(greenCount===3&&mode!=='practice'){career.coins+=30;runCoins+=30;saveCareer()}flash=.8;burst(p.x,p.z,'#d9ff75')}if(human)say(options.special?(character.special||'Stamp Breaker').toUpperCase()+'!':options.lob?'RISE UP!':dunk?'TO THE RIM!':green?'GREEN RELEASE!':q<.645?'EARLY RELEASE':'LATE RELEASE');beep(green?740:360);}
-function cross(){if(!playing||paused||owner!==0||ballHolder!==0||shot||passFlight||delay>0||crossCD>0||charge>=0)return;if(stamina<22){say('CATCH YOUR BREATH');return}stamina-=22;styleCrosses++;crossCD=character.myPlayer&&character.crossBonus>.2?.5:.65;const p=players[0],enemy=closestEnemy(0),near=distance(p,players[enemy]),dz=moveZ+(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0),tricks=['CROSSOVER','BEHIND THE BACK','SPIN MOVE'];const trick=dz>.35?'STEP BACK':dz<-.35?'SPIN MOVE':tricks[trickIndex++%3];
+function cross(){if(!playing||paused||owner!==0||ballHolder!==0||shot||passFlight||delay>0||crossCD>0||charge>=0)return;const cost=character.crossCost??22;if(stamina<cost){say('CATCH YOUR BREATH');return}stamina-=cost;styleCrosses++;crossCD=character.crossRecovery??(character.myPlayer&&character.crossBonus>.2?.5:.65);const p=players[0],enemy=closestEnemy(0),near=distance(p,players[enemy]),dz=moveZ+(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0),tricks=['CROSSOVER','BEHIND THE BACK','SPIN MOVE'];const trick=dz>.35?'STEP BACK':dz<-.35?'SPIN MOVE':tricks[trickIndex++%3];
 comboCount=comboClock>0&&trick!==lastTrick?Math.min(4,comboCount+1):1;comboClock=4.5;lastTrick=trick;p.trick=trick;p.trickT=.5;for(let k=0;k<7;k++)particles.push({x:p.x+(Math.random()-.5)*.7,z:p.z,y:.7,vx:(Math.random()-.5)*1.6,vz:(Math.random()-.5)*1.2,vy:.4,life:.4,color:'#b898ef'});bestCombo=Math.max(bestCombo,comboCount);p.trickMotion={dx:p.x>0?-1.4:1.4,dz:trick==='SPIN MOVE'?-.8:trick==='STEP BACK'?1.05:0,time:0};stun=1+(character.crossBonus||0);if(near<3){gainStamp(6+comboCount*3);if(comboCount>=2){players[enemy].fall=.9;hype('ANKLE BREAKER ×'+comboCount);}}beep(180,.1);say(trick+' · STYLE ×'+comboCount);}
 function sendPass(to,lob=false,self=false){const from=ballHolder,p=players[from],r=players[to];passFlight={from,to,x:p.x,z:p.z,startBall:heldBall(p),receive:actorPoint(r,.44,-.18,lob?1.65:1.10),tx:self?0:r.x,tz:self?2.1:r.z,t:0,duration:self?.85:lob?.65:Math.min(.6,.25+distance(p,r)*.025),lob,self,finishQueued:!self};charge=-1;crewHoldTime=0;}
 function requestPass(){if(!playing||paused||owner!==0||shot||passFlight||delay>0||!crewActive())return;let to=0;if(ballHolder===0){to=teamActors(0).slice(1).sort((a,b)=>distance(players[b],players[closestEnemy(b)])-distance(players[a],players[closestEnemy(a)]))[0]}sendPass(to);say(to===0?'COMING BACK. GET OPEN.':'PASS TO '+actorName(to));}
@@ -608,7 +608,7 @@ function stampBreak() {
   }
   stampCharge=0;
   specialUses++;
-  const finish = character.label==='Quick handles'?'wrap':character.label==='Rim attack'?'glide':'hammer';
+  const finish = character.finish||(character.label==='Quick handles'?'wrap':character.label==='Rim attack'?'glide':'hammer');
   launch(0,shotTarget,0,{special:true,finish});
   hype((character.special||'Stamp Breaker').toUpperCase());
   flash=.8;
@@ -618,7 +618,7 @@ function blockShot() {
   if (!playing||paused||owner!==1||delay>0||defCD>0) return;
   defCD=.85;
   players[0].contestTime=.36;
-  if (shot?.who===1 && !shot.blocked && shot.t<.48 && distance(players[0],players[shot.actor])<2.3) {
+  if (shot?.who===1 && !shot.blocked && shot.t<(character.blockWindow??.48) && distance(players[0],players[shot.actor])<(character.blockRange??2.3)) {
     shot.redirect={from:shotBall(shot),phase:shot.t/shot.duration};
     shot.make=false;
     shot.blocked=true;
@@ -908,16 +908,17 @@ function person(p,index) {
   const ally=teamOf(index)===0;
   const name=actorName(index);
   const profile=squadActor(index);
+  const model=profile || (index===0&&character.myPlayer?character:window.HoopsSquads?.find(name));
   const team=ally?squadMatch?.home:squadMatch?.away;
-  const skin=profile?.skin || (index===0?(character.skin||'#b98159'):
+  const skin=model?.skin || (index===0?(character.skin||'#b98159'):
     index===2?'#9a694b':index===3?'#bc875b':mode==='career'?careerMatch.skin:'#8d5c42');
   const signature=team?.color || (ally?outfitColor():mode==='career'?careerMatch.color:'#d25144');
   const arenaSignature=!team&&gym!=='street'&&gym!=='sunset'&&mode!=='career'&&!character.myPlayer&&career.look===0;
   const jersey=ally&&arenaSignature?'#e6e1d4':signature;
   const trimColor=team?.trim || (ally&&arenaSignature?'#31586a':ally?'#244754':'#f2d1ad');
-  const hair=profile?.hair || (index===0&&character.hair?character.hair:
+  const hair=model?.hair || (index===0&&character.hair?character.hair:
     name==='GOLDIE'?'#d5a440':!ally&&mode==='career'?careerMatch.hair:'#181920');
-  const hairStyle=profile?.hairStyle || (index===0?character.hairStyle:'');
+  const hairStyle=model?.hairStyle || (index===0?character.hairStyle:'');
   const action=shot?.actor===index?shot:null;
   const progress=action?Math.min(1,action.t/action.duration):0;
   const movement=Math.min(1,Math.hypot(p.vx||0,p.vz||0)/4.3);
@@ -956,11 +957,11 @@ function person(p,index) {
     const upper=point(side*.13,0,hips-.04);
     const hem=mixPoint(upper,knee,.61);
     limbMesh(faces,upper,hem,.116,.099,litColor(jersey,.85));
-    limbMesh(faces,hem,knee,.079,.067,skin);
+    limbMesh(faces,hem,knee,.086,.070,skin);
     limbMesh(faces,knee,ankle,.070,.041,skin);
     limbMesh(faces,ankle,point(side*.14,footZ,footY+.17),.050,.049,'#eeede7');
-    limbMesh(faces,point(side*.14,footZ+.075,footY+.01),point(side*.14,footZ-.13,footY+.01),.061,.061,'#d7dbdf');
-    limbMesh(faces,point(side*.14,footZ+.059,footY+.052),point(side*.14,footZ-.14,footY+.044),.071,.058,'#f1f0ea');
+    limbMesh(faces,point(side*.14,footZ+.075,footY+.01),point(side*.14,footZ-.15,footY+.01),.074,.064,'#d7dbdf');
+    limbMesh(faces,point(side*.14,footZ+.059,footY+.052),point(side*.14,footZ-.15,footY+.044),.077,.062,'#f1f0ea');
   }
 
   bodyMesh(faces,point,[
@@ -997,29 +998,47 @@ function person(p,index) {
       mix(shoulder[1],hand[1],.48)+.07,mix(shoulder[2],hand[2],.52)-.06];
     limbMesh(faces,shoulder,elbow,.086,.057,skin);
     limbMesh(faces,elbow,hand,.056,.037,skin);
-    limbMesh(faces,mixPoint(elbow,hand,.94),[hand[0],hand[1]-.037,hand[2]-.023],.046,.042,skin);
+    limbMesh(faces,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.064,.046,skin);
   }
 
-  const headY=hips+.72;
+  const headY=hips+.735;
   const headDepth=lean-.018;
   const faceColor=tint(skin,1.12);
-  bodyMesh(faces,point,[
-    [headY,.089,.083,headDepth-.015],[headY+.06,.145,.125,headDepth-.013],
-    [headY+.165,.162,.145,headDepth],[headY+.27,.141,.126,headDepth+.012],
-    [headY+.323,.091,.086,headDepth+.02]
+  const faceWidth=[1,.93,1.10,1.04][model?.face||0];
+  const facePoint=(x,z,y)=>point(x*faceWidth*1.10,z*1.04+headDepth,y*1.06+headY);
+  const gear=model?.accessory;
+  bodyMesh(faces,facePoint,[
+    [0,.119,.093],[.072,.205,.166],[.194,.235,.198],
+    [.315,.224,.178,.012],[.403,.158,.122,.020]
   ],faceColor,9);
   const fade=hairStyle==='fade';
-  const hairHeight=hairStyle==='high'?.444:fade?.331:.384;
-  bodyMesh(faces,point,[
-    [headY+.258,.163,.141,headDepth+.016],[headY+.309,.155,.126,headDepth+.012],
-    [headY+hairHeight,.103,.103,headDepth+.021]
+  const hairHeight=hairStyle==='high'?.571:fade?.430:.492;
+  bodyMesh(faces,facePoint,[
+    [.328,.226,.186,.018],[.391,.210,.166,.017],
+    [hairHeight,.143,.124,.026]
   ],hair,8);
-  if (profile?.creature) {
-    for(const side of [-1,1]){
-      const horn=profile.creature==='horns';
-      limbMesh(faces,point(side*.106,headDepth+.035,headY+.29),
-        point(side*(horn?.235:.167),headDepth+(horn?.08:.06),headY+(horn?.52:.46)),
-        horn?.063:.046,.012,horn?'#ecceb0':trimColor,5);
+  for (const side of [-1,1]) {
+    const ear=facePoint(side*.212,.013,.195);
+    limbMesh(faces,ear,facePoint(side*.281,.028,.224),.077,.055,skin,5);
+    if (model?.creature || gear==='horn' || gear==='fang') {
+      const horn=model?.creature==='horns'||gear==='horn';
+      limbMesh(faces,facePoint(side*.132,.045,.356),
+        facePoint(side*(horn?.313:.230),horn?.107:.063,horn?.613:.537),
+        horn?.088:.067,.012,horn?'#ecceb0':trimColor,5);
+    }
+  }
+  if (gear==='band'||gear==='wrap'||gear==='hood'||gear==='headset') {
+    const bandColor=gear==='band'?jersey:trimColor;
+    bodyMesh(faces,facePoint,[
+      [.315,.229,.188,.013],[.355,.225,.189,.018],[.372,.211,.174,.018]
+    ],bandColor,8);
+  }
+  if (gear==='crown'||gear==='ribbon') {
+    const crown=gear==='crown';
+    const accent=crown?'#f2c46f':jersey;
+    for(const side of [-1,1]) {
+      limbMesh(faces,facePoint(side*.132,.03,.409),
+        facePoint(side*(crown?.162:.281),.027,crown?.574:.537),.056,.012,accent,5);
     }
   }
   faces.sort((a,b)=>b.depth-a.depth);
@@ -1039,35 +1058,71 @@ function person(p,index) {
           point(side*.219,lean+edge,hips+.53)],trimColor,Math.max(.6,S/cameraDepth(p.z,p.y)*.014));
       }
     }
-    if (Math.abs(Math.cos(heading))>.52) {
-      const facing = back?1:-1;
-      for(let stitch=0;stitch<3;stitch++){
-        const y=headY+.087+stitch*.05;
-        line([point(-.019,headDepth+facing*.139,y),point(.016,headDepth+facing*.142,y+.021)],
-          tint(skin,.67),.75);
-      }
-      if(!back){
-        for(const side of [-1,1]){
-          const eye=point(side*.058,headDepth-.139,headY+.197);
-          sphere(...eye,.027,'#f2e8d6');
-          sphere(...point(side*.056,headDepth-.159,headY+.198),.014,'#252030');
-        }
-        line([point(-.06,headDepth-.129,headY+.107),point(0,headDepth-.151,headY+.086),
-          point(.06,headDepth-.129,headY+.109)],'#3a2631',1.35);
-      }
-    }
-    if (name==='LIL JUICE'||hairStyle==='locs'||hairStyle==='braids') {
-      for (let n=-2;n<=2;n++) segment(point(n*.052,headDepth+.12,headY+.31),
-        point(n*.058,headDepth+.126,headY+(hairStyle==='braids'?.09:.15)),.033,hair);
-    } else if (!fade && (name==='GOLDIE'||hairStyle==='curls')) {
-      for (let n=0;n<7;n++) {
-        const a=n*Math.PI*2/7;
-        sphere(...point(Math.cos(a)*.11,headDepth+Math.sin(a)*.095,headY+.345),.045,hair);
-      }
-    }
+    paintPuppetFace(facePoint,heading,skin,hair,hairStyle,gear,model,jersey,trimColor);
+
   }
   if ((index!==0||charge<0)&&(index===0||ballHolder===index||fall>.55)) {
-    label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix(2.35*buildHeight,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
+    label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix(2.52*buildHeight,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
+  }
+}
+function paintPuppetFace(point,heading,skin,hair,hairStyle,gear,model,jersey,trim) {
+  const facing=Math.cos(heading);
+  const faceOn=facing<-.24;
+  const stitch=faceOn?tint(skin,.70):tint(skin,.66);
+  if (facing>.25) {
+    for(let row=0;row<5;row++) {
+      const y=.068+row*.054;
+      line([point(-.026,.200,y),point(.020,.201,y+.029)],stitch,.9);
+    }
+  }
+  if (faceOn) {
+    const dark='#2c1b29';
+    for (const side of [-1,1]) {
+      const x=side*.090;
+      const size=model?.eye===1?.048:model?.eye===2&&side===1?.070:.061;
+      sphere(...point(x,-.195,.268),size,'#fff0cf');
+      sphere(...point(x-side*.007,-.243,.265),.024,dark);
+      if (gear==='brows') segment(point(x-.044,-.198,.335),point(x+.045,-.201,.311),.026,hair);
+    }
+    segment(point(-.084,-.175,.109),point(.084,-.175,.109),.082,dark);
+    segment(point(-.044,-.221,.082),point(.038,-.221,.085),.025,'#e79895');
+    sphere(...point(0,-.208,.187),.064,tint(skin,1.17));
+    if (gear==='visor'||gear==='shades'||gear==='mono') {
+      const lens=gear==='mono'?'#d5ad6e':trim;
+      for (const side of gear==='mono'?[1]:[-1,1]) {
+        segment(point(side*.092-.052,-.246,.277),point(side*.092+.052,-.246,.277),
+          gear==='mono'?.029:.062,lens);
+      }
+      if(gear==='visor') segment(point(-.155,-.257,.296),point(.156,-.257,.296),.018,jersey);
+    }
+    if (gear==='guard') segment(point(-.107,-.190,.095),point(.107,-.190,.095),.087,trim);
+    if (gear==='fang') {
+      for(const side of [-1,1]) segment(point(side*.056,-.229,.126),point(side*.056,-.229,.083),.025,'#ffebc1');
+    }
+  }
+  const visibleSide=Math.sin(heading)>=0?1:-1;
+  if (gear==='patch'||gear==='bones') {
+    const side=model?.patchSide||visibleSide;
+    if (faceOn||side===visibleSide||facing>.6) {
+      const z=faceOn?-.144:.151;
+      segment(point(side*.169-.024,z,.117),point(side*.169+.020,z,.161),.017,gear==='bones'?'#fff0cf':jersey);
+      segment(point(side*.169-.023,z,.159),point(side*.169+.026,z,.119),.017,gear==='bones'?'#fff0cf':jersey);
+    }
+  }
+  if (gear==='gold'||gear==='headset') {
+    for(const side of facing>.55||faceOn?[-1,1]:[visibleSide]) {
+      sphere(...point(side*.256,.020,gear==='gold'?.135:.212),gear==='gold'?.027:.047,
+        gear==='gold'?'#efbc59':jersey);
+    }
+  }
+  if (hairStyle==='locs'||hairStyle==='braids') {
+    for(let n=-2;n<=2;n++) segment(point(n*.069,.150,.363),
+      point(n*.073,.170,hairStyle==='braids'?.088:.160),.043,hair);
+  } else if (hairStyle==='curls') {
+    for(let n=0;n<6;n++) {
+      const a=n*Math.PI/3;
+      sphere(...point(Math.cos(a)*.156,Math.sin(a)*.122,.414),.060,hair);
+    }
   }
 }
 function jerseyText(text, at, size, color) {
@@ -1288,7 +1343,7 @@ function burst(x,z,color){for(let i=0;i<22;i++)particles.push({x,z,y:3.1,vx:(Mat
 function drawShotMeter() {
   const p = players[0];
   const radius = Math.max(13, Math.min(20, H * .044));
-  const [x, head] = project(p.x,p.z,p.y+2.14*(character.height||1));
+  const [x, head] = project(p.x,p.z,p.y+2.39*(character.height||1));
   const y = Math.max(radius+4,head-radius-9);
   const start = -Math.PI / 2;
   const angle = value => start + 2 * Math.PI * value;
