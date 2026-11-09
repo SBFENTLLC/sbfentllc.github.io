@@ -41,7 +41,7 @@ $('storyBack').onclick=()=>{$('storyScene').hidden=true;const cb=cancel;done=nul
 for(const id of ['mpName','mpBuild','mpSkin','mpHair','mpHairStyle','mpJersey'])$(id).addEventListener('change',readForm);
 $('mpSave').onclick=()=>{readForm();$('mpSaveStatus').textContent='My Player saved. Your career resumes from its last chapter.'};
 for(const key of ['shooting','handles','defense'])$('upgrade-'+key).onclick=()=>{if(save.points<1||save.upgrades[key]>=5)return;save.points--;save.upgrades[key]++;persist();render();window.HoopsCareer.onPreview?.(config())};
-window.HoopsCareer={player,config,refresh:render,onPreview:null,
+window.HoopsCareer={player,config,scene,refresh:render,onPreview:null,
 begin(onReady,onCancel){readForm();const c=config();window.HoopsCareer.onPreview?.(c);scene('CHAPTER '+c.chapter+' / '+c.title,c.intro,onReady,onCancel)},
 finish(won,stats){const c=config();const rep=Math.max(0,(stats.greens||0)*10+(stats.dunks||0)*25+(stats.crosses||0)*5+(stats.steals||0)*15+(stats.showtime||0)*40+(stats.assists||0)*20+(stats.lobs||0)*35+(stats.combos||0)*10+(stats.specials||0)*25);const xp=(won?100:35)+Math.min(150,rep);save.xp+=xp;save.rep+=rep;save.points+=won?2:1;if(won){save.wins++;save.chapter=Math.min(CHAPTERS.length,save.chapter+1)}else save.losses++;persist();render();return {won,chapter:c.chapter,title:c.title,champion:won&&save.chapter>=5,summary:'+'+xp+' XP · +'+rep+' STYLE REP · +'+(won?2:1)+' UPGRADE POINTS',lines:won?c.outro:[['COACH STAMP','A loss is film to learn from. You earned an upgrade point. Spend it, find your rhythm and run this chapter back.']]};},
 afterMatch(result,onDone){scene((result.won?'CHAPTER STAMPED':'BACK TO WORK')+' / '+result.title,result.lines,onDone,onDone)},
