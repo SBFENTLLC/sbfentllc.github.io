@@ -213,3 +213,24 @@ header {
   .puppetCard { grid-template-columns: 62px minmax(0,1fr); gap: 8px; }
   .puppetCard .puppetPortrait { width: 62px; }
 }
+
+.travelMap { max-width: 440px; padding: 7px; margin: 7px 0 10px; background: #0d2133; border: 1px solid #7295b260; border-radius: 10px; }
+.travelMap svg { display: block; width: 100%; max-height: 145px; }
+.travelCopy { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 3px 12px; padding: 2px 2px 5px; font-size: 10px; }
+.travelCopy strong { color: #d9ff75; }
+.travelCopy span { color: #d5e5e9; }
+.travelLabel { font-family: system-ui,sans-serif; font-size: 10px; font-weight: 800; }
+.travelFooter { color: #ffcf93; font-size: 8px; letter-spacing: .055em; padding: 3px 2px 0; }
+#storyTravel { max-width: 430px; }
+#storyScene:has(#storyTravel:not([hidden])) .storyCard { margin-block: 9px; }
+#storyScene:has(#storyTravel:not([hidden])) .storyCard p { min-height: 0; margin: 7px 0; }
+@media (max-height: 550px) {
+  #storyScene:has(#storyTravel:not([hidden])) .storyCard { margin-block: 3px; }
+  #storyScene:has(#storyTravel:not([hidden])) .storyCard h2 { margin: 5px 0; font-size: 20px; }
+  #storyScene:has(#storyTravel:not([hidden])) .storyCard p { font-size: 13px; }
+  #storyTravel { margin-block: 4px; }
+  #storyTravel svg { max-height: min(23dvh,100px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .travelMarker { display: none; }
+}

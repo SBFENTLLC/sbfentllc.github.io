@@ -28,6 +28,25 @@
     ['Tempo Collective','TMP','#f1efc3','#353153','emerald','all',['Cadence', 'Downbeat', 'Remix', 'Hi-Hat', 'Sample'],'They keep the ball moving until somebody slips.'],
     ['Harbor Hounds','HBR','#5bc9e2','#233951','sunset','stop',['Foxy', 'Undertow', 'Dockside', 'Anchor', 'Low Tide'],'They chase every cut, then hit back downhill.']
   ];
+  const states = {
+    STP:['East','Stamp Commonwealth',349,113],
+    RPR:['West','Grave Hollow',103,78],
+    VPR:['West','Neon Basin',66,120],
+    CNK:['East','Concrete Territory',305,89],
+    SKY:['West','Skyline Ridge',176,56],
+    MID:['East','Midnight District',390,65],
+    SPK:['East','Southspark',333,164],
+    EMR:['East','Emerald Reach',428,118],
+    IRN:['West','Iron Range',191,111],
+    ROY:['West','Sunset Coast',52,151],
+    BBT:['West','Backlot Flats',145,135],
+    ICE:['East','Northglass',329,37],
+    INF:['West','Inferno Mesa',112,170],
+    MOON:['West','Mooncrest',130,46],
+    TMP:['East','Tempo Valley',283,129],
+    HBR:['East','Harbor Sound',410,149]
+  };
+  const capital={name:'Crown Capital',x:244,y:94};
   const humanSkins = ['#784831','#ad7050','#d2a17c','#965b40','#e7b99a','#633e31'];
   const creatureSkins = ['#8069bd','#589875','#749bc3','#b65e56','#9a79af'];
   const hairColors = ['#222033','#3c2924','#ba8b40','#252d38','#342a50'];
@@ -92,16 +111,16 @@
         finish:role==='quick'?'wrap':role==='rim'?'glide':'hammer'
       };
     });
-    return {id:tag,name,tag,color,trim,gym,style:styles[style],roster,scout};
+    const [conference,state,x,y]=states[tag];
+    return {id:tag,name,tag,color,trim,gym,style:styles[style],roster,scout,conference,state,x,y};
   });
   const byName = Object.fromEntries(teams.flatMap(team=>team.roster.map(player=>[player.name,player])));
   byName.FLEX=byName['FLEX A LOT'];
   byName['LIL JUICE']=byName['LITTLE JUICE'];
   const byId = Object.fromEntries(teams.map(team => [team.id,team]));
-  const rounds = ['Round of 16','Quarterfinal','Semifinal','Championship'];
-  const venues = ['sunset','street','emerald','blue'];
+  const rounds = ['Round of 16','Conference Semifinal','Conference Final','Championship'];
   const targets = [11,13,15,21];
-  const seedOrder = [1,16,8,9,4,13,5,12,2,15,7,10,3,14,6,11];
+  const seedOrder = [1,8,4,5,2,7,3,6];
   const storageKey = 'sbfent-hoops-cup-v1';
   let saved = {};
   try {
@@ -115,17 +134,61 @@
   }
 
   function bracket(home) {
-    const boss = home.id==='RPR' ? byId.MID : byId.RPR;
-    const rest = teams.filter(team=>team!==home&&team!==boss);
-    const offset = teams.indexOf(home) % rest.length;
-    const seeded = [home,boss,...rest.slice(offset),...rest.slice(0,offset)];
-    let entrants = seedOrder.map(seed => ({seed,team:seeded[seed-1]}));
-    return rounds.map(() => {
-      const pairs = [];
-      for (let i=0; i<entrants.length; i+=2) pairs.push(entrants.slice(i,i+2));
-      entrants = pairs.map(([a,b]) => a.seed<b.seed?a:b);
-      return pairs;
-    });
+    const other=home.conference==='East'?'West':'East';
+    const favorite=other==='West'?byId.RPR:byId.MID;
+    const seed = (conference,first) => {
+      const seeded=[first,...teams.filter(team=>team.conference===conference&&team!==first)];
+      return seedOrder.map(n=>({seed:n,team:seeded[n-1]}));
+    };
+    let lanes=[seed(home.conference,home),seed(other,favorite)];
+    const stage=[];
+    for(let round=0;round<3;round++) {
+      const conferences=lanes.map(entrants=>{
+        const pairs=[];
+        for(let i=0;i<entrants.length;i+=2) pairs.push(entrants.slice(i,i+2));
+        return pairs;
+      });
+      stage.push(conferences.flat());
+      lanes=conferences.map(pairs=>pairs.map(([a,b])=>a.seed<b.seed?a:b));
+    }
+    stage.push([[lanes[0][0],lanes[1][0]]]);
+    return stage;
+  }
+
+  function travel(match) {
+    const {home,away,round}=match;
+    const bracketRounds=bracket(home);
+    const stops=[home,...bracketRounds.slice(0,round+1).map((pairs,i)=>i===3?capital:pairs[0][1].team)];
+    const line=stops.map(({x,y})=>x+','+y).join(' ');
+    const last=stops[stops.length-1];
+    const previous=stops[stops.length-2];
+    const pins=teams.map(team=>
+      `<circle cx="${team.x}" cy="${team.y}" r="${team===home||team===away?5.5:3.5}" fill="${team.conference==='East'?'#9de8ff':'#ffc58b'}"><title>${team.state} / ${team.name}</title></circle>`).join('');
+    const destination=round===3?capital.name:away.state;
+    const source=previous.state||previous.name;
+    return `<div class="travelCopy"><strong>${home.conference.toUpperCase()} CONFERENCE</strong><span>${source} &rarr; ${destination}</span></div>
+      <svg viewBox="0 0 480 200" role="img" aria-label="Crown Cup route from ${source} to ${destination}">
+        <rect width="480" height="200" rx="11" fill="#142434"/>
+        <path d="M38 46L93 25L164 25L204 43L221 78L208 109L225 147L186 175L136 186L85 180L38 160L26 107Z" fill="#5a414e" stroke="#d89270" stroke-width="2"/>
+        <path d="M267 61L293 29L355 22L414 43L454 85L453 140L420 175L361 185L305 171L263 143L274 103Z" fill="#274a63" stroke="#7bb6da" stroke-width="2"/>
+        <path d="M92 26L96 73L39 91M144 28L144 92L196 93L208 109M96 73L97 117L37 133M144 92L146 153L186 174M97 117L146 153L134 185M97 117L78 178" fill="none" stroke="#b78173" stroke-opacity=".65"/>
+        <path d="M294 32L319 68L375 77L406 47M319 68L323 108L276 105M375 77L375 124L452 101M323 108L318 153L305 171M375 124L349 155L360 183M349 155L318 153M375 124L420 175" fill="none" stroke="#7297b1" stroke-opacity=".65"/>
+        <text x="47" y="192" class="travelLabel" fill="#ffc58b">WEST / 8</text>
+        <text x="381" y="192" class="travelLabel" fill="#9de8ff">EAST / 8</text>
+        ${pins}
+        <path d="M244 86L252 94L244 102L236 94Z" fill="#ffd587"><title>Crown Capital</title></path>
+        <polyline points="${line}" fill="none" stroke="#e3ff99" stroke-width="3" stroke-linejoin="round" stroke-dasharray="4 4"/>
+        <circle cx="${last.x}" cy="${last.y}" r="9" fill="none" stroke="#e3ff99" stroke-width="2"/>
+        <circle r="4" fill="#fff4ac" class="travelMarker">
+          <animateMotion dur="1.65s" repeatCount="1" fill="freeze" path="M${previous.x},${previous.y} L${last.x},${last.y}"/>
+        </circle>
+      </svg><div class="travelFooter">${round===3?'EAST VS WEST AT CROWN CAPITAL':away.name+' HOSTS IN '+away.state}</div>`;
+  }
+
+  function showTravel(match) {
+    const target=$('storyTravel');
+    target.hidden=!match;
+    target.innerHTML=match?travel(match):'';
   }
 
   function choose(home, slot, player, full) {
@@ -148,7 +211,7 @@
     const opponent = away&&away!==home ? away : teams.find(team=>team!==home);
     return {
       home,away:opponent,homeRoster:choose(home,slot,player,full),awayRoster:opponent.roster,
-      round,roundName:rounds[round],gym:cup?venues[round]:home.gym,
+      round,roundName:rounds[round],gym:cup?(round===3?'blue':opponent.gym):home.gym,
       target:cup?targets[round]:21,difficulty:round===3?2:round>0?1:0
     };
   }
@@ -176,7 +239,7 @@
 
   function teamPreview(team) {
     $('squadName').textContent = team.name;
-    $('squadScout').textContent = team.style.label+' · '+team.scout;
+    $('squadScout').textContent = team.state+' · '+team.conference+' · '+team.style.label+' · '+team.scout;
     $('squadCard').style.setProperty('--squad-color',team.color);
     $('squadRoster').replaceChildren();
     for (const player of team.roster) {
@@ -221,6 +284,7 @@
     if (!cup) return;
     const progress = record(home.id);
     const match = config(true);
+    $('cupTravel').innerHTML=travel(match);
     $('cupStatus').textContent = match.roundName+' · vs '+match.away.name+' · First to '+match.target+
       ' · '+progress.cups+' '+(progress.cups===1?'title':'titles');
     const board = $('cupRounds');
@@ -284,7 +348,7 @@
   }
 
   const gallery = $('puppetTeam');
-  teams.forEach(team=>option(gallery,team.id,team.name));
+  teams.forEach(team=>option(gallery,team.id,team.name+' · '+team.conference));
   gallery.onchange=renderGallery;
   $('puppetRoster').ontoggle=()=>{if($('puppetRoster').open)renderGallery();};
   $('squadCaptain').onchange=()=>lineup(byId[$('squadHome').value]);
@@ -300,5 +364,5 @@
     }
     $('mode').onchange();
   };
-  window.HoopsSquads = {config,finish,render,find:name=>byName[name]};
+  window.HoopsSquads = {config,finish,render,showTravel,find:name=>byName[name]};
 })();

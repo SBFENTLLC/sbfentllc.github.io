@@ -138,7 +138,7 @@ function cupResult(won) {
   $('play').textContent = won&&!result.champion?'PLAY NEXT ROUND →':'START NEW CUP →';
   $('mode').onchange();
   $('menu').hidden = true;
-  const back = () => {$('menu').hidden=false;};
+  const back = () => {window.HoopsSquads.showTravel(null);$('menu').hidden=false;};
   window.HoopsCareer.scene(title+' / '+round,[['COACH STAMP',line]],back,back);
 }
 
@@ -147,10 +147,12 @@ function openCup() {
   playing = paused = false;
   window.HoopsMusic?.pause();
   $('menu').hidden = true;
+  window.HoopsSquads.showTravel(match);
   window.HoopsCareer.scene('CROWN CUP / '+match.roundName,[
-    ['COACH STAMP',match.round===0?'Sixteen crews. Four wins to own the city. Give the block a reason to remember '+match.home.name+'.':'You’ve earned the next game. Stay locked in and trust your lineup.'],
+    ['COACH STAMP',match.round===0?'Eight teams in the '+match.home.conference+'. Win your conference, then take on the other coast at Crown Capital.':'You’ve earned the next game. Stay locked in and trust your lineup.'],
     [match.away.name.toUpperCase(),match.away.scout+' First to '+match.target+'.']
-  ],()=>start(true),()=>{
+  ],()=>{window.HoopsSquads.showTravel(null);start(true);},()=>{
+    window.HoopsSquads.showTravel(null);
     $('menu').hidden=false;
     $('setup').hidden=false;
     $('restart').hidden=true;
@@ -218,7 +220,7 @@ function start(skipStory=false) {
     match:'1V1 · FIRST TO 21'
   };
   $('matchType').textContent=matchLabels[mode];
-  $('courtName').textContent=courtNames[gym];
+  $('courtName').textContent=mode==='cup'&&squadMatch.round===3?'CROWN CAPITAL':courtNames[gym];
   $('menu').hidden=true;
   try {
     sound=sound||new (window.AudioContext||window.webkitAudioContext)();
