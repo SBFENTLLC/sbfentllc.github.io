@@ -103,7 +103,14 @@ function project(x,z,y=0) {
   const up=(y-view.y)*view.cos+(view.z-z)*view.sin;
   return [OX+x*S/depth,OY-up*S/depth*(W<H?1.38:1)];
 }
-function polygon(points,fill,stroke,width=1){ctx.beginPath();points.forEach((v,i)=>{const p=project(...v);i?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}}
+function polygon(points,fill,stroke,width=1,texture=null) {
+  ctx.beginPath();
+  points.forEach((v,i)=>{const p=project(...v);i?ctx.lineTo(...p):ctx.moveTo(...p)});
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill()}
+  if(texture){ctx.fillStyle=texture;ctx.fill()}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}
+}
 function line(points,color,width=2){ctx.beginPath();points.forEach((v,i)=>{const p=project(...v);i?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
 function ring(x,z,r,color,width=2,y=0){const pts=[];for(let a=0;a<=Math.PI*2+.05;a+=.09)pts.push([x+Math.cos(a)*r,z+Math.sin(a)*r,y]);line(pts,color,width)}
 function box(x,z,w,d,h,color){polygon([[x-w/2,z-d/2,0],[x+w/2,z-d/2,0],[x+w/2,z-d/2,h],[x-w/2,z-d/2,h]],color);polygon([[x+w/2,z-d/2,0],[x+w/2,z+d/2,0],[x+w/2,z+d/2,h],[x+w/2,z-d/2,h]],'#203344');polygon([[x-w/2,z-d/2,h],[x+w/2,z-d/2,h],[x+w/2,z+d/2,h],[x-w/2,z+d/2,h]],'#53707c')}
@@ -834,7 +841,37 @@ function subtractPoint(a, b) {
   return [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
 }
 
-function meshFace(faces, vertices, center, color) {
+let feltPattern;
+function feltAt(x,z) {
+  if (S/cameraDepth(z,0)<21) return null;
+  if (feltPattern===undefined) {
+    const tile=document.createElement('canvas');
+    tile.width=tile.height=28;
+    const textile=tile.getContext('2d');
+    feltPattern=null;
+    if(textile&&typeof ctx.createPattern==='function') {
+      let seed=1897;
+      for(let fiber=0;fiber<195;fiber++) {
+        seed=(seed*1664525+1013904223)>>>0;
+        const x=(seed&255)/256*28, y=((seed>>>8)&255)/256*28;
+        textile.beginPath();
+        textile.moveTo(x,y);
+        textile.lineTo(x+(fiber%2?1.7:-1.3),y+(.6+fiber%3)*.55);
+        textile.lineWidth=.72;
+        textile.strokeStyle=fiber%3===0?'#fff0ce50':'#20112547';
+        textile.stroke();
+      }
+      feltPattern=ctx.createPattern(tile,'repeat')||null;
+    }
+  }
+  if(feltPattern?.setTransform&&typeof DOMMatrix==='function') {
+    const at=project(x,z);
+    feltPattern.setTransform(new DOMMatrix().translate(at[0],at[1]));
+  }
+  return feltPattern;
+}
+
+function meshFace(faces, vertices, center, color, cloth) {
   const normal = crossVector(subtractPoint(vertices[1], vertices[0]), subtractPoint(vertices[2], vertices[0]));
   const length = Math.hypot(...normal);
   if (length < .000001) return;
@@ -847,23 +884,26 @@ function meshFace(faces, vertices, center, color) {
   const outward = normal[0]*(at[0]-center[0]) + normal[1]*(at[1]-center[1]) + normal[2]*(at[2]-center[2]);
   const sign = outward < 0 ? -1 : 1;
   if (sign * (-at[0]*normal[0] + (view.z-at[1])*normal[1] + (view.y-at[2])*normal[2]) <= 0) return;
-  const light = sign * (-.34*normal[0] + .34*normal[1] + .88*normal[2]) / length;
-  faces.push({vertices,depth:cameraDepth(at[1],at[2]),color:litColor(color,.69+Math.max(0,light)*.40)});
+  const light = sign * (-.48*normal[0] + .39*normal[1] + .78*normal[2]) / length;
+  const bounce = sign * (.73*normal[0] - .50*normal[1] + .30*normal[2]) / length;
+  const shade = cloth ? .63+Math.max(0,light)*.53+Math.max(0,bounce)*.16 :
+    .69+Math.max(0,light)*.40;
+  faces.push({vertices,depth:cameraDepth(at[1],at[2]),color:litColor(color,shade),cloth});
 }
 
-function meshRings(faces, rings, center, color) {
+function meshRings(faces, rings, center, color, cloth) {
   for (let row=0; row<rings.length-1; row++) {
     const low=rings[row], high=rings[row+1];
     for (let i=0; i<low.length; i++) {
       const next=(i+1)%low.length;
-      meshFace(faces,[low[i],low[next],high[next],high[i]],center,color);
+      meshFace(faces,[low[i],low[next],high[next],high[i]],center,color,cloth);
     }
   }
-  meshFace(faces,rings[0],center,color);
-  meshFace(faces,rings[rings.length-1],center,color);
+  meshFace(faces,rings[0],center,color,cloth);
+  meshFace(faces,rings[rings.length-1],center,color,cloth);
 }
 
-function bodyMesh(faces, point, levels, color, sides=8) {
+function bodyMesh(faces, point, levels, color, sides=8, cloth=false) {
   if (W < 700 || fullCourtActive()) sides = Math.min(7,sides);
   const rings=levels.map(([height,width,depth,offset=0]) =>
     Array.from({length:sides},(_,i) => {
@@ -871,10 +911,10 @@ function bodyMesh(faces, point, levels, color, sides=8) {
       return point(Math.cos(angle)*width,offset+Math.sin(angle)*depth,height);
     }));
   const bottom=levels[0][0], top=levels[levels.length-1][0];
-  meshRings(faces,rings,point(0,0,(bottom+top)/2),color);
+  meshRings(faces,rings,point(0,0,(bottom+top)/2),color,cloth);
 }
 
-function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6) {
+function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6, cloth=false) {
   if (W < 700 || fullCourtActive()) sides = Math.min(5,sides);
   const direction=subtractPoint(to,from);
   const length=Math.hypot(...direction);
@@ -888,7 +928,7 @@ function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6) {
       const angle=i*Math.PI*2/sides;
       return at.map((value,k)=>value+radius*(u[k]*Math.cos(angle)+v[k]*Math.sin(angle)));
     }));
-  meshRings(faces,rings,mixPoint(from,to,.5),color);
+  meshRings(faces,rings,mixPoint(from,to,.5),color,cloth);
 }
 
 function actorShadow(x,z,y) {
@@ -910,17 +950,22 @@ function person(p,index) {
   const ally=teamOf(index)===0;
   const name=actorName(index);
   const profile=squadActor(index);
-  const model=profile || (index===0&&character.myPlayer?character:window.HoopsSquads?.find(name));
+  const custom=index===0&&character.myPlayer;
+  const model=profile || (custom?character:window.HoopsSquads?.find(name));
+  const style=window.HoopsPuppets;
+  const look=custom?null:style?.look(name);
+  const metal=style?.jewelry(model,look);
   const team=ally?squadMatch?.home:squadMatch?.away;
-  const skin=model?.skin || (index===0?(character.skin||'#b98159'):
+  const skin=look?.skin || model?.skin || (index===0?(character.skin||'#b98159'):
     index===2?'#9a694b':index===3?'#bc875b':mode==='career'?careerMatch.skin:'#8d5c42');
   const signature=team?.color || (ally?outfitColor():mode==='career'?careerMatch.color:'#d25144');
   const arenaSignature=!team&&gym!=='street'&&gym!=='sunset'&&mode!=='career'&&!character.myPlayer&&career.look===0;
-  const jersey=ally&&arenaSignature?'#e6e1d4':signature;
-  const trimColor=team?.trim || (ally&&arenaSignature?'#31586a':ally?'#244754':'#f2d1ad');
-  const hair=model?.hair || (index===0&&character.hair?character.hair:
+  const jersey=look?.top || (ally&&arenaSignature?'#e6e1d4':signature);
+  const shorts=look?.shorts || litColor(jersey,.78);
+  const trimColor=look?.trim || team?.trim || (ally&&arenaSignature?'#31586a':ally?'#244754':'#f2d1ad');
+  const hair=look?.hair || model?.hair || (index===0&&character.hair?character.hair:
     name==='GOLDIE'?'#d5a440':!ally&&mode==='career'?careerMatch.hair:'#181920');
-  const hairStyle=model?.hairStyle || (index===0?character.hairStyle:'');
+  const hairStyle=look?.hairStyle || model?.hairStyle || (index===0?character.hairStyle:'');
   const action=shot?.actor===index?shot:null;
   const progress=action?Math.min(1,action.t/action.duration):0;
   const movement=Math.min(1,Math.hypot(p.vx||0,p.vz||0)/4.3);
@@ -958,8 +1003,8 @@ function person(p,index) {
     const ankle=point(side*.14,footZ,footY+.085);
     const upper=point(side*.13,0,hips-.04);
     const hem=mixPoint(upper,knee,.61);
-    limbMesh(faces,upper,hem,.116,.099,litColor(jersey,.85));
-    limbMesh(faces,hem,knee,.086,.070,skin);
+    limbMesh(faces,upper,hem,.121,.104,shorts,6,true);
+    limbMesh(faces,hem,knee,.086,.070,skin,6,true);
     limbMesh(faces,knee,ankle,.070,.041,skin);
     limbMesh(faces,ankle,point(side*.14,footZ,footY+.17),.050,.049,'#eeede7');
     limbMesh(faces,point(side*.14,footZ+.075,footY+.01),point(side*.14,footZ-.15,footY+.01),.074,.064,'#d7dbdf');
@@ -970,7 +1015,7 @@ function person(p,index) {
     [hips-.08,.204,.124,.013],[hips+.015,.197,.127],[hips+.23,.194,.123,lean*.34],
     [hips+.48,.263,.142,lean*.83],[hips+.60,.253,.121,lean],
     [hips+.665,.125,.087,lean]
-  ],jersey);
+  ],jersey,8,true);
   limbMesh(faces,point(0,lean,hips+.62),point(0,lean-.014,hips+.755),.076,.067,skin,7);
 
   for (const side of [-1,1]) {
@@ -998,9 +1043,13 @@ function person(p,index) {
     }
     const elbow=[mix(shoulder[0],hand[0],.49)+side*.09*Math.cos(heading),
       mix(shoulder[1],hand[1],.48)+.07,mix(shoulder[2],hand[2],.52)-.06];
-    limbMesh(faces,shoulder,elbow,.086,.057,skin);
+    limbMesh(faces,shoulder,elbow,.086,.057,skin,6,true);
+    if(look?.sleeves) limbMesh(faces,shoulder,mixPoint(shoulder,elbow,.49),.099,.083,jersey,6,true);
     limbMesh(faces,elbow,hand,.056,.037,skin);
-    limbMesh(faces,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.064,.046,skin);
+    limbMesh(faces,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.067,.048,skin,6,true);
+    if(metal&&side===1) {
+      limbMesh(faces,mixPoint(elbow,hand,.72),mixPoint(elbow,hand,.83),.054,.051,metal.body,5);
+    }
   }
 
   const headY=hips+.735;
@@ -1008,17 +1057,18 @@ function person(p,index) {
   const faceColor=tint(skin,1.12);
   const faceWidth=[1,.93,1.10,1.04][model?.face||0];
   const facePoint=(x,z,y)=>point(x*faceWidth*1.10,z*1.04+headDepth,y*1.06+headY);
-  const gear=model?.accessory;
+  const gear=look?null:model?.accessory;
   bodyMesh(faces,facePoint,[
     [0,.119,.093],[.072,.205,.166],[.194,.235,.198],
     [.315,.224,.178,.012],[.403,.158,.122,.020]
-  ],faceColor,9);
+  ],faceColor,9,true);
   const fade=hairStyle==='fade';
   const hairHeight=hairStyle==='high'?.571:fade?.430:.492;
   bodyMesh(faces,facePoint,[
     [.328,.226,.186,.018],[.391,.210,.166,.017],
     [hairHeight,.143,.124,.026]
-  ],hair,8);
+  ],hair,8,true);
+  if(look) signatureHeadwear(faces,facePoint,look,hair);
   for (const side of [-1,1]) {
     const ear=facePoint(side*.212,.013,.195);
     limbMesh(faces,ear,facePoint(side*.281,.028,.224),.077,.055,skin,5);
@@ -1044,30 +1094,103 @@ function person(p,index) {
     }
   }
   faces.sort((a,b)=>b.depth-a.depth);
-  for (const face of faces) polygon(face.vertices,face.color,face.color,.34);
+  const texture=feltAt(p.x,p.z);
+  for (const face of faces) polygon(face.vertices,face.color,face.color,.34,face.cloth?texture:null);
 
   if (fall<.7) {
     const back=Math.cos(heading)>=0;
     const trim=back?.145:-.145;
     const number=profile?.number || (index===0?'01':index===2?'02':index===3?'03':String(22+index));
     if (Math.abs(Math.cos(heading))>.35) {
-      const numberColor=team?.trim || (ally&&arenaSignature?'#223444':'#f4f0e7');
+      const numberColor=look?.ink || team?.trim || (ally&&arenaSignature?'#223444':'#f4f0e7');
       jerseyText(number,point(0,lean*.68+trim,hips+.31),.19,numberColor);
       jerseyText(team?.tag||(back?'SBFENT':'HOOPS'),point(0,lean*.82+trim,hips+.47),.079,numberColor);
       const edge=back?.119:-.119;
+      const stitchWidth=Math.max(.6,S/cameraDepth(p.z,p.y)*.014);
+      ctx.setLineDash([stitchWidth*1.6,stitchWidth]);
+
       for (const side of [-1,1]) {
         line([point(side*.172,edge,hips+.045),point(side*.184,lean*.48+edge,hips+.31),
-          point(side*.219,lean+edge,hips+.53)],trimColor,Math.max(.6,S/cameraDepth(p.z,p.y)*.014));
+          point(side*.219,lean+edge,hips+.53)],trimColor,stitchWidth);
       }
+      ctx.setLineDash([]);
     }
-    paintPuppetFace(facePoint,heading,skin,hair,hairStyle,gear,model,jersey,trimColor);
+    if(metal) paintChain(point,hips,lean,heading,metal);
+    paintPuppetFace(facePoint,heading,skin,hair,hairStyle,gear,model,jersey,trimColor,look);
 
   }
   if ((index!==0||charge<0)&&(index===0||ballHolder===index||fall>.55)) {
-    label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix(2.52*buildHeight,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
+    label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix((look?.hat?2.65:2.52)*buildHeight,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
   }
 }
-function paintPuppetFace(point,heading,skin,hair,hairStyle,gear,model,jersey,trim) {
+function signatureHeadwear(faces, point, look, hair) {
+  const tilt=look.hat==='tilt'?.24:0;
+  const hat=(x,z,y)=>point(x,z,y+tilt*x);
+  const beanie=look.hat==='beanie';
+  bodyMesh(faces,hat,[
+    [.343,.251,.211,.008],[.383,.255,.214,.011],[.434,.237,.194,.018],
+    [.51,.197,.165,.019],[.571,.132,.116,.026],[.592,.055,.05,.025]
+  ],look.hatColor,9,true);
+  if(!beanie) {
+    bodyMesh(faces,hat,[
+      [.343,.271,.181,-.119],[.365,.290,.209,-.127],[.380,.273,.188,-.122]
+    ],look.hatColor,9,true);
+  } else {
+    bodyMesh(faces,hat,[
+      [.342,.255,.214,.012],[.371,.258,.217,.012],[.401,.251,.209,.012]
+    ],look.hatColor,9,true);
+  }
+  if(look.mask) {
+    bodyMesh(faces,point,[
+      [.019,.148,.127,-.033],[.064,.203,.167,-.022],
+      [.115,.230,.189,-.020],[.171,.231,.196,-.025]
+    ],'#211d24',8,true);
+  }
+  if(look.headphones) {
+    for(const side of [-1,1]) {
+      limbMesh(faces,point(side*.217,.031,.247),point(side*.287,.033,.247),.115,.095,'#181b26',7,true);
+      limbMesh(faces,point(side*.281,.033,.247),point(side*.318,.032,.247),.088,.071,'#58abc9',7,true);
+    }
+  }
+  if(look.hoops) {
+    for(const side of [-1,1]) {
+      limbMesh(faces,point(side*.198,.110,.360),point(side*.243,.137,.029),.100,.089,hair,6,true);
+      limbMesh(faces,point(side*.221,.158,.213),point(side*.219,.158,-.073),.088,.063,hair,6,true);
+    }
+  }
+}
+
+function paintChain(point,hips,lean,heading,metal) {
+  const facing=Math.cos(heading);
+  if(Math.abs(facing)<.29) return;
+  const back=facing>0;
+  const z=lean+(back?.143:-.151);
+  const curve=drop=>[
+    point(-.135,z,hips+.606),point(-.083,z*1.03,hips+.558-drop),
+    point(0,z*1.09,hips+.533-drop),point(.083,z*1.03,hips+.558-drop),point(.135,z,hips+.606)
+  ];
+  const [,z0,y0]=curve(0)[2];
+  const size=Math.max(.8,S/cameraDepth(z0,y0)*.023);
+  const chain=drop=>{
+    const points=curve(drop);
+    line(points,metal.shadow,size*1.35);
+    ctx.setLineDash([size*1.65,size*.55]);
+    line(points,metal.body,size);
+    ctx.setLineDash([size*.65,size*1.55]);
+    line(points,metal.shine,Math.max(.55,size*.48));
+    ctx.setLineDash([]);
+  };
+  chain(0);
+  if(metal.double) chain(.032);
+  if(back) return;
+  const y=hips+(metal.double?.463:.495),d=z*1.12;
+  const charm=metal.pendant===0?[[-.044,y+.023],[.044,y+.023],[.044,y-.020],[-.044,y-.020]]:
+    metal.pendant===1?[[0,y+.035],[.037,y],[0,y-.036],[-.037,y]]:
+      [[-.049,y+.024],[-.025,y+.006],[0,y+.028],[.025,y+.006],[.049,y+.024],[.035,y-.023],[-.035,y-.023]];
+  polygon(charm.map(([x,y])=>point(x,d,y)),metal.body,metal.shine,Math.max(.6,size*.45));
+}
+
+function paintPuppetFace(point,heading,skin,hair,hairStyle,gear,model,jersey,trim,look) {
   const facing=Math.cos(heading);
   const faceOn=facing<-.24;
   const stitch=faceOn?tint(skin,.70):tint(skin,.66);
@@ -1084,11 +1207,26 @@ function paintPuppetFace(point,heading,skin,hair,hairStyle,gear,model,jersey,tri
       const size=model?.eye===1?.048:model?.eye===2&&side===1?.070:.061;
       sphere(...point(x,-.195,.268),size,'#fff0cf');
       sphere(...point(x-side*.007,-.243,.265),.024,dark);
-      if (gear==='brows') segment(point(x-.044,-.198,.335),point(x+.045,-.201,.311),.026,hair);
+      if (look||gear==='brows') segment(point(x-.048,-.198,.330+(side===-1?.010:0)),
+        point(x+.047,-.201,.319+(side===1?.016:0)),.026,hair);
     }
-    segment(point(-.084,-.175,.109),point(.084,-.175,.109),.082,dark);
-    segment(point(-.044,-.221,.082),point(.038,-.221,.085),.025,'#e79895');
-    sphere(...point(0,-.208,.187),.064,tint(skin,1.17));
+    if(!look?.mask) {
+      const lips=look?.hoops?'#a84555':dark;
+      segment(point(-.084,-.175,.109),point(.084,-.175,.109),.082,lips);
+      segment(point(-.044,-.221,.082),point(.038,-.221,.085),.025,'#e79895');
+      sphere(...point(0,-.208,.187),.064,tint(skin,1.17));
+    }
+    if(look?.shades) {
+      for(const side of [-1,1]) {
+        const x=side*.090;
+        polygon([[x-.079,.292],[x+.079,.285],[x+.064,.211],[x-.065,.213]].map(([x,y])=>point(x,-.257,y)),
+          '#171822','#e8ba53',1);
+      }
+      segment(point(-.025,-.263,.259),point(.025,-.263,.259),.018,'#e8ba53');
+    }
+    if(look) {
+      jerseyText(look.tag,point(0,-.202,look.hat==='beanie'?.394:.433),.080,'#ffdb95');
+    }
     if (gear==='visor'||gear==='shades'||gear==='mono') {
       const lens=gear==='mono'?'#d5ad6e':trim;
       for (const side of gear==='mono'?[1]:[-1,1]) {
@@ -1115,6 +1253,21 @@ function paintPuppetFace(point,heading,skin,hair,hairStyle,gear,model,jersey,tri
     for(const side of facing>.55||faceOn?[-1,1]:[visibleSide]) {
       sphere(...point(side*.256,.020,gear==='gold'?.135:.212),gear==='gold'?.027:.047,
         gear==='gold'?'#efbc59':jersey);
+    }
+  }
+  if (look?.hoops) {
+    for(const side of faceOn||facing>.60?[-1,1]:[visibleSide]) {
+      const loop=[];
+      for(let i=0;i<=8;i++) {
+        const a=i*Math.PI/4;
+        loop.push(point(side*.261+Math.sin(a)*.028,.007,.104+Math.cos(a)*.054));
+      }
+      line(loop,'#f4c660',1.6);
+      for(let i=0;i<3;i++) {
+        const x=side*(.219+i*.024);
+        line([point(x,.138,.325),point(x+side*.020,.163,.219),point(x-side*.012,.171,.126),
+          point(x+side*.018,.169,.038)],i%2?'#ffe29a':'#d7a34a',1.4);
+      }
     }
   }
   if (hairStyle==='locs'||hairStyle==='braids') {
@@ -1345,7 +1498,7 @@ function burst(x,z,color){for(let i=0;i<22;i++)particles.push({x,z,y:3.1,vx:(Mat
 function drawShotMeter() {
   const p = players[0];
   const radius = Math.max(13, Math.min(20, H * .044));
-  const [x, head] = project(p.x,p.z,p.y+2.39*(character.height||1));
+  const [x, head] = project(p.x,p.z,p.y+2.53*(character.height||1));
   const y = Math.max(radius+4,head-radius-9);
   const start = -Math.PI / 2;
   const angle = value => start + 2 * Math.PI * value;

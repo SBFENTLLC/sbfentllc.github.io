@@ -2,6 +2,46 @@
 
 (() => {
   const color = (value,fallback) => /^#[a-f0-9]{6}$/i.test(value) ? value : fallback;
+  const signatureLooks = {
+    'FLEX A LOT':{art:'flex', crop:'79% 51%', hat:'beanie', hatColor:'#17151b',
+      top:'#ece2d5', shorts:'#242637', trim:'#e6c473', ink:'#2d2330', tag:'FLEX', mask:true, metal:1, sleeves:true,
+      skin:'#a95d30', hair:'#1b181d', hairStyle:'locs'},
+    'DJ BLACKOUT':{art:'dj-blackout', crop:'50% 27%', hat:'cap', hatColor:'#204791',
+      top:'#203a76', shorts:'#202842', trim:'#d9a64c', ink:'#ffe5ae', tag:'DJ OFF', headphones:true, metal:0, sleeves:true,
+      skin:'#bc7944', hair:'#28202d', hairStyle:'fade'},
+    'QUIET MONEY':{art:'quiet-money', crop:'50% 24%', hat:'cap', hatColor:'#c58f2d',
+      top:'#204239', shorts:'#172e2b', trim:'#d5a64e', ink:'#ffe5a7', tag:'HUSH', shades:true, metal:0, sleeves:true,
+      skin:'#955834', hair:'#32232a', hairStyle:'fade'},
+    'THE BOOTLEGGER':{art:'bootlegger', crop:'50% 25%', hat:'tilt', hatColor:'#c24f20',
+      top:'#553276', shorts:'#27222d', trim:'#dda646', ink:'#ffe0a0', tag:'COPY', metal:0, sleeves:true,
+      skin:'#b77748', hair:'#32232b', hairStyle:'fade'},
+    'GOLDIE':{art:'goldie', crop:'35% 31%', hat:'beanie', hatColor:'#1e181b',
+      top:'#29232b', shorts:'#2b242c', trim:'#e1b84f', ink:'#ffe296', tag:'SBFENT', hoops:true, metal:1,
+      skin:'#b46a38', hair:'#e6b95c', hairStyle:'long-curls'}
+  };
+  const metals = [
+    {shadow:'#704821',body:'#e4b655',shine:'#fff1af'},
+    {shadow:'#55546e',body:'#d6dcec',shine:'#fff9ef'},
+    {shadow:'#824e47',body:'#e3a88b',shine:'#ffe1c0'}
+  ];
+
+  function look(name) {
+    return signatureLooks[name==='FLEX'?'FLEX A LOT':name];
+  }
+
+  function jewelry(profile, signature) {
+    const number=Number(profile?.number)||1;
+    return {...metals[signature?.metal??number%metals.length], pendant:number%3, double:!!signature||number%4===0};
+  }
+
+  function card(profile) {
+    const signature=look(profile.name);
+    return signature ?
+      `<img class="signaturePortrait" data-look="${signature.art}" src="art/${signature.art}.webp" style="object-position:${signature.crop}" alt="" loading="lazy" decoding="async">` :
+      portrait(profile);
+  }
+
+  let portraitCount=0;
   const faces = [
     'M26 30Q50 18 74 30L78 57Q75 79 51 83Q26 81 22 61Z',
     'M25 35Q31 19 50 21Q72 19 76 36L75 59Q70 84 49 86Q28 82 24 60Z',
@@ -25,6 +65,11 @@
     const face = faces[profile.face] || faces[0];
     const hairShape = haircuts[profile.hairStyle] || haircuts.fade;
     const accessory = profile.accessory;
+    const metal=jewelry(profile);
+    const id='felt'+(++portraitCount);
+    const necklace='M28 93Q35 102 50 105Q65 102 72 93';
+    const charm=metal.pendant===0?'M44 104H56V112H44Z':
+      metal.pendant===1?'M50 102L56 108L50 114L44 108Z':'M44 104L47 106L50 102L53 106L56 104L55 111H45Z';
     const eyeHeight = profile.eye===1 ? 6 : 8;
     const bigEye = profile.eye===2 ? 9 : eyeHeight;
     const crest = profile.creature==='horns' || accessory==='horn'
@@ -48,7 +93,17 @@
       fang:'<path d="M38 66l5 11l4-9m7 0l5 8l4-10" fill="#ffedcc"/>'
     };
     return `<svg viewBox="0 0 100 118" aria-hidden="true" focusable="false">
-      <rect x="1" y="1" width="98" height="116" rx="15" fill="#182a3b" stroke="${jersey}" stroke-opacity=".55"/>
+      <defs>
+        <linearGradient id="${id}light" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+          <stop stop-color="#ffd08c" stop-opacity=".42"/><stop offset=".51" stop-color="#ffd08c" stop-opacity="0"/>
+          <stop offset="1" stop-color="#110d21" stop-opacity=".48"/>
+        </linearGradient>
+        <pattern id="${id}fiber" width="8" height="8" patternUnits="userSpaceOnUse">
+          <path d="M0 2l2 1m2-2l1 2m1 3l2-1M1 7l1-2" fill="none" stroke="#fff0d5" stroke-opacity=".29" stroke-width=".55"/>
+          <path d="M0 4l2 1m3-2l2-1m-4 6l2-2" fill="none" stroke="#271c2d" stroke-opacity=".4" stroke-width=".54"/>
+        </pattern>
+      </defs>
+      <rect x="1" y="1" width="98" height="116" rx="15" fill="#23203a" stroke="${jersey}" stroke-opacity=".55"/>
       <path d="M7 94L94 13M7 108L94 27M15 115L94 43" stroke="${jersey}" stroke-opacity=".10"/>
       <path d="M13 117L16 99Q20 89 40 86L62 86Q81 88 86 100L88 117Z" fill="${jersey}" stroke="${trim}" stroke-width="3"/>
       <path d="M24 117L27 98M76 117L73 98M37 88Q50 109 64 88" fill="none" stroke="${trim}" stroke-width="2.5" stroke-dasharray="3 2"/>
@@ -57,6 +112,7 @@
       <ellipse cx="23" cy="53" rx="8" ry="12" fill="${skin}" stroke="#48303a" stroke-width="2"/>
       <ellipse cx="77" cy="53" rx="8" ry="12" fill="${skin}" stroke="#48303a" stroke-width="2"/>
       <path d="${face}" fill="${skin}" stroke="#392a39" stroke-width="2.6"/>
+      <path d="${face}" fill="url(#${id}light)"/><path d="${face}" fill="url(#${id}fiber)"/>
       <path d="M26 49Q28 34 46 31M28 57Q26 75 46 80M72 36Q78 45 73 58" fill="none" stroke="#ffe7c7" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="2.2 2.6"/>
       <ellipse cx="39" cy="47" rx="8" ry="${eyeHeight}" fill="#fff1d5" stroke="#3d2b38" stroke-width="1.6"/>
       <ellipse cx="62" cy="47" rx="8" ry="${bigEye}" fill="#fff1d5" stroke="#3d2b38" stroke-width="1.6"/>
@@ -67,11 +123,16 @@
       <ellipse cx="50" cy="57" rx="8.5" ry="6" fill="${skin}" stroke="#5b3841" stroke-width="1.6"/>
       <path d="M44 55q4-4 8-2" fill="none" stroke="#ffebce" stroke-opacity=".46" stroke-width="1.6"/>
       <path d="${hairShape}" fill="${hair}" stroke="#2a2030" stroke-width="2"/>
+      <path d="${hairShape}" fill="url(#${id}fiber)"/>
       <path d="M30 26Q44 16 60 19" fill="none" stroke="#fff4e2" stroke-opacity=".27" stroke-dasharray="2 3" stroke-width="2"/>
       ${gear[accessory]||''}
-      <text x="50" y="112" text-anchor="middle" fill="${trim}" font-family="system-ui,sans-serif" font-size="13" font-weight="900">${number}</text>
+      <path d="${necklace}" stroke="${metal.shadow}" stroke-width="4.6" fill="none"/>
+      <path d="${necklace}" stroke="${metal.body}" stroke-width="3.4" stroke-dasharray="3.1 1" fill="none"/>
+      <path d="${necklace}" stroke="${metal.shine}" stroke-width="1.1" stroke-dasharray="1.6 2.5" fill="none"/>
+      <path d="${charm}" fill="${metal.body}" stroke="${metal.shine}" stroke-width="1"/>
+      <text x="76" y="113" text-anchor="middle" fill="${trim}" font-family="system-ui,sans-serif" font-size="13" font-weight="900">${number}</text>
     </svg>`;
   }
 
-  window.HoopsPuppets = {portrait};
+  window.HoopsPuppets = {portrait,card,look,jewelry};
 })();

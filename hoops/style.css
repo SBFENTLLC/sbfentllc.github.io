@@ -234,3 +234,16 @@ header {
 @media (prefers-reduced-motion: reduce) {
   .travelMarker { display: none; }
 }
+
+.signaturePortrait {
+  display: block;
+  width: 100%;
+  aspect-ratio: 100 / 118;
+  object-fit: cover;
+  border-radius: 11px;
+  border: 1px solid #c49b5b88;
+  background: #262233;
+}
+
+.puppetPortrait:has(> .signaturePortrait) { overflow: hidden; border-radius: 11px; }
+.signaturePortrait[data-look="goldie"] { transform: scale(1.48); transform-origin: 42% 38%; }

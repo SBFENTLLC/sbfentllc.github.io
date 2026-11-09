@@ -327,7 +327,7 @@
       card.className = 'puppetCard';
       const portrait = document.createElement('div');
       portrait.className = 'puppetPortrait';
-      portrait.innerHTML = window.HoopsPuppets?.portrait(player) || '';
+      portrait.innerHTML = window.HoopsPuppets?.card(player) || '';
       const info = document.createElement('div');
       const name = document.createElement('h3');
       name.textContent = player.name;
