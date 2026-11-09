@@ -235,28 +235,6 @@ header {
   .travelMarker { display: none; }
 }
 
-.signaturePortrait {
-  display: block;
-  width: 100%;
-  aspect-ratio: 100 / 118;
-  object-fit: cover;
-  border-radius: 11px;
-  border: 1px solid #c49b5b88;
-  background: #262233;
-}
-
-.puppetPortrait:has(> .signaturePortrait) { overflow: hidden; border-radius: 11px; }
-.signaturePortrait[data-look="goldie"] { transform: scale(1.48); transform-origin: 42% 38%; }
-
-.castPortrait {
-  display: block;
-  width: 100%;
-  aspect-ratio: 100 / 118;
-  border: 1px solid #e7b76b7a;
-  border-radius: 11px;
-  background: radial-gradient(ellipse at 52% 33%,#5d3b58,#202035 69%);
-}
-.castPortrait[hidden], .puppetPortrait svg[hidden] { display: none; }
 
 #hype {
   --hype-accent: #f2c16e;

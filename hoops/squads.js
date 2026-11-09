@@ -91,7 +91,7 @@
       const role = look.role || preferred || 'all';
       return {
         ...styles[role],...look,name:name.toUpperCase(),number:String((serial*7+1)%99).padStart(2,'0'),
-        color,trim,ratings,special,accessory,patchSide:serial%2===0?1:-1,
+        color,trim,teamTag:tag,ratings,special,accessory,patchSide:serial%2===0?1:-1,
         face:Math.floor(serial/5)%4,eye:slot%3,
         skin:creature&&name!=='The False King'?creatureSkins[(i+slot)%creatureSkins.length]:humanSkins[(i+slot*2)%humanSkins.length],
         hair:look.hair||hairColors[(i*2+slot)%hairColors.length],
@@ -192,7 +192,7 @@
   }
 
   function choose(home, slot, player, full) {
-    const captain = slot===5 ? {...player,color:home.color} : home.roster[slot];
+    const captain = slot===5 ? {...player,color:home.color,trim:home.trim,teamTag:home.tag,number:home.roster[0].number} : home.roster[slot];
     const available = home.roster.filter((_,i)=>i!==(slot===5?0:slot));
     if (full) return [captain,...available];
     const first = home.roster[Number($('squadStarterA').value)];
@@ -327,7 +327,7 @@
       card.className = 'puppetCard';
       const portrait = document.createElement('div');
       portrait.className = 'puppetPortrait';
-      portrait.innerHTML = window.HoopsPuppets?.card(player) || '';
+      portrait.innerHTML = window.HoopsPuppets?.portrait(player) || '';
       const info = document.createElement('div');
       const name = document.createElement('h3');
       name.textContent = player.name;
@@ -344,7 +344,6 @@
       info.append(name,special,stats);
       card.append(portrait,info);
       cards.append(card);
-      window.HoopsPuppets?.decorateCard(portrait,player);
     }
   }
 

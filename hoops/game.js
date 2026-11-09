@@ -965,11 +965,11 @@ function person(p,index) {
   const team=ally?squadMatch?.home:squadMatch?.away;
   const skin=look?.skin || model?.skin || (index===0?(character.skin||'#b98159'):
     index===2?'#9a694b':index===3?'#bc875b':mode==='career'?careerMatch.skin:'#8d5c42');
-  const signature=team?.color || (ally?outfitColor():mode==='career'?careerMatch.color:'#d25144');
-  const arenaSignature=!team&&gym!=='street'&&gym!=='sunset'&&mode!=='career'&&!character.myPlayer&&career.look===0;
-  const jersey=look?.top || (ally&&arenaSignature?'#e6e1d4':signature);
-  const shorts=look?.shorts || litColor(jersey,.78);
-  const trimColor=look?.trim || team?.trim || (ally&&arenaSignature?'#31586a':ally?'#244754':'#f2d1ad');
+  const personalKit=!team&&ally&&career.look!==0;
+  const jersey=team?.color || (personalKit?outfitColor():model?.color) ||
+    (ally?outfitColor():mode==='career'?careerMatch.color:'#d25144');
+  const shorts=litColor(jersey,.78);
+  const trimColor=team?.trim || (personalKit?null:model?.trim) || (ally?'#213546':'#f2d1ad');
   const hair=look?.hair || model?.hair || (index===0&&character.hair?character.hair:
     name==='GOLDIE'?'#d5a440':!ally&&mode==='career'?careerMatch.hair:'#181920');
   const hairStyle=look?.hairStyle || model?.hairStyle || (index===0?character.hairStyle:'');
@@ -1051,7 +1051,6 @@ function person(p,index) {
     const elbow=[mix(shoulder[0],hand[0],.49)+side*.09*Math.cos(heading),
       mix(shoulder[1],hand[1],.48)+.07,mix(shoulder[2],hand[2],.52)-.06];
     limbMesh(faces,shoulder,elbow,.086,.057,skin,6,true);
-    if(look?.sleeves) limbMesh(faces,shoulder,mixPoint(shoulder,elbow,.49),.099,.083,jersey,6,true);
     limbMesh(faces,elbow,hand,.056,.037,skin);
     limbMesh(faces,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.067,.048,skin,6,true);
     if(metal&&side===1) {
@@ -1106,12 +1105,15 @@ function person(p,index) {
 
   if (fall<.7) {
     const back=Math.cos(heading)>=0;
-    const trim=back?.145:-.145;
-    const number=profile?.number || (index===0?'01':index===2?'02':index===3?'03':String(22+index));
+    const trim=back?.151:-.151;
+    const number=model?.number || (index===0?'01':index===2?'02':index===3?'03':String(22+index));
     if (Math.abs(Math.cos(heading))>.35) {
-      const numberColor=look?.ink || team?.trim || (ally&&arenaSignature?'#223444':'#f4f0e7');
-      jerseyText(number,point(0,lean*.68+trim,hips+.31),.19,numberColor);
-      jerseyText(team?.tag||(back?'SBFENT':'HOOPS'),point(0,lean*.82+trim,hips+.47),.079,numberColor);
+      jerseyText(number,point(0,lean*.68+trim,hips+.275),.212,trimColor);
+      jerseyText(back?(team?.tag||model?.teamTag||'HOOPS'):'SBFENT',
+        point(0,lean*.82+trim,hips+.413),.104,trimColor);
+      const neckline=lean+trim;
+      line([point(-.111,neckline,hips+.615),point(0,neckline,hips+.542),
+        point(.111,neckline,hips+.615)],trimColor,Math.max(.8,S/cameraDepth(p.z,p.y)*.023));
       const edge=back?.119:-.119;
       const stitchWidth=Math.max(.6,S/cameraDepth(p.z,p.y)*.014);
       ctx.setLineDash([stitchWidth*1.6,stitchWidth]);
