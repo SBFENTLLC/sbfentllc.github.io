@@ -46,9 +46,30 @@ function careerHud() {
   arcadeHud();
 }
 shop();
-function resize(){W=innerWidth;H=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=W*d;canvas.height=H*d;ctx.setTransform(d,0,0,d,0,0);S=Math.min(W*.94,H*.95);OX=W/2;OY=H*(W<H?.43:.46);}
-addEventListener('resize',resize);resize();
-function project(x,z,y=0){const depth=(23-z)*.916+(9-y)*.4,up=(y-9)*.916+(23-z)*.4;return [OX+x*S/depth,OY-up*S/depth*(W<H?1.65:1)]}
+const view={z:23.5,y:7.8,sin:.355,cos:Math.sqrt(1-.355*.355)};
+
+function resize() {
+  W=innerWidth;
+  H=innerHeight;
+  const scale=Math.min(devicePixelRatio||1,2);
+  canvas.width=W*scale;
+  canvas.height=H*scale;
+  ctx.setTransform(scale,0,0,scale,0,0);
+  S=Math.min(W*.94,H*1.20);
+  OX=W/2;
+  OY=H*(W<H?.47:.46);
+}
+addEventListener('resize',resize);
+resize();
+
+function cameraDepth(z,y) {
+  return (view.z-z)*view.cos+(view.y-y)*view.sin;
+}
+function project(x,z,y=0) {
+  const depth=cameraDepth(z,y);
+  const up=(y-view.y)*view.cos+(view.z-z)*view.sin;
+  return [OX+x*S/depth,OY-up*S/depth*(W<H?1.38:1)];
+}
 function polygon(points,fill,stroke,width=1){ctx.beginPath();points.forEach((v,i)=>{const p=project(...v);i?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}}
 function line(points,color,width=2){ctx.beginPath();points.forEach((v,i)=>{const p=project(...v);i?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
 function ring(x,z,r,color,width=2,y=0){const pts=[];for(let a=0;a<=Math.PI*2+.05;a+=.09)pts.push([x+Math.cos(a)*r,z+Math.sin(a)*r,y]);line(pts,color,width)}
@@ -337,137 +358,371 @@ let gym='blue',particles=[],flash=0,arenaCache=null,arenaKey='';
 const palettes={street:{key:'#7953a0',dark:'#20344c',wall:'#192e44',accent:'#ffbd75'},blue:{key:'#1462a3',dark:'#183d69',wall:'#cadbe5',accent:'#69caff'},emerald:{key:'#247c6e',dark:'#19463f',wall:'#d5dfd6',accent:'#d9ff75'}};
 function tint(hex,n){const v=parseInt(hex.slice(1),16);return '#'+[v>>16,(v>>8)&255,v&255].map(c=>Math.max(0,Math.min(255,Math.round(c*n))).toString(16).padStart(2,'0')).join('')}
 function block(x,z,w,d,h,c,y=0){const x0=x-w/2,x1=x+w/2,z0=z-d/2,z1=z+d/2;polygon([[x0,z1,y],[x1,z1,y],[x1,z1,y+h],[x0,z1,y+h]],c);polygon([[x0,z0,y],[x0,z1,y],[x0,z1,y+h],[x0,z0,y+h]],tint(c,.7));polygon([[x1,z1,y],[x1,z0,y],[x1,z0,y+h],[x1,z1,y+h]],tint(c,.8));polygon([[x0,z0,y+h],[x1,z0,y+h],[x1,z1,y+h],[x0,z1,y+h]],tint(c,1.22))}
-function segment(a,b,width,c){const pa=project(...a),pb=project(...b),scale=S/((23-(a[1]+b[1])/2)*.916+(9-(a[2]+b[2])/2)*.4);ctx.lineCap='round';ctx.lineWidth=width*scale;ctx.strokeStyle=c;ctx.beginPath();ctx.moveTo(...pa);ctx.lineTo(...pb);ctx.stroke();ctx.lineCap='butt'}
+function segment(a,b,width,c){const pa=project(...a),pb=project(...b),scale=S/cameraDepth((a[1]+b[1])/2,(a[2]+b[2])/2);ctx.lineCap='round';ctx.lineWidth=width*scale;ctx.strokeStyle=c;ctx.beginPath();ctx.moveTo(...pa);ctx.lineTo(...pb);ctx.stroke();ctx.lineCap='butt'}
 function sphere(x,z,y,r,c){const p=project(x,z,y),radius=Math.abs(project(x+r,z,y)[0]-p[0]);const g=ctx.createRadialGradient(p[0]-radius*.32,p[1]-radius*.4,radius*.08,p[0],p[1],radius);g.addColorStop(0,tint(c,1.25));g.addColorStop(.6,c);g.addColorStop(1,tint(c,.65));ctx.fillStyle=g;ctx.beginPath();ctx.arc(...p,radius,0,Math.PI*2);ctx.fill()}
-function label3(text,x,z,y,size,color){const p=project(x,z,y);ctx.fillStyle=color;ctx.font='900 '+Math.max(7,size*S/((23-z)*.916+(9-y)*.4))+'px Arial';ctx.textAlign='center';ctx.fillText(text,...p)}
-function person(p, index) {
-  const ally = teamOf(index) === 0;
-  const name = actorName(index);
-  const skin = index === 0 ? (character.skin || '#b98159') :
-    index === 2 ? '#9a694b' : index === 3 ? '#bc875b' : mode === 'career' ? careerMatch.skin : '#8d5c42';
-  const jersey = ally ? outfitColor() : mode === 'career' ? careerMatch.color : '#f16c4b';
-  const hair = index === 0 && character.hair ? character.hair :
-    name === 'GOLDIE' ? '#d5a440' : !ally && mode === 'career' ? careerMatch.hair : '#1d202a';
+function label3(text,x,z,y,size,color){const p=project(x,z,y);ctx.fillStyle=color;ctx.font='900 '+Math.max(7,size*S/cameraDepth(z,y))+'px Arial';ctx.textAlign='center';ctx.fillText(text,...p)}
+const litColors = new Map();
 
-  const action = shot?.actor === index ? shot : null;
-  const progress = action ? Math.min(1, action.t / action.duration) : 0;
-  const movement = Math.min(1, Math.hypot(p.vx || 0, p.vz || 0) / 3.9);
-  const stride = p.gait || 0;
-  const trick = p.trickT || 0;
-  const heading = poseHeading(p);
-  const fall = p.fall > 0 ? ease(0, .2, .9 - p.fall) * ease(0, .27, p.fall) : 0;
-  const tip = fall * 1.35;
-  const point = (x, z, y) => actorPoint(p, x * Math.cos(tip) + y * Math.sin(tip), z,
-    Math.max(.025, y * Math.cos(tip) - x * Math.sin(tip)), heading);
-  const rise = p.y > .04;
-  const dip = action ? .13 * Math.sin(Math.PI * ease(0, .12, progress)) +
-    .16 * Math.sin(Math.PI * ease(.8, 1, progress)) : 0;
-  const pelvis = .69 - dip + Math.abs(Math.sin(stride)) * movement * .04;
-  const lean = -.13 * movement - (trick > 0 ? .12 * Math.sin(Math.PI * trick / .5) : 0);
-  const ground = (x, z) => [p.x + x, p.z + z, 0];
+function litColor(color, amount) {
+  const shade = Math.round(amount * 16);
+  const key = color + ':' + shade;
+  if (!litColors.has(key)) litColors.set(key, tint(color, shade / 16));
+  return litColors.get(key);
+}
 
-  ring(p.x, p.z, .45, index === 0 ? (heat >= 3 ? '#ffb658' : '#d9ff75') : ally ? '#d9ff7590' : '#f18b76', 2);
-  polygon([ground(-.35,-.2),ground(.35,-.2),ground(.41,.32),ground(-.41,.32)], '#142b3c33');
+function crossVector(a, b) {
+  return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+}
 
-  const feet = [];
-  for (const side of [-1, 1]) {
-    const cycle = stride + (side === 1 ? Math.PI : 0);
-    const step = Math.sin(cycle) * .37 * movement;
-    const lift = Math.max(0, Math.cos(cycle)) * .16 * movement;
-    const knee = point(side * .18, step * .45 - .13 - (rise ? .16 : 0), pelvis * .55 + (rise ? .14 : 0));
-    const footZ = rise ? (side === 1 ? -.13 : .30) : step;
-    const footY = rise ? (side === 1 ? .27 : .12) : .06 + lift;
-    const ankle = point(side * .2, footZ, footY + .13);
-    segment(point(side * .16, 0, pelvis + .10), knee, .24, tint(jersey,.79));
-    segment(knee, ankle, .16, skin);
-    segment(ankle, point(side * .2, footZ, footY + .04), .18, '#eee9df');
-    feet.push([point(side * .2, footZ + .08, footY), point(side * .2, footZ - .14, footY)]);
+function subtractPoint(a, b) {
+  return [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+}
+
+function meshFace(faces, vertices, center, color) {
+  const normal = crossVector(subtractPoint(vertices[1], vertices[0]), subtractPoint(vertices[2], vertices[0]));
+  const length = Math.hypot(...normal);
+  if (length < .000001) return;
+  const at = [0,0,0];
+  for (const vertex of vertices) {
+    at[0] += vertex[0] / vertices.length;
+    at[1] += vertex[1] / vertices.length;
+    at[2] += vertex[2] / vertices.length;
   }
-  for (const [heel, toe] of feet) segment(heel, toe, .22, '#eee9df');
+  const outward = normal[0]*(at[0]-center[0]) + normal[1]*(at[1]-center[1]) + normal[2]*(at[2]-center[2]);
+  const sign = outward < 0 ? -1 : 1;
+  if (sign * (-at[0]*normal[0] + (view.z-at[1])*normal[1] + (view.y-at[2])*normal[2]) <= 0) return;
+  const light = sign * (-.34*normal[0] + .34*normal[1] + .88*normal[2]) / length;
+  faces.push({vertices,depth:cameraDepth(at[1],at[2]),color:litColor(color,.69+Math.max(0,light)*.40)});
+}
 
-  poseBox(point, .64, .36, .31, pelvis, 0, tint(jersey,.78));
-  poseBox(point, .72, .40, .67, pelvis + .31, lean, jersey);
-  const backVisible = Math.cos(heading) >= 0;
-  const numberAt = point(0, lean + (backVisible ? .21 : -.21), pelvis + .56);
-  if (Math.abs(Math.cos(heading)) > .3) {
-    label3(index === 0 ? '01' : index === 2 ? '02' : index === 3 ? '03' : String(22+index),
-      ...numberAt, .23, '#fff4d6');
-    label3('SBFENT', ...point(0, lean + (backVisible ? .211 : -.211), pelvis + .76), .11, '#132f40');
+function meshRings(faces, rings, center, color) {
+  for (let row=0; row<rings.length-1; row++) {
+    const low=rings[row], high=rings[row+1];
+    for (let i=0; i<low.length; i++) {
+      const next=(i+1)%low.length;
+      meshFace(faces,[low[i],low[next],high[next],high[i]],center,color);
+    }
+  }
+  meshFace(faces,rings[0],center,color);
+  meshFace(faces,rings[rings.length-1],center,color);
+}
+
+function bodyMesh(faces, point, levels, color, sides=8) {
+  if (W < 700) sides = Math.min(7,sides);
+  const rings=levels.map(([height,width,depth,offset=0]) =>
+    Array.from({length:sides},(_,i) => {
+      const angle=i*Math.PI*2/sides;
+      return point(Math.cos(angle)*width,offset+Math.sin(angle)*depth,height);
+    }));
+  const bottom=levels[0][0], top=levels[levels.length-1][0];
+  meshRings(faces,rings,point(0,0,(bottom+top)/2),color);
+}
+
+function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6) {
+  if (W < 700) sides = Math.min(5,sides);
+  const direction=subtractPoint(to,from);
+  const length=Math.hypot(...direction);
+  if (length<.001) return;
+  const axis=direction.map(v=>v/length);
+  const perpendicular=crossVector(axis,Math.abs(axis[2])>.85?[1,0,0]:[0,0,1]);
+  const scale=Math.hypot(...perpendicular);
+  const u=perpendicular.map(v=>v/scale),v=crossVector(axis,u);
+  const rings=[[from,upperRadius],[to,lowerRadius]].map(([at,radius]) =>
+    Array.from({length:sides},(_,i)=>{
+      const angle=i*Math.PI*2/sides;
+      return at.map((value,k)=>value+radius*(u[k]*Math.cos(angle)+v[k]*Math.sin(angle)));
+    }));
+  meshRings(faces,rings,mixPoint(from,to,.5),color);
+}
+
+function actorShadow(x,z,y) {
+  const center=project(x,z);
+  const across=project(x+.49,z);
+  const along=project(x,z+.38);
+  const width=Math.max(2,Math.abs(across[0]-center[0]));
+  const height=Math.max(1,Math.abs(along[1]-center[1]));
+  ctx.save();
+  ctx.globalAlpha=Math.max(.10,.30-y*.10);
+  ctx.fillStyle='#0c1017';
+  ctx.beginPath();
+  ctx.ellipse(center[0],center[1]+1,width,height,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function person(p,index) {
+  const ally=teamOf(index)===0;
+  const name=actorName(index);
+  const skin=index===0?(character.skin||'#b98159'):
+    index===2?'#9a694b':index===3?'#bc875b':mode==='career'?careerMatch.skin:'#8d5c42';
+  const signature=ally?outfitColor():mode==='career'?careerMatch.color:'#d25144';
+  const arenaSignature=gym!=='street'&&mode!=='career'&&!character.myPlayer&&career.look===0;
+  const jersey=ally&&arenaSignature?'#e6e1d4':signature;
+  const trimColor=ally&&arenaSignature?'#31586a':ally?'#244754':'#f2d1ad';
+  const hair=index===0&&character.hair?character.hair:
+    name==='GOLDIE'?'#b68a36':!ally&&mode==='career'?careerMatch.hair:'#181920';
+  const action=shot?.actor===index?shot:null;
+  const progress=action?Math.min(1,action.t/action.duration):0;
+  const movement=Math.min(1,Math.hypot(p.vx||0,p.vz||0)/4.3);
+  const stride=p.gait||0;
+  const heading=poseHeading(p);
+  const fall=p.fall>0?ease(0,.2,.9-p.fall)*ease(0,.27,p.fall):0;
+  const tip=fall*1.35;
+  const fallCos=Math.cos(tip),fallSin=Math.sin(tip);
+  const point=(x,z,y)=>actorPoint(p,x*fallCos+y*fallSin,z,Math.max(.015,y*fallCos-x*fallSin),heading);
+  const air=p.y>.045;
+  const dip=action?.11*Math.sin(Math.PI*ease(0,.14,progress))+
+    .14*Math.sin(Math.PI*ease(.78,1,progress)):0;
+  const hips=.89-dip+Math.abs(Math.sin(stride))*movement*.026;
+  const lean=-.14*movement;
+  const faces=[];
+
+  actorShadow(p.x,p.z,p.y);
+  if (index===0) {
+    ring(p.x,p.z,.39,heat>=3?'#ffb658':'#d9ff75',2);
+  } else if (ballHolder===index && !shot && !passFlight) {
+    ring(p.x,p.z,.34,ally?'#d9ff75a0':'#ff8f7ca0',1.5);
   }
 
-  for (const side of [-1, 1]) {
-    const shoulder = point(side * .36, lean, pelvis + .88);
-    let hand = point(side * .5, Math.sin(stride + (side === 1 ? 0 : Math.PI)) * .24 * movement,
-      pelvis + .24);
+  for (const side of [-1,1]) {
+    const cycle=stride+(side===1?Math.PI:0);
+    const step=Math.sin(cycle)*.37*movement;
+    const knee=point(side*.13,step*.47-(air?.24:.10),hips*.53+(air?.15:0));
+    const footZ=air?(side===1?-.24:.28):step;
+    const footY=air?(side===1?.19:.08):.04+Math.max(0,Math.cos(cycle))*.15*movement;
+    const ankle=point(side*.14,footZ,footY+.085);
+    const upper=point(side*.13,0,hips-.04);
+    const hem=mixPoint(upper,knee,.61);
+    limbMesh(faces,upper,hem,.116,.099,litColor(jersey,.85));
+    limbMesh(faces,hem,knee,.079,.067,skin);
+    limbMesh(faces,knee,ankle,.070,.041,skin);
+    limbMesh(faces,ankle,point(side*.14,footZ,footY+.17),.050,.049,'#eeede7');
+    limbMesh(faces,point(side*.14,footZ+.075,footY+.01),point(side*.14,footZ-.13,footY+.01),.061,.061,'#d7dbdf');
+    limbMesh(faces,point(side*.14,footZ+.059,footY+.052),point(side*.14,footZ-.14,footY+.044),.071,.058,'#f1f0ea');
+  }
+
+  bodyMesh(faces,point,[
+    [hips-.08,.204,.124,.013],[hips+.015,.197,.127],[hips+.23,.194,.123,lean*.34],
+    [hips+.48,.263,.142,lean*.83],[hips+.60,.253,.121,lean],
+    [hips+.665,.125,.087,lean]
+  ],jersey);
+  limbMesh(faces,point(0,lean,hips+.62),point(0,lean-.014,hips+.755),.076,.067,skin,7);
+
+  for (const side of [-1,1]) {
+    const shoulder=point(side*.252,lean,hips+.552);
+    let hand=point(side*.325,Math.sin(stride+(side===1?0:Math.PI))*.20*movement,hips+.025);
     if (action) {
-      const hold = action.dunk ? .64 : .22;
-      const reaching = action.redirect ? Math.min(progress, action.redirect.phase) : Math.min(progress, hold);
-      const releaseBall = shotBall({...action, redirect: null, t: reaching * action.duration});
-      const settle = ease(hold, action.dunk ? .94 : .68, progress);
-      const reach = [releaseBall[0] + (side === -1 ? -.14 : 0), releaseBall[1], releaseBall[2] - .09];
-      hand = mixPoint(reach, hand, settle);
-    } else if (p.contestTime > 0) {
-      const reach = Math.sin(Math.PI * p.contestTime / .36);
-      hand = mixPoint(hand, point(side * .36, -.3, pelvis + 1.52), reach);
-    } else if (passFlight && side === 1) {
-      const flight = passFlight.t / passFlight.duration;
-      if (passFlight.to === index && flight >= .52) {
-        hand = mixPoint(hand, passBall({...passFlight,t:passFlight.duration}), ease(.52, 1, flight));
-      } else if (passFlight.from === index) {
-        hand = mixPoint(passFlight.startBall, hand, ease(0, .32, flight));
+      const hold=action.dunk?.64:.22;
+      const reaching=Math.min(progress,hold,action.redirect?.phase??1);
+      const ball=shotBall({...action,redirect:null,t:reaching*action.duration});
+      const reach=[ball[0]+(side===-1?-.12:0),ball[1],ball[2]-.075];
+      hand=mixPoint(reach,hand,ease(hold,action.dunk?.94:.68,progress));
+    } else if (p.contestTime>0) {
+      hand=mixPoint(hand,point(side*.29,-.28,hips+1.13),Math.sin(Math.PI*p.contestTime/.36));
+    } else if (passFlight&&side===1) {
+      const phase=passFlight.t/passFlight.duration;
+      if (passFlight.to===index&&phase>=.52) {
+        hand=mixPoint(hand,passBall({...passFlight,t:passFlight.duration}),ease(.52,1,phase));
+      } else if (passFlight.from===index) {
+        hand=mixPoint(passFlight.startBall,hand,ease(0,.32,phase));
       }
-    } else if (!shot && !passFlight && !looseBall && ballHolder === index && delay <= 0 && side === 1) {
-      const ball = heldBall(p);
-      hand = [ball[0], ball[1], Math.max(p.y + .84, ball[2] + .10)];
+    } else if (!shot&&!passFlight&&!looseBall&&ballHolder===index&&delay<=0&&side===1) {
+      const ball=heldBall(p);
+      hand=[ball[0],ball[1],Math.max(p.y+.79,ball[2]+.07)];
     }
-    const elbow = [mix(shoulder[0], hand[0], .48) + side * .12 * Math.cos(heading),
-      mix(shoulder[1], hand[1], .48), mix(shoulder[2], hand[2], .52) - .09];
-    segment(shoulder, elbow, .20, skin);
-    segment(elbow, hand, .16, skin);
-    sphere(...hand, .10, skin);
+    const elbow=[mix(shoulder[0],hand[0],.49)+side*.09*Math.cos(heading),
+      mix(shoulder[1],hand[1],.48)+.07,mix(shoulder[2],hand[2],.52)-.06];
+    limbMesh(faces,shoulder,elbow,.086,.057,skin);
+    limbMesh(faces,elbow,hand,.056,.037,skin);
+    limbMesh(faces,mixPoint(elbow,hand,.94),[hand[0],hand[1]-.037,hand[2]-.023],.046,.042,skin);
   }
 
-  sphere(...point(0, lean, pelvis + 1.31), .33, skin);
-  sphere(...point(-.31, lean, pelvis + 1.31), .07, skin);
-  sphere(...point(.31, lean, pelvis + 1.31), .07, skin);
-  const fade = index === 0 && character.hairStyle === 'fade';
-  for (let j = 0; j < (fade ? 5 : 8); j++) {
-    const angle = j * Math.PI / (fade ? 2.5 : 4);
-    sphere(...point(Math.cos(angle)*.22, lean + Math.sin(angle)*.21, pelvis + 1.53), fade ? .095 : .13, hair);
-  }
-  sphere(...point(0, lean, pelvis + 1.58), .19, hair);
-  if (name === 'LIL JUICE' || index === 0 && character.hairStyle === 'locs') {
-    for (let j = -2; j <= 2; j++) segment(point(j*.10, lean + .24, pelvis + 1.53),
-      point(j*.11, lean + .29, pelvis + 1.28), .078, hair);
-  }
-  label3(fall > .55 ? 'ANKLES!' : name, p.x, p.z, p.y + mix(2.83,1.35,fall), .2, ally ? '#d9ff75' : '#ffe6dd');
-}
+  const headY=hips+.76;
+  bodyMesh(faces,point,[
+    [headY,.068,.073,lean-.017],[headY+.058,.112,.104,lean-.016],
+    [headY+.151,.132,.119,lean],[headY+.234,.113,.108,lean+.006],
+    [headY+.278,.073,.072,lean+.012]
+  ],skin,9);
+  const fade=index===0&&character.hairStyle==='fade';
+  bodyMesh(faces,point,[
+    [headY+.202,.129,.122,lean+.011],[headY+.255,.129,.12,lean+.009],
+    [headY+(fade?.286:.320),.079,.086,lean+.013]
+  ],hair,8);
 
-function poseBox(point, width, depth, height, y, centerZ, color) {
-  const corners = [];
-  for (const level of [y, y + height]) {
-    for (const [x, z] of [[-width/2,-depth/2],[width/2,-depth/2],[width/2,depth/2],[-width/2,depth/2]]) {
-      corners.push(point(x, z + centerZ, level));
+  faces.sort((a,b)=>b.depth-a.depth);
+  for (const face of faces) polygon(face.vertices,face.color,face.color,.34);
+
+  if (fall<.7) {
+    const back=Math.cos(heading)>=0;
+    const trim=back?.145:-.145;
+    const number=index===0?'01':index===2?'02':index===3?'03':String(22+index);
+    if (Math.abs(Math.cos(heading))>.35) {
+      const numberColor=ally&&arenaSignature?'#223444':'#f4f0e7';
+      jerseyText(number,point(0,lean*.68+trim,hips+.31),.19,numberColor);
+      jerseyText(back?'SBFENT':'HOOPS',point(0,lean*.82+trim,hips+.47),.079,numberColor);
+      const edge=back?.119:-.119;
+      for (const side of [-1,1]) {
+        line([point(side*.172,edge,hips+.045),point(side*.184,lean*.48+edge,hips+.31),
+          point(side*.219,lean+edge,hips+.53)],trimColor,Math.max(.6,S/cameraDepth(p.z,p.y)*.014));
+      }
+    }
+    if (!back&&Math.abs(Math.cos(heading))>.45) {
+      for (const side of [-1,1]) {
+        const eye=point(side*.048,lean-.114,headY+.16);
+        segment([eye[0]-.016,eye[1],eye[2]],[eye[0]+.016,eye[1],eye[2]],.012,'#231b1a');
+      }
+      sphere(...point(0,lean-.12,headY+.12),.028,skin);
+    }
+    if (name==='LIL JUICE'||index===0&&character.hairStyle==='locs') {
+      for (let n=-2;n<=2;n++) segment(point(n*.045,lean+.106,headY+.24),point(n*.051,lean+.145,headY+.10),.031,hair);
+    } else if (!fade && (name==='GOLDIE'||index===0&&character.hairStyle==='curls')) {
+      for (let n=0;n<7;n++) {
+        const a=n*Math.PI*2/7;
+        sphere(...point(Math.cos(a)*.10,lean+Math.sin(a)*.091,headY+.285),.039,hair);
+      }
     }
   }
-  const faces = [[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],[4,5,6,7]].map((indices, i) => {
-    const vertices = indices.map(j => corners[j]);
-    return {vertices, shade:[.86,.71,1,.76,1.19][i],
-      depth:vertices.reduce((total, vertex) => total + vertex[1] * .916 + vertex[2] * .4, 0)};
-  });
-  faces.sort((a, b) => a.depth - b.depth);
-  for (const face of faces) polygon(face.vertices, tint(color, face.shade));
+  if (index===0||ballHolder===index||fall>.55) {
+    label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix(2.26,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
+  }
 }
-function basketball(x,z,y){sphere(x,z,y,.2,'#e98a37');const p=project(x,z,y),r=Math.abs(project(x+.2,z,y)[0]-p[0]);ctx.strokeStyle='#5f3828';ctx.lineWidth=Math.max(.6,r*.1);ctx.beginPath();ctx.moveTo(p[0]-r,p[1]);ctx.lineTo(p[0]+r,p[1]);ctx.moveTo(p[0],p[1]-r);ctx.bezierCurveTo(p[0]+r*.6,p[1]-r*.5,p[0]+r*.6,p[1]+r*.5,p[0],p[1]+r);ctx.stroke()}
+function jerseyText(text, at, size, color) {
+  ctx.font='900 '+Math.max(3,size*S/cameraDepth(at[1],at[2]))+'px Arial';
+  ctx.fillStyle=color;
+  ctx.textAlign='center';
+  ctx.fillText(text,...project(...at));
+}
+
+function basketball(x,z,y){sphere(x,z,y,.145,'#cb773a');const p=project(x,z,y),r=Math.abs(project(x+.145,z,y)[0]-p[0]);ctx.strokeStyle='#5f3828';ctx.lineWidth=Math.max(.6,r*.1);ctx.beginPath();ctx.moveTo(p[0]-r,p[1]);ctx.lineTo(p[0]+r,p[1]);ctx.moveTo(p[0],p[1]-r);ctx.bezierCurveTo(p[0]+r*.6,p[1]-r*.5,p[0]+r*.6,p[1]+r*.5,p[0],p[1]+r);ctx.stroke()}
 function floorText(text,x,z,size,c){ctx.save();const p=project(x,z,.025),left=project(x-size,z,.025),back=project(x,z-1,.025),front=project(x,z+1,.025);ctx.translate(...p);ctx.scale(1,Math.max(.18,Math.abs(front[1]-back[1])/Math.abs(project(x+2,z)[0]-p[0])));ctx.fillStyle=c;ctx.font='900 '+Math.abs(p[0]-left[0])+'px Arial';ctx.textAlign='center';ctx.fillText(text,0,0);ctx.restore()}
-function arena(){if(gym==='street'){streetArena();return}const pal=palettes[gym];ctx.fillStyle='#bdcdd6';ctx.fillRect(0,0,W,H);polygon([[-14,-6,0],[14,-6,0],[14,17,0],[-14,17,0]],'#d7a879');for(let n=0;n<55;n++){const z=-4+n*.35,shade=n%4;polygon([[-8,z,.005],[8,z,.005],[8,z+.34,.005],[-8,z+.34,.005]],['#dba978','#ddb181','#e4b98a','#d5a172'][shade]);for(let x=-8+(shade%2)*1.4;x<8;x+=2.8)line([[x,z,.008],[x,z+.34,.008]],'#8d63354a',.6)}
-polygon([[-8,-1,.015],[-6.8,-1,.015],[-6.8,13,.015],[-8,13,.015]],pal.key);polygon([[6.8,-1,.015],[8,-1,.015],[8,13,.015],[6.8,13,.015]],pal.key);polygon([[-8,-1,.015],[8,-1,.015],[8,0,.015],[-8,0,.015]],pal.key);for(let i=-3;i<=3;i++){const x=i*1.9;polygon([[x-.12,2,.02],[x+.12,2,.02],[x+.22,11,.02],[x-.22,11,.02]],'#fff4d12b')}
-polygon([[-6.8,0,.03],[6.8,0,.03],[6.8,12.4,.03],[-6.8,12.4,.03]],null,'#fff5d9',2);polygon([[-2.2,0,.035],[2.2,0,.035],[2.2,4.8,.035],[-2.2,4.8,.035]],pal.key,'#fff5d9',2);ring(0,4.8,2.2,'#fff5d9',2);const arc=[];for(let a=0;a<=Math.PI+.01;a+=.035)arc.push([Math.cos(a)*5.8,1.5+Math.sin(a)*5.8,.04]);line(arc,'#fff5d9',2);line([[-5.8,0,.04],[-5.8,1.5,.04]],'#fff5d9');line([[5.8,0,.04],[5.8,1.5,.04]],'#fff5d9');ring(0,12.4,1.6,'#fff5d9',2);for(const side of [-1,1])for(let z=1.3;z<4.5;z+=.65)line([[side*2.2,z,.045],[side*2.5,z,.045]],'#fff5d9',2);floorText('SBFENT',0,9.7,1.05,pal.dark);floorText('STAMPED BY FLEX',0,10.5,.34,pal.dark);floorText('THE STAMP CENTER',0,-.4,.35,'#eaf2ec');
-polygon([[-14,-5,0],[14,-5,0],[14,-5,10],[-14,-5,10]],pal.wall);for(let x=-12;x<=12;x+=3){polygon([[x,-4.96,1.4],[x+2.6,-4.96,1.4],[x+2.6,-4.96,8.9],[x,-4.96,8.9]],'#99c9dd','#315575',3);for(let k=0;k<3;k++){const b=x+.2+k*.75,bh=2.8+((x*x+k*5)%4);polygon([[b,-4.94,1.45],[b+.5,-4.94,1.45],[b+.5,-4.94,bh],[b,-4.94,bh]],'#81a6be');for(let l=2;l<bh;l+=.6)polygon([[b+.12,-4.93,l],[b+.25,-4.93,l],[b+.25,-4.93,l+.23],[b+.12,-4.93,l+.23]],'#c4e3e5')}for(let y=2.5;y<9;y+=1.6)line([[x,-4.9,y],[x+2.6,-4.9,y]],'#315575',2);line([[x+1.3,-4.9,1.4],[x+1.3,-4.9,8.9]],'#315575',2)}polygon([[-14,-4.85,0],[14,-4.85,0],[14,-4.85,1.4],[-14,-4.85,1.4]],pal.dark);
-for(const side of [-1,1]){polygon([[side*13,-5,0],[side*13,15,0],[side*13,15,10],[side*13,-5,10]],pal.wall);for(let level=3;level>=0;level--){const bx=side*(9+level*.8);block(bx,4,.9,15,.5,pal.dark,level*.48);for(let z=-2;z<11;z+=1.4){block(bx,z,.5,.48,.1,pal.key,level*.48+.52);if((Math.floor(z*8)+level)%3!==0){const cy=level*.48+.72;sphere(bx,z,cy+.48,.16,'#986e53');block(bx,z,.33,.3,.36,['#d9ff75','#a48cc6','#e9866f','#4d83ba'][(level+Math.floor(z+3))%4],cy-.06)}}}for(let z=-4;z<14;z+=4){block(side*12.8,z,.28,.4,10,'#e8ebea');line([[side*12.5,z,9.5],[side*8,z,9.5]],'#e9edf0',3)}for(let z=1;z<12;z+=5){polygon([[side*12.7,z,5.1],[side*12.7,z+2,5.1],[side*12.7,z+2,8.1],[side*12.7,z,8.1]],pal.key);label3('SBF',side*12.5,z+1,6.6,.5,'#ecf4ed')}}for(let x=-8;x<=8;x+=4){line([[x,-5,9.8],[x,12,9.8]],'#e9edf0',3);polygon([[x-.65,2,9.65],[x+.65,2,9.65],[x+.65,5,9.65],[x-.65,5,9.65]],'#ffffef')}
-for(const x of [-5,5]){polygon([[x-.8,-4.82,6.5],[x+.8,-4.82,6.5],[x+.8,-4.82,9.4],[x-.8,-4.82,9.4]],pal.key);label3('SBFENT',x,-4.75,8.7,.3,'#e6f5ef');label3('HOOPS',x,-4.75,7.9,.29,'#d9ff75');label3('01',x,-4.75,7,.5,'#fff')}
+function hardwood() {
+  const woods=['#ba844f','#bd8955','#c0915b','#b98553','#bf8b55','#c39461','#b6814c'];
+  const width=.21;
+  for (let board=0; board<82; board++) {
+    const x=-8.61+board*width;
+    const offset=(board%4)*.78;
+    for (let piece=0; piece<7; piece++) {
+      const start=Math.max(-1.7,-4.7+offset+piece*3.1);
+      const end=Math.min(14.6,-4.7+offset+(piece+1)*3.1);
+      if (end<=start) continue;
+      polygon([[x,start,.004],[x+width-.006,start,.004],[x+width-.006,end,.004],[x,end,.004]],
+        woods[(board*3+piece*5)%woods.length]);
+      if ((board+piece)%3===0) {
+        line([[x+.055,start+.1,.005],[x+.069,end-.1,.005]],'#6d42251c',.6);
+      }
+    }
+  }
 }
-function drawCourtScoreboard(){if(gym==='street')return;polygon([[-1.7,-4.75,5.8],[1.7,-4.75,5.8],[1.7,-4.75,8.2],[-1.7,-4.75,8.2]],'#142632','#647a87',2);label3('STAMP CENTER',0,-4.7,7.7,.24,'#dce9e8');label3(String(score[0]).padStart(2,'0')+'  :  '+String(score[1]).padStart(2,'0'),0,-4.7,6.8,.66,'#d9ff75');label3(String(Math.ceil(clock)).padStart(2,'0'),0,-4.7,6.1,.29,'#ff896b')}
+
+function indoorLines(pal) {
+  polygon([[-8.6,-1.7,.012],[8.6,-1.7,.012],[8.6,0,.012],[-8.6,0,.012]],pal.dark);
+  polygon([[-8.6,0,.012],[-6.8,0,.012],[-6.8,13.3,.012],[-8.6,13.3,.012]],pal.dark);
+  polygon([[6.8,0,.012],[8.6,0,.012],[8.6,13.3,.012],[6.8,13.3,.012]],pal.dark);
+  polygon([[-2.25,0,.016],[2.25,0,.016],[2.25,4.8,.016],[-2.25,4.8,.016]],pal.key);
+  const paint='#fff4dc';
+  polygon([[-6.8,0,.022],[6.8,0,.022],[6.8,12.4,.022],[-6.8,12.4,.022]],null,paint,2);
+  polygon([[-2.25,0,.024],[2.25,0,.024],[2.25,4.8,.024],[-2.25,4.8,.024]],null,paint,1.7);
+  ring(0,4.8,2.25,paint,1.7);
+  ring(0,12.4,1.55,paint,1.5);
+  const arc=[], restricted=[];
+  for (let angle=0; angle<=Math.PI+.02; angle+=.038) {
+    arc.push([Math.cos(angle)*5.8,1.5+Math.sin(angle)*5.8,.028]);
+    restricted.push([Math.cos(angle)*1.15,1.5+Math.sin(angle)*1.15,.028]);
+  }
+  line(arc,paint,1.8);
+  line(restricted,paint,1.4);
+  for (const side of [-1,1]) {
+    line([[side*5.8,0,.03],[side*5.8,1.5,.03]],paint,1.8);
+    for (const z of [1.4,2.16,2.88,3.6,4.38]) {
+      line([[side*2.25,z,.03],[side*2.47,z,.03]],paint,1.5);
+    }
+  }
+  for (let lane=-3;lane<=3;lane++) {
+    const x=lane*1.7;
+    polygon([[x-.065,2.6,.013],[x+.068,2.6,.013],[x+.14,11.7,.013],[x-.14,11.7,.013]],'#fff3b92c');
+  }
+  floorText('SBFENT',0,9.65,1.06,'#293747ae');
+  floorText('STAMPED BY FLEX',0,10.46,.34,'#283845b0');
+  floorText(gym==='emerald'?'EMERALD ARENA':'THE STAMP CENTER',0,-.45,.36,'#f3ead4');
+}
+
+function audienceMember(x,z,y,seed) {
+  const shirts=['#6b7282','#887c6a','#394458','#786656','#315660','#8c8b92','#966c53','#70545e'];
+  const skins=['#674735','#805943','#a27050','#b78b71','#5a4137'];
+  const shift=(seed%7-3)*.012;
+  const color=shirts[(seed*13)%shirts.length];
+  const head=project(x+shift,z,y+.43);
+  const scale=S/cameraDepth(z,y+.43);
+  polygon([[x-.145,z,y],[x+.145,z,y],[x+.137,z,y+.20],
+    [x+.072,z,y+.31],[x-.085,z,y+.31],[x-.145,z,y+.20]],color);
+  ctx.fillStyle=skins[(seed*7)%skins.length];
+  ctx.beginPath();
+  ctx.ellipse(head[0],head[1],Math.max(1,scale*.064),Math.max(1,scale*.086),0,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle=seed%5===0?'#51483c':'#272326';
+  ctx.beginPath();
+  ctx.ellipse(head[0],head[1]-scale*.044,Math.max(1,scale*.060),Math.max(1,scale*.045),0,0,Math.PI*2);
+  ctx.fill();
+}
+
+function arena() {
+  if (gym==='street') {
+    streetArena();
+    return;
+  }
+  const pal=palettes[gym];
+  const backdrop=ctx.createLinearGradient(0,0,0,H);
+  backdrop.addColorStop(0,'#10151f');
+  backdrop.addColorStop(.56,'#2f3741');
+  backdrop.addColorStop(1,'#2a292c');
+  ctx.fillStyle=backdrop;
+  ctx.fillRect(0,0,W,H);
+
+  polygon([[-17,-9,0],[17,-9,0],[17,18,0],[-17,18,0]],'#222d3a');
+  polygon([[-8.62,-1.72,.002],[8.62,-1.72,.002],[8.62,14.6,.002],[-8.62,14.6,.002]],'#8a623b');
+  hardwood();
+  indoorLines(pal);
+
+  polygon([[-17,-12.8,0],[17,-12.8,0],[17,-12.8,11],[-17,-12.8,11]],'#232d3a');
+  for (let x=-15;x<=15;x+=3.4) {
+    polygon([[x,-8.99,6.8],[x+.15,-8.99,6.8],[x+.15,-8.99,11],[x,-8.99,11]],'#394353');
+    line([[x+.1,-8.97,9.64],[x+1.65,-8.97,9.64]],'#c6c4ad',2);
+  }
+
+  for (let row=11;row>=0;row--) {
+    const z=-2.55-row*.76;
+    const y=.48+row*.52;
+    block(0,z,31,.78,.37,'#252d39',y-.38);
+    for (let seat=-33;seat<=33;seat++) {
+      if (Math.abs(seat)%17<2||((seat+35)*3+row)%13===0) continue;
+      audienceMember(seat*.45,z+.04,y,(row+1)*137+seat+33);
+    }
+    if (row===3||row===7||row===11) line([[-15,z+.4,y+.25],[15,z+.4,y+.25]],'#96979966',1);
+  }
+
+  for (const side of [-1,1]) {
+    for (let row=3;row>=0;row--) {
+      const x=side*(9.1+row*.83),y=.43+row*.42;
+      block(x,4.5,.84,13.4,.34,'#242a34',y-.33);
+      for (let seat=0;seat<24;seat++) {
+        if (seat%8!==0) audienceMember(x,-1.5+seat*.51,y,seat+(side+2)*17+row*39);
+      }
+    }
+    block(side*4.3,-1.88,5.2,.53,.45,'#18232f');
+    label3(side<0?'STAMPED BY FLEX':'SBFENT HOOPS',side*4.3,-1.57,.26,.23,'#e5e1d3');
+    line([[side*1.7,-1.57,.48],[side*6.9,-1.57,.48]],pal.accent,1);
+  }
+}
+
+function drawCourtScoreboard() {
+  if (gym==='street') return;
+  const title=gym==='emerald'?'EMERALD ARENA':'STAMP CENTER';
+  const x=6.1;
+  polygon([[x-1.65,-7.92,5.45],[x+1.65,-7.92,5.45],[x+1.65,-7.92,7],[x-1.65,-7.92,7]],'#101a26','#4d5663',2);
+  label3(title,x,-7.89,6.72,.20,'#d3dbe2');
+  label3(String(score[0]).padStart(2,'0')+'   :   '+String(score[1]).padStart(2,'0'),x,-7.88,6.12,.50,'#f6edcd');
+  label3(String(Math.ceil(clock)).padStart(2,'0'),x,-7.87,5.68,.23,'#ff8069');
+}
 function hoopBase(){block(0,-.15,1.3,1.4,.35,palettes[gym].dark);block(0,-.35,.42,.44,3.5,palettes[gym].key);segment([0,-.35,3.4],[0,1.02,3.9],.14,'#d6dde2');polygon([[-1.12,1.05,2.9],[1.12,1.05,2.9],[1.12,1.05,4.22],[-1.12,1.05,4.22]],'#c8edf530','#edf6f1',3);polygon([[-.43,1.04,3.03],[.43,1.04,3.03],[.43,1.04,3.51],[-.43,1.04,3.51]],null,'#f4f7e6',2)}
 function hoopNet(){ring(0,1.6,.46,'#f18549',3,3.05);for(let a=0;a<10;a++){const k=a/10*Math.PI*2;line([[Math.cos(k)*.46,1.6+Math.sin(k)*.46,3.05],[Math.cos(k+.4)*.25,1.6+Math.sin(k+.4)*.25,2.48]],'#f5f2e7b0',1)}ring(0,1.6,.32,'#f5f2e780',1,2.7)}
 function burst(x,z,color){for(let i=0;i<22;i++)particles.push({x,z,y:3.1,vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*3,vy:2+Math.random()*3,life:1,color})}
