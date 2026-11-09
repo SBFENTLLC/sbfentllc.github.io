@@ -5,10 +5,13 @@ let W=0,H=0,S=1,OX=0,OY=0,time=0,last=0,playing=false,paused=false,finished=fals
 const courtLength = 24.8;
 const crewIndices = [[0,2,3],[1,4,5]];
 const fullIndices = [[0,2,3,6,7],[1,4,5,8,9]];
+const actorOrders = [crewIndices,fullIndices].map(([home,away])=>[home.concat(away),away.concat(home)]);
 let squadMatch = null;
 let stunTarget = 1;
 let courtDirty = true;
 let advancingFrame = false;
+let crewReadAt = 0;
+const visualLoad = { tier:0, late:0, headroom:0, nextPaint:0 };
 let drillStep = -1;
 const drillTips = [
   '1/3 · HOLD SHOOT, RELEASE ON GREEN',
@@ -16,7 +19,8 @@ const drillTips = [
   '3/3 · DRIVE IN AND TAP DUNK',
   'DRILLS COMPLETE · KEEP SHOOTING'
 ];
-const touchCourt = () => window.matchMedia?.('(any-pointer: coarse)').matches;
+const coarsePointer = window.matchMedia?.('(any-pointer: coarse)');
+const touchCourt = () => (coarsePointer||window.matchMedia?.('(any-pointer: coarse)'))?.matches;
 const trickDuration = .5;
 let character=roster[0],difficulty=1,players=[{x:-1.2,z:9,y:0},{x:0,z:6.9,y:0},{x:-3.5,z:5.3,y:0},{x:3.8,z:7,y:0},{x:-3.2,z:4,y:0},{x:3.5,z:5.8,y:0}],keys={};
 try{wins=Number(localStorage.getItem('sbfent-hoops-wins'))||0}catch{}$('record').textContent=wins+' COURT WINS / SAVED ON THIS DEVICE';
@@ -142,7 +146,7 @@ function advanceDrill(step, text) {
   if (text) say(text);
 }
 function beep(f,d=.12,type='sine'){if(!sound||!soundEnabled)return;const o=sound.createOscillator(),g=sound.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.055,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+d);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+d)}
-function resetPossession(who){courtDirty=true;owner=who;clock=24;aiStealCD=5;charge=-1;shot=null;aiWait=0;stun=0;players[who].x=-1.1;players[who].z=9.3;players[1-who].x=.15;players[1-who].z=7.1;players.forEach(p=>{Object.assign(p,{y:0,fall:0,trickT:0,vx:0,vz:0,heading:0,gait:0,dribble:0,dribbleHand:1,trickMotion:null,catchBall:null,contestTime:0,reachTime:0,fallSide:1,guarding:false});});looseBall=null;resetCrew(who);}
+function resetPossession(who){courtDirty=true;owner=who;clock=24;aiStealCD=5;charge=-1;shot=null;aiWait=0;stun=0;players[who].x=-1.1;players[who].z=9.3;players[1-who].x=.15;players[1-who].z=7.1;players.forEach(p=>{Object.assign(p,{y:0,fall:0,trickT:0,vx:0,vz:0,heading:0,gait:0,dribble:0,dribbleHand:1,trickMotion:null,catchBall:null,crewRoute:null,contestTime:0,reachTime:0,fallSide:1,guarding:false});});looseBall=null;resetCrew(who);}
 function hud() {
   if (advancingFrame) return;
   setHud('you','textContent',String(score[0]).padStart(2,'0'));
@@ -244,6 +248,9 @@ function start(skipStory=false, guided=false) {
   score=[0,0];
   finished=paused=false;
   playing=true;
+  last=0;
+  visualLoad.tier=fullCourtActive()&&touchCourt()?1:0;
+  visualLoad.late=visualLoad.headroom=visualLoad.nextPaint=0;
   delay=stun=crossCD=defCD=0;
   resetInputs();
   resetStreetMatch();
@@ -629,10 +636,45 @@ function squadActor(i){
   return (side?squadMatch.awayRoster:squadMatch.homeRoster)[teamActors(side).indexOf(i)];
 }
 function actorName(i){return squadActor(i)?.name||(i===0?character.name:i===1?rivalName():i===2?(character.name==='LIL JUICE'?'FLEX':'LIL JUICE'):i===3?(character.name==='GOLDIE'?'FLEX':'GOLDIE'):i===4?'RIVAL 02':'RIVAL 03')}
-function closestEnemy(i){return teamActors(1-teamOf(i)).reduce((a,b)=>distance(players[i],players[a])<distance(players[i],players[b])?a:b)}
+function closestEnemy(i) {
+  const p=players[i], opponents=teamActors(1-teamOf(i));
+  let nearest=opponents[0], best=Infinity;
+  for (const opponent of opponents) {
+    const q=players[opponent], dx=p.x-q.x, dz=p.z-q.z;
+    const gap=dx*dx+dz*dz;
+    if (gap<=best) { best=gap; nearest=opponent; }
+  }
+  return nearest;
+}
 function resetStreetMatch(){stampCharge=0;comboCount=0;comboClock=0;trickIndex=0;bestCombo=0;assists=0;lobFinishes=0;hypeLife=0;lastPass=null;passFlight=null;specialUses=0;lastTrick='';}
 function gainStamp(n){stampCharge=Math.min(100,stampCharge+n)}
-function crowdRoar(){if(!soundEnabled||!sound||typeof sound.createBuffer!=='function')return;try{const n=Math.floor(sound.sampleRate*.65),b=sound.createBuffer(1,n,sound.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(.65+.35*Math.sin(i*.013));const src=sound.createBufferSource(),filter=sound.createBiquadFilter(),g=sound.createGain(),t=sound.currentTime;src.buffer=b;filter.type='bandpass';filter.frequency.value=850;filter.Q.value=.35;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.06,t+.06);g.gain.exponentialRampToValueAtTime(.001,t+.65);src.connect(filter);filter.connect(g);g.connect(sound.destination);src.start();src.stop(t+.66);src.onended=()=>{src.disconnect();filter.disconnect();g.disconnect()};}catch{}}
+let crowdSample;
+function crowdRoar() {
+  if (!soundEnabled||!sound||typeof sound.createBuffer!=='function') return;
+  try {
+    if (!crowdSample) {
+      const n=Math.floor(sound.sampleRate*.65);
+      crowdSample=sound.createBuffer(1,n,sound.sampleRate);
+      const data=crowdSample.getChannelData(0);
+      for (let i=0;i<n;i++) data[i]=(Math.random()*2-1)*(.65+.35*Math.sin(i*.013));
+    }
+    const src=sound.createBufferSource(), filter=sound.createBiquadFilter();
+    const gain=sound.createGain(), t=sound.currentTime;
+    src.buffer=crowdSample;
+    filter.type='bandpass';
+    filter.frequency.value=850;
+    filter.Q.value=.35;
+    gain.gain.setValueAtTime(.001,t);
+    gain.gain.linearRampToValueAtTime(.06,t+.06);
+    gain.gain.exponentialRampToValueAtTime(.001,t+.65);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(sound.destination);
+    src.start();
+    src.stop(t+.66);
+    src.onended=()=>{src.disconnect();filter.disconnect();gain.disconnect();};
+  } catch {}
+}
 function hype(text,accent='#f2c16e'){
   if(hypeLife<=0)crowdRoar();
   hypeCaption=text;
@@ -640,7 +682,7 @@ function hype(text,accent='#f2c16e'){
   $('hype').style.setProperty?.('--hype-accent',accent);
   beep(620,.2,'triangle');
 }
-function resetCrew(who){ballHolder=who;passFlight=null;crewHoldTime=0;cpuPassCD=3;lastPass=null;comboCount=0;comboClock=0;const spots=[[-1.1,9.3],[.15,7.1],[-3.5,5.3],[3.8,7],[-3.2,4],[3.5,5.8]];for(let i=2;i<6;i++)Object.assign(players[i],{x:spots[i][0],z:spots[i][1],y:0,fall:0});if(who===1){players[2].z=3.8;players[3].z=5.7;players[4].z=5.3;players[5].z=7;}
+function resetCrew(who){crewReadAt=0;ballHolder=who;passFlight=null;crewHoldTime=0;cpuPassCD=3;lastPass=null;comboCount=0;comboClock=0;const spots=[[-1.1,9.3],[.15,7.1],[-3.5,5.3],[3.8,7],[-3.2,4],[3.5,5.8]];for(let i=2;i<6;i++)Object.assign(players[i],{x:spots[i][0],z:spots[i][1],y:0,fall:0});if(who===1){players[2].z=3.8;players[3].z=5.7;players[4].z=5.3;players[5].z=7;}
   if (fullCourtActive()) {
     const starts = [[-1.1,13.7],[-4.1,9.7],[4.1,10.7],[-5.1,15.4],[4.8,15.7]];
     for (const side of [0,1]) fullIndices[side].forEach((index,slot)=>{
@@ -682,7 +724,7 @@ function arcadeHud() {
 }
 function beginShot(){if(passFlight?.self){requestLob();return;}if(!playing||paused||delay>0||shot||passFlight||owner!==0||charge>=0)return;if(crewActive()&&ballHolder!==0){requestPass();return;}charge=0;}
 function releaseShot(){if(charge<0)return;const q=charge,startBall=heldBall(players[0]);charge=-1;if(!playing||paused||owner!==0||shot||passFlight||delay>0)return;launch(0,q,0,{startBall,gather:gatherPose(q),jumper:true});}
-function launch(who,q,actor=who,options={}){const human=actor===0;if(human)attempts++;const p=players[actor],enemy=closestEnemy(actor),near=distance(p,players[enemy]),dist=rimDistance(p,who),dunk=!!options.special||!!options.lob||!!options.dunk||!options.jumper&&dist<(squadActor(actor)?.dunkRange||(human?character.dunkRange:0)||2.25),green=Math.abs(q-shotTarget)<shotWindow;
+function launch(who,q,actor=who,options={}){courtDirty=true;const human=actor===0;if(human)attempts++;const p=players[actor],enemy=closestEnemy(actor),near=distance(p,players[enemy]),dist=rimDistance(p,who),dunk=!!options.special||!!options.lob||!!options.dunk||!options.jumper&&dist<(squadActor(actor)?.dunkRange||(human?character.dunkRange:0)||2.25),green=Math.abs(q-shotTarget)<shotWindow;
 let chance=human?(green?.97:.76-Math.abs(q-.72)*1.3)+character.touch:(who===0?.69:.56+difficulty*.12)+(squadActor(actor)?.touch||0);if(human&&(Math.hypot(moveX,moveZ)>.1||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight))chance-=.08;chance-=Math.max(0,2.4-near)*.15;chance-=Math.max(0,dist-6)*.025;if(human&&heat>=3)chance+=.07;if(dunk)chance=options.special?1:(options.lob?.94:.93)-Math.max(0,1.65-near)*.17+(squadActor(actor)?.finishTouch??.04);chance=Math.max(.04,Math.min(1,chance));
 shot={who,actor,x:p.x,z:p.z,startY:p.y,startBall:options.startBall||heldBall(p),rimHeading:Math.atan2(-p.x,p.z-attackingZ(1.6,who)),gather:options.gather||0,dunkHand:p.dribbleHand||1,q,t:0,duration:dunk?(options.special?1.1:options.lob?.85:who===0&&heat>=3?.85:.65):1.12,showtime:who===0&&dunk&&(heat>=3||options.special),special:!!options.special,finish:options.finish,lob:!!options.lob,assist:who===0&&actor!==0&&lastPass?.from===0&&lastPass.to===actor&&time-lastPass.time<4,combo:human?comboCount:0,make:Math.random()<chance,dunk,points:options.special?3:shotPoints(dist,dunk),green,blocked:false};p.vx=0;p.vz=0;p.trickMotion=null;p.trickT=0;p.catchBall=null;charge=-1;
 if(human&&green&&!dunk){greenCount++;gainStamp(12);if(greenCount===3&&mode!=='practice'){career.coins+=30;runCoins+=30;saveCareer()}flash=.8;burst(p.x,p.z,'#d9ff75')}if(human)say(options.special?(character.special||'Stamp Breaker').toUpperCase()+'!':options.lob?'RISE UP!':dunk?'TO THE RIM!':green?'GREEN RELEASE!':q<.645?'EARLY RELEASE':'LATE RELEASE');if(human&&green&&!dunk)advanceDrill(0,'GREEN RELEASE! NEXT: CHAIN TWO MOVES.');beep(green?740:360);}
@@ -690,6 +732,7 @@ function cross() {
   if (!playing||paused||owner!==0||ballHolder!==0||shot||passFlight||delay>0||crossCD>0||charge>=0) return;
   const cost=character.crossCost??22;
   if (stamina<cost) { say('CATCH YOUR BREATH'); return; }
+  courtDirty=true;
   stamina-=cost;
   styleCrosses++;
   crossCD=Math.max(trickDuration,character.crossRecovery??(character.myPlayer&&character.crossBonus>.2?.5:.65));
@@ -725,7 +768,7 @@ function cross() {
   say(trick+' · STYLE ×'+comboCount);
   if (comboCount>=2) advanceDrill(1,'COMBO COMPLETE! NEXT: TAKE IT TO THE RIM.');
 }
-function sendPass(to,lob=false,self=false){const from=ballHolder,p=players[from],r=players[to];passFlight={from,to,x:p.x,z:p.z,startBall:heldBall(p),receive:actorPoint(r,.44,-.18,lob?1.65:1.10),tx:self?0:r.x,tz:self?2.1:r.z,t:0,duration:self?.85:lob?.65:Math.min(.6,.25+distance(p,r)*.025),lob,self,finishQueued:!self};charge=-1;crewHoldTime=0;}
+function sendPass(to,lob=false,self=false){courtDirty=true;const from=ballHolder,p=players[from],r=players[to];passFlight={from,to,x:p.x,z:p.z,startBall:heldBall(p),receive:actorPoint(r,.44,-.18,lob?1.65:1.10),tx:self?0:r.x,tz:self?2.1:r.z,t:0,duration:self?.85:lob?.65:Math.min(.6,.25+distance(p,r)*.025),lob,self,finishQueued:!self};charge=-1;crewHoldTime=0;}
 function requestPass(){if(!playing||paused||owner!==0||shot||passFlight||delay>0||!crewActive())return;let to=0;if(ballHolder===0){to=teamActors(0).slice(1).sort((a,b)=>distance(players[b],players[closestEnemy(b)])-distance(players[a],players[closestEnemy(a)]))[0]}sendPass(to);say(to===0?'COMING BACK. GET OPEN.':'PASS TO '+actorName(to));}
 function requestLob(){if(!playing||paused||owner!==0||shot||delay>0)return;if(passFlight){if(passFlight.self&&!passFlight.finishQueued){const t=passFlight.t/passFlight.duration;if(t>=.3&&t<=.95){passFlight.finishQueued=true;say('CATCH AND FINISH!')}else say('WAIT FOR THE BALL…')}return;}if(crewActive()){const to=ballHolder===0?teamActors(0).slice(1).sort((a,b)=>rimDistance(players[a],0)-rimDistance(players[b],0))[0]:0;if(rimDistance(players[to],0)>3.8){say(to===0?'CUT TO THE RIM, THEN CALL THE LOB':'WAIT FOR YOUR TEAMMATE TO CUT');return}sendPass(to,true);say('LOB IS UP!');}else{const p=players[0];if(rimDistance(p,0)>4.8){say('DRIVE INSIDE FOR THE SELF LOB');return}if(stamina<18){say('CATCH YOUR BREATH');return}stamina-=18;sendPass(0,true,true);say('OFF THE GLASS! TAP LOB AGAIN TO FINISH.');}}
 function dunkBall() {
@@ -753,6 +796,7 @@ function stampBreak() {
 
 function blockShot() {
   if (!playing||paused||owner!==1||delay>0||defCD>0) return;
+  courtDirty=true;
   defCD=.85;
   players[0].contestTime=.36;
   if (shot?.who===1 && !shot.blocked && shot.t<(character.blockWindow??.48) && distance(players[0],players[shot.actor])<(character.blockRange??2.3)) {
@@ -779,6 +823,7 @@ function takeBall(index, ball) {
   charge=-1;
   passFlight=null;
   crewHoldTime=0;
+  crewReadAt=0;
   cpuPassCD=2;
   aiWait=0;
   looseBall=null;
@@ -793,6 +838,7 @@ function stealBall() {
   const reach=.86+(guarding?.14:0)+(character.defense||0)*1.35;
   const ball=passFlight?passBall(passFlight):heldBall(holder);
   const intercepted=!!passFlight&&passFlight.t>.10&&ball[2]<1.94&&canReachBall(defender,null,ball,reach);
+  courtDirty=true;
   defCD=1.4;
   defender.reachTime=.32;
   defender.reachSide=Math.sign((ball[0]-defender.x)*Math.cos(defender.heading||0)+(ball[1]-defender.z)*Math.sin(defender.heading||0))||1;
@@ -847,6 +893,7 @@ function updatePass(dt) {
   }
   ballHolder = f.to;
   crewHoldTime = 0;
+  crewReadAt=0;
   lastPass = {from:f.from,to:f.to,time};
   if (f.lob) {
     launch(owner, .72, f.to, {lob:true,startBall:catchPoint});
@@ -876,29 +923,43 @@ function driveLane(p, side, defender) {
   return [p.x*.70,2.65];
 }
 
+const crewLanes=[-3.9,-1.3,3.8,-5.1,5.1];
+const crewSpots=[6.7,2.6,6.5,8.7,10];
+
+function runLane(p, index, slot, attacking, pace, dt) {
+  const full=fullCourtActive();
+  let route=p.crewRoute;
+  if (!full||!route||route.side!==owner||route.holder!==ballHolder||time>=route.readAt) {
+    const depth=crewSpots[slot]+(slot===1&&Math.abs(attacking.x)>2.1?-.60:0);
+    const lead=full?attackingZ(attacking.z,owner)-3.6:2;
+    route={side:owner,holder:ballHolder,z:attackingZ(Math.max(lead,depth),owner),
+      readAt:time+.09+(index%5)*.012};
+    p.crewRoute=route;
+  }
+  move(p,crewLanes[slot]-p.x,route.z-p.z,pace,dt);
+}
+
 function updateCrew(dt, allowActions=true) {
   crewHoldTime+=dt;
   cpuPassCD=Math.max(0,cpuPassCD-dt);
   const off=teamActors(owner),def=teamActors(1-owner);
   const offense=squadMatch?.[owner===0?'home':'away']?.style;
   const attacking=players[ballHolder];
-  for (const i of [...off,...def]) {
+  for (const i of actorOrders[Number(fullCourtActive())][owner]) {
     if (i===0||i===shot?.actor) continue;
     const p=players[i],profile=squadActor(i);
     const pace=profile ? profile.speed*.80 : 2.45+difficulty*.22;
     if (i===passFlight?.to) {
       move(p,0,0,0,dt);
     } else if (teamOf(i)===owner) {
-      const slot=off.indexOf(i);
-      const lanes=[-3.9,-1.3,3.8,-5.1,5.1];
-      const spots=[6.7,2.6,6.5,8.7,10];
       p.guarding=false;
-      const lead=attackingZ(attacking.z,owner);
-      const defender=players[closestEnemy(i)];
-      const [x,relative]=i===ballHolder ? driveLane(p,owner,defender) :
-        [lanes[slot],Math.max(fullCourtActive()?lead-3.6:2,spots[slot]+
-          (slot===1&&Math.abs(attacking.x)>2.1?-.60:0))];
-      move(p,x-p.x,attackingZ(relative,owner)-p.z,pace,dt);
+      if (i===ballHolder) {
+        p.crewRoute=null;
+        const [x,depth]=driveLane(p,owner,players[closestEnemy(i)]);
+        move(p,x-p.x,attackingZ(depth,owner)-p.z,pace,dt);
+      } else {
+        runLane(p,i,off.indexOf(i),attacking,pace,dt);
+      }
     } else {
       if (i===stunTarget&&owner===0&&stun>0) { move(p,0,0,0,dt); continue; }
       const target=players[off[def.indexOf(i)]];
@@ -906,8 +967,9 @@ function updateCrew(dt, allowActions=true) {
       guardOpponent(p,target,owner,pace+.12,dt,cushion);
     }
   }
-  if (!allowActions) return;
-  if (owner===1) {
+  if (!allowActions||fullCourtActive()&&time<crewReadAt) return;
+  crewReadAt=time+.09;
+  if (owner===1&&crewHoldTime>1.3) {
     const holder=players[ballHolder],near=distance(holder,players[closestEnemy(ballHolder)]);
     if (cpuPassCD<=0&&crewHoldTime>1.3&&near<2.0) {
       const to=off.filter(i=>i!==ballHolder).sort((a,b)=>distance(players[b],players[closestEnemy(b)])-distance(players[a],players[closestEnemy(a)]))[0];
@@ -920,7 +982,7 @@ function updateCrew(dt, allowActions=true) {
       launch(1,shotTarget,ballHolder);
       crewHoldTime=0;
     }
-  } else if (ballHolder!==0&&crewHoldTime>2&&attackingZ(players[ballHolder].z,0)<8) {
+  } else if (owner===0&&ballHolder!==0&&crewHoldTime>2&&attackingZ(players[ballHolder].z,0)<8) {
     launch(0,shotTarget,ballHolder);
     crewHoldTime=0;
   }
@@ -940,6 +1002,7 @@ else{if(s.who===0){heat=0;stampCharge=Math.max(0,stampCharge-10);}const all=[...
   looseBall=null;
   clock=24;
   crewHoldTime=0;
+  crewReadAt=0;
   say(s.blocked?'BLOCKED! PUSH THE BREAK.':'LIVE REBOUND. PUSH THE PACE!');
   hud();
   return;
@@ -1081,51 +1144,52 @@ function feltAt(x,z) {
   return feltPattern;
 }
 
-function meshFace(faces, vertices, center, color, cloth) {
-  const normal = crossVector(subtractPoint(vertices[1], vertices[0]), subtractPoint(vertices[2], vertices[0]));
-  const length = Math.hypot(...normal);
-  if (length < .000001) return;
-  const at = [0,0,0];
+function meshFace(mesh, vertices, center, color, cloth) {
+  const [a,b,c]=vertices;
+  const ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2];
+  const vx=c[0]-a[0], vy=c[1]-a[1], vz=c[2]-a[2];
+  const nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+  let x=0, z=0, y=0;
   for (const vertex of vertices) {
-    at[0] += vertex[0] / vertices.length;
-    at[1] += vertex[1] / vertices.length;
-    at[2] += vertex[2] / vertices.length;
+    x+=vertex[0]; z+=vertex[1]; y+=vertex[2];
   }
-  const outward = normal[0]*(at[0]-center[0]) + normal[1]*(at[1]-center[1]) + normal[2]*(at[2]-center[2]);
-  const sign = outward < 0 ? -1 : 1;
-  if (sign * (-at[0]*normal[0] + (view.z-at[1])*normal[1] + (view.y-at[2])*normal[2]) <= 0) return;
-  const light = sign * (-.48*normal[0] + .39*normal[1] + .78*normal[2]) / length;
-  const bounce = sign * (.73*normal[0] - .50*normal[1] + .30*normal[2]) / length;
-  const shade = cloth ? .63+Math.max(0,light)*.53+Math.max(0,bounce)*.16 :
-    .69+Math.max(0,light)*.40;
-  faces.push({vertices,depth:cameraDepth(at[1],at[2]),color:litColor(color,shade),cloth});
+  const count=vertices.length;
+  x/=count; z/=count; y/=count;
+  const outward=nx*(x-center[0])+ny*(z-center[1])+nz*(y-center[2]);
+  const sign=outward<0?-1:1;
+  if (sign*(-x*nx+(view.z-z)*ny+(view.y-y)*nz)<=0) return;
+  const length=Math.sqrt(nx*nx+ny*ny+nz*nz);
+  if (length<.000001) return;
+  const light=sign*(-.48*nx+.39*ny+.78*nz)/length;
+  const bounce=cloth?sign*(.73*nx-.50*ny+.30*nz)/length:0;
+  const shade=cloth?.63+Math.max(0,light)*.53+Math.max(0,bounce)*.16:.69+Math.max(0,light)*.40;
+  mesh.faces.push({vertices,depth:cameraDepth(z,y),color:litColor(color,shade),cloth});
 }
-
-function meshRings(faces, rings, center, color, cloth) {
+function meshRings(mesh, rings, center, color, cloth) {
   for (let row=0; row<rings.length-1; row++) {
     const low=rings[row], high=rings[row+1];
     for (let i=0; i<low.length; i++) {
       const next=(i+1)%low.length;
-      meshFace(faces,[low[i],low[next],high[next],high[i]],center,color,cloth);
+      meshFace(mesh,[low[i],low[next],high[next],high[i]],center,color,cloth);
     }
   }
-  meshFace(faces,rings[0],center,color,cloth);
-  meshFace(faces,rings[rings.length-1],center,color,cloth);
+  meshFace(mesh,rings[0],center,color,cloth);
+  meshFace(mesh,rings[rings.length-1],center,color,cloth);
 }
 
 const meshCircles = Array.from({length:10},(_,sides)=>
   Array.from({length:sides},(_,i)=>[Math.cos(i*Math.PI*2/sides),Math.sin(i*Math.PI*2/sides)]));
 
-function bodyMesh(faces, point, levels, color, sides=8, cloth=false) {
-  if (W < 700 || fullCourtActive()) sides = Math.min(7,sides);
+function bodyMesh(mesh, point, levels, color, sides=8, cloth=false) {
+  sides=Math.min(sides,mesh.bodySides);
   const rings=levels.map(([height,width,depth,offset=0]) =>
     meshCircles[sides].map(([cos,sin])=>point(cos*width,offset+sin*depth,height)));
   const bottom=levels[0][0], top=levels[levels.length-1][0];
-  meshRings(faces,rings,point(0,0,(bottom+top)/2),color,cloth);
+  meshRings(mesh,rings,point(0,0,(bottom+top)/2),color,cloth);
 }
 
-function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6, cloth=false) {
-  if (W < 700 || fullCourtActive()) sides = Math.min(5,sides);
+function limbMesh(mesh, from, to, upperRadius, lowerRadius, color, sides=6, cloth=false) {
+  sides=Math.min(sides,mesh.limbSides);
   const direction=subtractPoint(to,from);
   const length=Math.hypot(...direction);
   if (length<.001) return;
@@ -1135,7 +1199,7 @@ function limbMesh(faces, from, to, upperRadius, lowerRadius, color, sides=6, clo
   const u=perpendicular.map(v=>v/scale),v=crossVector(axis,u);
   const rings=[[from,upperRadius],[to,lowerRadius]].map(([at,radius]) =>
     meshCircles[sides].map(([cos,sin])=>at.map((value,k)=>value+radius*(u[k]*cos+v[k]*sin))));
-  meshRings(faces,rings,mixPoint(from,to,.5),color,cloth);
+  meshRings(mesh,rings,mixPoint(from,to,.5),color,cloth);
 }
 
 function actorShadow(x,z,y) {
@@ -1186,8 +1250,12 @@ function person(p,index) {
   const fallCos=Math.cos(tip),fallSin=Math.sin(tip);
   const buildWidth=profile?.width||1, buildHeight=profile?.height||1;
   const bodyShift=plant*Math.sign(p.trickMotion?.dx||p.dribbleHand||1)*.18;
-  const point=(x,z,y)=>actorPoint(p,(x*fallCos+y*fallSin+bodyShift*y)*buildWidth,z,
-    Math.max(.015,y*fallCos-x*fallSin)*buildHeight,heading);
+  const headingCos=Math.cos(heading), headingSin=Math.sin(heading);
+  const point=(x,z,y)=>{
+    const across=(x*fallCos+y*fallSin+bodyShift*y)*buildWidth;
+    return [p.x+across*headingCos-z*headingSin,p.z+across*headingSin+z*headingCos,
+      p.y+Math.max(.015,y*fallCos-x*fallSin)*buildHeight];
+  };
   const air=p.y>.045;
   const gathering = index === 0 && charge >= 0 ? gatherPose(charge) : 0;
   const dip = action
@@ -1201,9 +1269,13 @@ function person(p,index) {
   const landing=action?.dunk?ease(.76,.94,progress):0;
   const hasBall=!shot&&!passFlight&&!looseBall&&ballHolder===index&&delay<=0;
   const dribble=hasBall?heldBall(p):null;
-  const faces=[];
+  const full=fullCourtActive();
+  const focal=index===0||index===ballHolder||index===shot?.actor||index===passFlight?.to||p.fall>0;
+  const detail=focal?0:visualLoad.tier;
+  const compact=W<700||full;
+  const mesh={faces:[],bodySides:detail?6:compact?7:9,limbSides:detail?4:compact?5:9};
 
-  actorShadow(p.x,p.z,p.y);
+  if (focal||detail<2) actorShadow(p.x,p.z,p.y);
   if (index===0) {
     ring(p.x,p.z,.39,heat>=3?'#ffb658':'#d9ff75',2);
   } else if (ballHolder===index && !shot && !passFlight) {
@@ -1220,20 +1292,20 @@ function person(p,index) {
     const ankle=point(side*spread,footZ,footY+.085);
     const upper=point(side*.13,0,hips-.04);
     const hem=mixPoint(upper,knee,.61);
-    limbMesh(faces,upper,hem,.121,.104,shorts,6,true);
-    limbMesh(faces,hem,knee,.086,.070,skin,6,true);
-    limbMesh(faces,knee,ankle,.070,.041,skin);
-    limbMesh(faces,ankle,point(side*spread,footZ,footY+.17),.050,.049,'#eeede7');
-    limbMesh(faces,point(side*spread,footZ+.075,footY+.01),point(side*spread,footZ-.15,footY+.01),.074,.064,'#d7dbdf');
-    limbMesh(faces,point(side*spread,footZ+.059,footY+.052),point(side*spread,footZ-.15,footY+.044),.077,.062,'#f1f0ea');
+    limbMesh(mesh,upper,hem,.121,.104,shorts,6,true);
+    limbMesh(mesh,hem,knee,.086,.070,skin,6,true);
+    limbMesh(mesh,knee,ankle,.070,.041,skin);
+    limbMesh(mesh,ankle,point(side*spread,footZ,footY+.17),.050,.049,'#eeede7');
+    if (detail<2) limbMesh(mesh,point(side*spread,footZ+.075,footY+.01),point(side*spread,footZ-.15,footY+.01),.074,.064,'#d7dbdf');
+    limbMesh(mesh,point(side*spread,footZ+.059,footY+.052),point(side*spread,footZ-.15,footY+.044),.077,.062,'#f1f0ea');
   }
 
-  bodyMesh(faces,point,[
+  bodyMesh(mesh,point,[
     [hips-.08,.204,.124,.013],[hips+.015,.197,.127],[hips+.23,.194,.123,lean*.34],
     [hips+.48,.263,.142,lean*.83],[hips+.60,.253,.121,lean],
     [hips+.665,.125,.087,lean]
   ],jersey,8,true);
-  limbMesh(faces,point(0,lean,hips+.62),point(0,lean-.014,hips+.755),.076,.067,skin,7);
+  limbMesh(mesh,point(0,lean,hips+.62),point(0,lean-.014,hips+.755),.076,.067,skin,7);
 
   for (const side of [-1,1]) {
     const shoulder=point(side*.252,lean+side*twist,hips+.552);
@@ -1270,13 +1342,13 @@ function person(p,index) {
     } else if (stance||fall>.10) {
       hand=point(side*(.49+.20*fall),-.29,hips+.26+fall*.11);
     }
-    const elbow=[mix(shoulder[0],hand[0],.49)+side*.09*Math.cos(heading),
+    const elbow=[mix(shoulder[0],hand[0],.49)+side*.09*headingCos,
       mix(shoulder[1],hand[1],.48)+.07,mix(shoulder[2],hand[2],.52)-.06];
-    limbMesh(faces,shoulder,elbow,.086,.057,skin,6,true);
-    limbMesh(faces,elbow,hand,.056,.037,skin);
-    limbMesh(faces,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.067,.048,skin,6,true);
-    if(metal&&side===1) {
-      limbMesh(faces,mixPoint(elbow,hand,.72),mixPoint(elbow,hand,.83),.054,.051,metal.body,5);
+    limbMesh(mesh,shoulder,elbow,.086,.057,skin,6,true);
+    limbMesh(mesh,elbow,hand,.056,.037,skin);
+    limbMesh(mesh,mixPoint(elbow,hand,.89),[hand[0],hand[1]-.054,hand[2]-.029],.067,.048,skin,6,true);
+    if(metal&&side===1&&detail<2) {
+      limbMesh(mesh,mixPoint(elbow,hand,.72),mixPoint(elbow,hand,.83),.054,.051,metal.body,5);
     }
   }
 
@@ -1286,30 +1358,30 @@ function person(p,index) {
   const faceWidth=[1,.93,1.10,1.04][model?.face||0];
   const facePoint=(x,z,y)=>point(x*faceWidth*1.10,z*1.04+headDepth,y*1.06+headY);
   const gear=look?null:model?.accessory;
-  bodyMesh(faces,facePoint,[
+  bodyMesh(mesh,facePoint,[
     [0,.119,.093],[.072,.205,.166],[.194,.235,.198],
     [.315,.224,.178,.012],[.403,.158,.122,.020]
   ],faceColor,9,true);
   const fade=hairStyle==='fade';
   const hairHeight=hairStyle==='high'?.571:fade?.430:.492;
-  if(hairStyle!=='bald') bodyMesh(faces,facePoint,[
+  if(hairStyle!=='bald') bodyMesh(mesh,facePoint,[
     [.328,.226,.186,.018],[.391,.210,.166,.017],
     [hairHeight,.143,.124,.026]
   ],hair,8,true);
-  if(look) signatureHeadwear(faces,facePoint,look,hair);
+  if(look) signatureHeadwear(mesh,facePoint,look,hair);
   for (const side of [-1,1]) {
     const ear=facePoint(side*.212,.013,.195);
-    limbMesh(faces,ear,facePoint(side*.281,.028,.224),.077,.055,skin,5);
+    limbMesh(mesh,ear,facePoint(side*.281,.028,.224),.077,.055,skin,5);
     if (model?.creature || gear==='horn' || gear==='fang') {
       const horn=model?.creature==='horns'||gear==='horn';
-      limbMesh(faces,facePoint(side*.132,.045,.356),
+      limbMesh(mesh,facePoint(side*.132,.045,.356),
         facePoint(side*(horn?.313:.230),horn?.107:.063,horn?.613:.537),
         horn?.088:.067,.012,horn?'#ecceb0':trimColor,5);
     }
   }
   if (gear==='band'||gear==='wrap'||gear==='hood'||gear==='headset') {
     const bandColor=gear==='band'?jersey:trimColor;
-    bodyMesh(faces,facePoint,[
+    bodyMesh(mesh,facePoint,[
       [.315,.229,.188,.013],[.355,.225,.189,.018],[.372,.211,.174,.018]
     ],bandColor,8);
   }
@@ -1317,14 +1389,14 @@ function person(p,index) {
     const crown=gear==='crown';
     const accent=crown?'#f2c46f':jersey;
     for(const side of [-1,1]) {
-      limbMesh(faces,facePoint(side*.132,.03,.409),
+      limbMesh(mesh,facePoint(side*.132,.03,.409),
         facePoint(side*(crown?.162:.281),.027,crown?.574:.537),.056,.012,accent,5);
     }
   }
-  faces.sort((a,b)=>b.depth-a.depth);
-  const distant=fullCourtActive()&&index!==0&&index!==ballHolder;
-  const texture=distant?null:feltAt(p.x,p.z);
-  for (const face of faces) polygon(face.vertices,face.color,distant?null:face.color,.34,face.cloth?texture:null);
+  mesh.faces.sort((a,b)=>b.depth-a.depth);
+  const distant=full&&!focal;
+  const texture=distant||visualLoad.tier>0?null:feltAt(p.x,p.z);
+  for (const face of mesh.faces) polygon(face.vertices,face.color,distant||detail?null:face.color,.34,face.cloth?texture:null);
 
   if (fall<.7) {
     const back=Math.cos(heading)>=0;
@@ -1347,7 +1419,7 @@ function person(p,index) {
       }
       ctx.setLineDash([]);
     }
-    if(metal) paintChain(point,hips,lean,heading,metal);
+    if(metal&&detail<2) paintChain(point,hips,lean,heading,metal);
     paintPuppetFace(facePoint,heading,skin,hair,hairStyle,gear,model,jersey,trimColor,look);
 
   }
@@ -1355,56 +1427,56 @@ function person(p,index) {
     label3(fall>.55?'ANKLES!':name,p.x,p.z,p.y+mix((look?.hat?2.65:2.52)*buildHeight,1.24,fall),.16,ally?'#d9ff75':'#f6a59a');
   }
 }
-function signatureHeadwear(faces, point, look, hair) {
+function signatureHeadwear(mesh, point, look, hair) {
   const tilt=look.hat==='tilt'?.24:0;
   const hat=(x,z,y)=>point(x,z,y+tilt*x);
   const beanie=look.hat==='beanie';
   if(look.hat==='crown') {
-    bodyMesh(faces,hat,[
+    bodyMesh(mesh,hat,[
       [.415,.217,.187],[.460,.234,.195],[.484,.225,.188]
     ],look.hatColor,8);
     for(const side of [-1,0,1]) {
-      limbMesh(faces,hat(side*.139,-.027,.456),hat(side*.168,-.038,.577),.060,.012,look.hatColor,5);
+      limbMesh(mesh,hat(side*.139,-.027,.456),hat(side*.168,-.038,.577),.060,.012,look.hatColor,5);
     }
   } else if(look.hat) {
-    bodyMesh(faces,hat,[
+    bodyMesh(mesh,hat,[
       [.343,.251,.211,.008],[.383,.255,.214,.011],[.434,.237,.194,.018],
       [.51,.197,.165,.019],[.571,.132,.116,.026],[.592,.055,.05,.025]
     ],look.hatColor,9,true);
     if(!beanie) {
-      bodyMesh(faces,hat,[
+      bodyMesh(mesh,hat,[
         [.343,.271,.181,-.119],[.365,.290,.209,-.127],[.380,.273,.188,-.122]
       ],look.hatColor,9,true);
     } else {
-      bodyMesh(faces,hat,[
+      bodyMesh(mesh,hat,[
         [.342,.255,.214,.012],[.371,.258,.217,.012],[.401,.251,.209,.012]
       ],look.hatColor,9,true);
     }
   }
   if(look.buns) {
     for(const side of [-1,1]) {
-      limbMesh(faces,point(side*.168,.044,.434),point(side*.198,.047,.488),.090,.059,hair,6,true);
+      limbMesh(mesh,point(side*.168,.044,.434),point(side*.198,.047,.488),.090,.059,hair,6,true);
     }
   }
   if(look.hairStyle==='swept') {
-    limbMesh(faces,point(.161,.026,.408),point(.223,.066,.195),.096,.055,hair,6,true);
+    limbMesh(mesh,point(.161,.026,.408),point(.223,.066,.195),.096,.055,hair,6,true);
   }
   if(look.mask) {
-    bodyMesh(faces,point,[
+    bodyMesh(mesh,point,[
       [.019,.148,.127,-.033],[.064,.203,.167,-.022],
       [.115,.230,.189,-.020],[.171,.231,.196,-.025]
     ],'#211d24',8,true);
   }
   if(look.headphones) {
     for(const side of [-1,1]) {
-      limbMesh(faces,point(side*.217,.031,.247),point(side*.287,.033,.247),.115,.095,'#181b26',7,true);
-      limbMesh(faces,point(side*.281,.033,.247),point(side*.318,.032,.247),.088,.071,'#58abc9',7,true);
+      limbMesh(mesh,point(side*.217,.031,.247),point(side*.287,.033,.247),.115,.095,'#181b26',7,true);
+      limbMesh(mesh,point(side*.281,.033,.247),point(side*.318,.032,.247),.088,.071,'#58abc9',7,true);
     }
   }
   if(look.hairStyle==='long-curls') {
     for(const side of [-1,1]) {
-      limbMesh(faces,point(side*.198,.110,.360),point(side*.243,.137,.029),.100,.089,hair,6,true);
-      limbMesh(faces,point(side*.221,.158,.213),point(side*.219,.158,-.073),.088,.063,hair,6,true);
+      limbMesh(mesh,point(side*.198,.110,.360),point(side*.243,.137,.029),.100,.089,hair,6,true);
+      limbMesh(mesh,point(side*.221,.158,.213),point(side*.219,.158,-.073),.088,.063,hair,6,true);
     }
   }
 }
@@ -1739,7 +1811,8 @@ function fullArena() {
     for (let row=2;row>=0;row--) {
       const x=side*(8.8+row*.90),y=.33+row*.48;
       block(x,courtLength/2,.86,courtLength,.33,'#273044',y-.30);
-      for(let seat=0;seat<38;seat++){
+      const seatStride=touchCourt()?2:1;
+      for(let seat=row%seatStride;seat<38;seat+=seatStride){
         if((row+seat)%9!==0)audienceMember(x,.35+seat*.65,y,seat+row*43+side*5+5);
       }
     }
@@ -1748,7 +1821,7 @@ function fullArena() {
   polygon([[-7,-2,2],[7,-2,2],[7,-2,3.8],[-7,-2,3.8]],pal.dark,pal.accent,1.4);
   label3('SBFENT / FULL COURT',0,-1.98,2.9,.52,paint);
 }
-function burst(x,z,color){for(let i=0;i<22;i++)particles.push({x,z,y:3.1,vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*3,vy:2+Math.random()*3,life:1,color})}
+function burst(x,z,color){for(let i=0;i<[22,12,6][visualLoad.tier];i++)particles.push({x,z,y:3.1,vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*3,vy:2+Math.random()*3,life:1,color})}
 function drawShotMeter() {
   const p = players[0];
   const radius = Math.max(13, Math.min(20, H * .044));
@@ -1787,7 +1860,7 @@ function drawShotMeter() {
 }
 
 function paintSpecialTrail(s) {
-  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  if(visualLoad.tier===2||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
   const profile=squadActor(s.actor)||character;
   const color=window.HoopsPuppets?.look(profile.name)?.trim||profile.color||'#ffc76e';
   const points=[];
@@ -1807,6 +1880,7 @@ function render() {
   const key = [W,H,canvas.width,canvas.height,gym,fullCourtActive(),squadMatch?.home.id,squadMatch?.away.id].join(':');
   if (key !== arenaKey) {
     arena();
+    hoopBase();
     if (!arenaCache) arenaCache = document.createElement('canvas');
     arenaCache.width = canvas.width;
     arenaCache.height = canvas.height;
@@ -1816,15 +1890,14 @@ function render() {
     ctx.drawImage(arenaCache, 0, 0, W, H);
   }
   drawCourtScoreboard();
-  hoopBase();
   const actors = mode === 'practice' ? [0] : [...teamActors(0), ...teamActors(1)];
   actors.sort((a,b) => players[a].z - players[b].z).forEach(i => person(players[i], i));
   const ball = shot ? shotBall(shot) : passFlight ? passBall(passFlight) :
     looseBall || heldBall(players[ballHolder]);
   if(shot?.special) paintSpecialTrail(shot);
+  if (fullCourtActive()) { hoopBase(1); hoopNet(1); }
   basketball(...ball);
   hoopNet();
-  if (fullCourtActive()) { hoopBase(1); hoopNet(1); }
   for (const particle of particles) {
     const [x,z] = project(particle.x, particle.z, particle.y);
     ctx.fillStyle = particle.color;
@@ -1842,19 +1915,45 @@ function render() {
   setHudStyle('defend','opacity',owner === 0 ? (stamina < 5 ? '.5' : '1') : (defCD > 0 ? '.5' : '1'));
 }
 
+function adaptVisualLoad(elapsed) {
+  if (!elapsed) return;
+  if (elapsed>125) {
+    visualLoad.late=visualLoad.headroom=0;
+    return;
+  }
+  if (elapsed>22) {
+    visualLoad.late+=elapsed;
+    visualLoad.headroom=0;
+    if (visualLoad.late>=450&&visualLoad.tier<2) {
+      visualLoad.tier++;
+      visualLoad.late=0;
+    }
+  } else {
+    visualLoad.late=Math.max(0,visualLoad.late-12);
+    visualLoad.headroom=elapsed<19?visualLoad.headroom+elapsed:0;
+    if (visualLoad.headroom>=4500&&visualLoad.tier>0) {
+      visualLoad.tier--;
+      visualLoad.headroom=0;
+    }
+  }
+}
+
 function frame(timestamp) {
   requestAnimationFrame(frame);
   const active=playing&&!paused;
   if (document.hidden || active&&W<H&&touchCourt() || !active&&!courtDirty) {
     last=0;
+    visualLoad.nextPaint=0;
     return;
   }
-  let remaining=active&&last?Math.min((timestamp-last)/1000,.10):0;
+  const elapsed=active&&last?timestamp-last:0;
+  if (active&&(fullCourtActive()||touchCourt())) adaptVisualLoad(elapsed);
+  let remaining=Math.min(elapsed/1000,.125);
   last=active?timestamp:0;
   advancingFrame=true;
   try {
     while (remaining>.00001) {
-      const step=Math.min(remaining,1/45);
+      const step=Math.min(remaining,1/60);
       update(step);
       remaining-=step;
     }
@@ -1862,7 +1961,12 @@ function frame(timestamp) {
     advancingFrame=false;
   }
   hud();
+  if (active&&visualLoad.tier===2&&charge<0&&!courtDirty&&timestamp<visualLoad.nextPaint-1) return;
   render();
+  if (visualLoad.tier===2) {
+    const interval=1000/30;
+    visualLoad.nextPaint=Math.max(timestamp-interval,visualLoad.nextPaint)+interval;
+  }
   courtDirty=false;
 }
 requestAnimationFrame(frame);
